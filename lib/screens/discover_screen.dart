@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:lokalny_koszyk/widgets/discover/discover_filters.dart';
+import 'package:lokalny_koszyk/widgets/discover/discover_map_preview.dart';
+import 'package:lokalny_koszyk/widgets/discover/discover_search_bar.dart';
 import 'package:lokalny_koszyk/widgets/product_tile.dart';
 
 class DiscoverScreen extends StatefulWidget {
@@ -10,7 +13,15 @@ class DiscoverScreen extends StatefulWidget {
 
 class _DiscoverScreenState extends State<DiscoverScreen> {
   int _cartCount = 0;
+  String _activeFilter = 'Wszystkie';
   final Set<String> _liked = <String>{};
+  static const List<String> _filters = <String>[
+    'Wszystkie',
+    'BIO',
+    'Tradycyjne',
+    'Regionalne',
+    'Sezonowe',
+  ];
 
   static const List<ProductData> _products = <ProductData>[
     ProductData(
@@ -47,39 +58,66 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: ListView.separated(
-        itemCount: _products.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 14),
-        itemBuilder: (BuildContext context, int index) {
-          final ProductData product = _products[index];
-          return ProductTile(
-            product: product,
-            isLiked: _liked.contains(product.id),
-            onToggleLike: () {
-              setState(() {
-                if (_liked.contains(product.id)) {
-                  _liked.remove(product.id);
-                } else {
-                  _liked.add(product.id);
-                }
-              });
-            },
-            onAddToCart: () {
-              setState(() {
-                _cartCount++;
-              });
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  duration: const Duration(milliseconds: 700),
-                  content: Text('Koszyk: $_cartCount'),
-                ),
-              );
-            },
+    return ListView(
+      padding: EdgeInsets.zero,
+      children: <Widget>[
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+          child: Column(
+            children: const <Widget>[
+              DiscoverSearchBar(),
+              SizedBox(height: 16),
+            ],
+          ),
+        ),
+        DiscoverFilters(
+          filters: _filters,
+          activeFilter: _activeFilter,
+          onFilterSelected: (String filter) {
+            setState(() {
+              _activeFilter = filter;
+            });
+          },
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+          child: Column(
+            children: const <Widget>[
+              DiscoverMapPreview(),
+              SizedBox(height: 16),
+            ],
+          ),
+        ),
+        ..._products.map((ProductData product) {
+          return Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+            child: ProductTile(
+              product: product,
+              isLiked: _liked.contains(product.id),
+              onToggleLike: () {
+                setState(() {
+                  if (_liked.contains(product.id)) {
+                    _liked.remove(product.id);
+                  } else {
+                    _liked.add(product.id);
+                  }
+                });
+              },
+              onAddToCart: () {
+                setState(() {
+                  _cartCount++;
+                });
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    duration: const Duration(milliseconds: 700),
+                    content: Text('Koszyk: $_cartCount'),
+                  ),
+                );
+              },
+            ),
           );
-        },
-      ),
+        }),
+      ],
     );
   }
 }

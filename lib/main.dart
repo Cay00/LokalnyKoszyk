@@ -1,10 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:lokalny_koszyk/screens/discover_screen.dart';
 import 'package:lokalny_koszyk/screens/home_screen.dart';
 import 'package:lokalny_koszyk/screens/orders_screen.dart';
 import 'package:lokalny_koszyk/screens/profile_screen.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setEnabledSystemUIMode(
+    SystemUiMode.manual,
+    overlays: SystemUiOverlay.values,
+  );
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Color(0xFF1E3A2F),
+      statusBarIconBrightness: Brightness.light,
+      statusBarBrightness: Brightness.dark,
+      systemNavigationBarColor: Color(0xFF1E3A2F),
+      systemNavigationBarIconBrightness: Brightness.light,
+      systemNavigationBarDividerColor: Color(0xFF1E3A2F),
+    ),
+  );
   runApp(const MyApp());
 }
 
@@ -34,13 +50,6 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   int _selectedIndex = 0;
 
-  static const List<String> _titles = <String>[
-    'Ekran glowny',
-    'Odkrywaj',
-    'Zamowienia',
-    'Profil',
-  ];
-
   @override
   Widget build(BuildContext context) {
     final List<Widget> screens = <Widget>[
@@ -52,8 +61,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(_titles[_selectedIndex]),
+        backgroundColor: const Color(0xFF1E3A2F),
+        elevation: 0,
+        toolbarHeight: 0,
       ),
       body: screens[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
