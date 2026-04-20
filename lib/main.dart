@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:lokalny_koszyk/screens/discover_screen.dart';
+import 'package:lokalny_koszyk/screens/home_screen.dart';
+import 'package:lokalny_koszyk/screens/orders_screen.dart';
+import 'package:lokalny_koszyk/screens/profile_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -37,21 +41,21 @@ class _MyHomePageState extends State<MyHomePage> {
     'Profil',
   ];
 
-  static const List<Widget> _screens = <Widget>[
-    _TabScreen(label: 'Ekran glowny'),
-    _TabScreen(label: 'Odkrywaj'),
-    _TabScreen(label: 'Zamowienia'),
-    _TabScreen(label: 'Profil'),
-  ];
-
   @override
   Widget build(BuildContext context) {
+    final List<Widget> screens = <Widget>[
+      const HomeScreen(),
+      const DiscoverScreen(),
+      const OrdersScreen(),
+      const ProfileScreen(),
+    ];
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(_titles[_selectedIndex]),
       ),
-      body: _screens[_selectedIndex],
+      body: screens[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: (int index) {
@@ -78,22 +82,6 @@ class _MyHomePageState extends State<MyHomePage> {
             label: 'Profil',
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _TabScreen extends StatelessWidget {
-  const _TabScreen({required this.label});
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Text(
-        label,
-        style: Theme.of(context).textTheme.headlineMedium,
       ),
     );
   }
