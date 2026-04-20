@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
 
-class DiscoverSearchBar extends StatelessWidget {
-  const DiscoverSearchBar({super.key});
+class AppSearchBar extends StatelessWidget {
+  const AppSearchBar({
+    super.key,
+    required this.placeholder,
+    this.trailing,
+  });
+
+  final String placeholder;
+  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
@@ -12,22 +19,39 @@ class DiscoverSearchBar extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: const Color(0xFFEAE6DE)),
       ),
-      child: const Row(
+      child: Row(
         children: <Widget>[
-          Opacity(
+          const Opacity(
             opacity: 0.4,
             child: Text('🔍', style: TextStyle(fontSize: 14)),
           ),
-          SizedBox(width: 8),
-          Text(
-            'Szukaj produktow...',
-            style: TextStyle(
-              fontSize: 14,
-              color: Color(0xFF8B8B8B),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              placeholder,
+              style: const TextStyle(
+                fontSize: 14,
+                color: Color(0xFF8B8B8B),
+              ),
             ),
           ),
+          if (trailing != null) ...<Widget>[
+            const SizedBox(width: 10),
+            trailing!,
+          ],
         ],
       ),
+    );
+  }
+}
+
+class DiscoverSearchBar extends StatelessWidget {
+  const DiscoverSearchBar({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const AppSearchBar(
+      placeholder: 'Szukaj produktow...',
     );
   }
 }
