@@ -55,6 +55,9 @@ class ProductTile extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(AppRadius.normal),
+      ),
+      foregroundDecoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(AppRadius.normal),
         border: Border.all(color: AppColors.border),
       ),
       clipBehavior: Clip.antiAlias,

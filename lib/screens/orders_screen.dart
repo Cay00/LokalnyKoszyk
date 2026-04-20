@@ -11,7 +11,7 @@ class OrdersScreen extends StatelessWidget {
       id: '#8821',
       status: 'W realizacji',
       date: '18 kwi',
-      items: <String>['Pomidory 2kg', 'ó lipowy'],
+      items: <String>['Pomidory 2kg', 'miód lipowy'],
       total: '62,00 zł',
       color: AppColors.accent,
       icon: '🚚',
