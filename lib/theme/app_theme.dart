@@ -72,16 +72,6 @@ class AppRadius {
   static const double normal = 16;
 }
 
-class AppSpacing {
-  const AppSpacing._();
-
-  //static const double xs = 4;
-  //static const double sm = 8;
-  //static const double md = 12;
-  static const double normal = 16;
-  //static const double xl = 24;
-}
-
 class AppTheme {
   const AppTheme._();
 
@@ -110,9 +100,21 @@ class AppTheme {
         elevation: 0,
       ),
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-        backgroundColor: AppColors.white,
-        selectedItemColor: AppColors.primary,
-        unselectedItemColor: AppColors.textSecondary,
+        backgroundColor: AppColors.primary,
+        selectedItemColor: AppColors.white,
+        unselectedItemColor: AppColors.accent,
+        selectedIconTheme: IconThemeData(size: 20),
+        unselectedIconTheme: IconThemeData(size: 20),
+        selectedLabelStyle: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+        ),
+        unselectedLabelStyle: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+        ),
+        showUnselectedLabels: false,
+        elevation: 0,
       ),
     );
   }

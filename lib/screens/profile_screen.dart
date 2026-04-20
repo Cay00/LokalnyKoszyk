@@ -34,7 +34,7 @@ class ProfileScreen extends StatelessWidget {
               _ProfileAvatar(),
               SizedBox(height: 16),
               Text(
-                'Anna Kowalska',
+                'Krzysztof Turek',
                 style: TextStyle(
                   color: AppColors.white,
                   fontSize: 22,
@@ -43,7 +43,7 @@ class ProfileScreen extends StatelessWidget {
               ),
               SizedBox(height: 8),
               Text(
-                'Wrocław · Czlonek od 2026',
+                'Wrocław · Członek od 2026',
                 style: TextStyle(
                   color: AppColors.textOnDark,
                   fontSize: 12,

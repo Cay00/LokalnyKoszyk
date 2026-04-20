@@ -72,25 +72,103 @@ class _MyHomePageState extends State<MyHomePage> {
           });
         },
         type: BottomNavigationBarType.fixed,
+        showSelectedLabels: false,
+        showUnselectedLabels: false,
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Ekran główny',
+            icon: _BottomNavItemVisual(
+              icon: Icons.home,
+              label: 'Ekran główny',
+              isActive: false,
+            ),
+            activeIcon: _BottomNavItemVisual(
+              icon: Icons.home,
+              label: 'Ekran główny',
+              isActive: true,
+            ),
+            label: '',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.explore),
-            label: 'Odkrywaj',
+            icon: _BottomNavItemVisual(
+              icon: Icons.explore,
+              label: 'Odkrywaj',
+              isActive: false,
+            ),
+            activeIcon: _BottomNavItemVisual(
+              icon: Icons.explore,
+              label: 'Odkrywaj',
+              isActive: true,
+            ),
+            label: '',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.receipt_long),
-            label: 'Zamówienia',
+            icon: _BottomNavItemVisual(
+              icon: Icons.receipt_long,
+              label: 'Zamówienia',
+              isActive: false,
+            ),
+            activeIcon: _BottomNavItemVisual(
+              icon: Icons.receipt_long,
+              label: 'Zamówienia',
+              isActive: true,
+            ),
+            label: '',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profil',
+            icon: _BottomNavItemVisual(
+              icon: Icons.person,
+              label: 'Profil',
+              isActive: false,
+            ),
+            activeIcon: _BottomNavItemVisual(
+              icon: Icons.person,
+              label: 'Profil',
+              isActive: true,
+            ),
+            label: '',
           ),
         ],
       ),
+    );
+  }
+}
+
+class _BottomNavItemVisual extends StatelessWidget {
+  const _BottomNavItemVisual({
+    required this.icon,
+    required this.label,
+    required this.isActive,
+  });
+
+  final IconData icon;
+  final String label;
+  final bool isActive;
+
+  @override
+  Widget build(BuildContext context) {
+    final Color itemColor = isActive ? AppColors.white : AppColors.textOnDark;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        const SizedBox(height: 8),
+        Icon(icon, size: 22, color: AppColors.textOnDark),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: itemColor,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Container(
+          height: 2,
+          width: 16,
+          color: isActive ? AppColors.white : Colors.transparent,
+        ),
+      ],
     );
   }
 }

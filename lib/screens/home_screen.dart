@@ -336,7 +336,7 @@ class _SeasonalBanner extends StatelessWidget {
                       ),
                       SizedBox(height: 2),
                       Text(
-                        'Świeża bazylia dostepna juz teraz',
+                        'Świeża bazylia dostepna już teraz',
                         style: TextStyle(
                           color: Color(0xD9F5F0E8),
                           fontSize: 12,
@@ -425,7 +425,7 @@ class _NearbyProducersSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           const SectionHeader(
-            title: 'Producenci w poblizu',
+            title: 'Producenci w pobliźu',
             actionLabel: 'Mapa ->',
           ),
           const SizedBox(height: 8),
