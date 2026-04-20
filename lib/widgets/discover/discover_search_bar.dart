@@ -51,7 +51,7 @@ class DiscoverSearchBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const AppSearchBar(
-      placeholder: 'Szukaj produktow...',
+      placeholder: 'Szukaj produktów...',
     );
   }
 }

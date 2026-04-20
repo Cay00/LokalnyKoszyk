@@ -149,7 +149,7 @@ class ProductTile extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: <Widget>[
                         Text(
-                          '${product.price} zl',
+                          '${product.price} zł',
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w700,

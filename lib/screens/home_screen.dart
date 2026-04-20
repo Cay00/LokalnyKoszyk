@@ -19,9 +19,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   static const List<_CategoryItem> _categories = <_CategoryItem>[
     _CategoryItem(id: 'warzywa', icon: '🥕', name: 'Warzywa', count: 18),
-    _CategoryItem(id: 'nabial', icon: '🥛', name: 'Nabial', count: 12),
+    _CategoryItem(id: 'nabiał', icon: '🥛', name: 'Nabiał', count: 12),
     _CategoryItem(id: 'pieczywo', icon: '🍞', name: 'Pieczywo', count: 9),
-    _CategoryItem(id: 'miod', icon: '🍯', name: 'Miody', count: 7),
+    _CategoryItem(id: 'miód', icon: '🍯', name: 'Miody', count: 7),
     _CategoryItem(id: 'przetwory', icon: '🥫', name: 'Przetwory', count: 14),
   ];
 
@@ -69,13 +69,13 @@ class _HomeScreenState extends State<HomeScreen> {
     _ProducerItem(
       id: 'pr2',
       name: 'Sery od Braci',
-      type: 'Nabial',
+      type: 'Nabiał',
       dist: '9 km',
       verified: true,
     ),
     _ProducerItem(
       id: 'pr3',
-      name: 'Piekarnia Krolewska',
+      name: 'Piekarnia Królewska',
       type: 'Pieczywo',
       dist: '2 km',
       verified: false,
@@ -183,7 +183,7 @@ class _HomeHeader extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               const AppSearchBar(
-                placeholder: 'Szukaj produktow, producentow...',
+                placeholder: 'Szukaj produktów, producentów...',
               ),
             ],
           ),
@@ -216,7 +216,7 @@ class _LocationBanner extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Text(
-                    'Krakow, Malopolska',
+                    'Wrocław, Dolnośląskie',
                     style: TextStyle(
                       color: Color(0xFF356C53),
                       fontSize: 14,

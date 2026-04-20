@@ -77,7 +77,7 @@ class _MyHomePageState extends State<MyHomePage> {
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
-            label: 'Ekran glowny',
+            label: 'Ekran główny',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.explore),
@@ -85,7 +85,7 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.receipt_long),
-            label: 'Zamowienia',
+            label: 'Zamówienia',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person),
