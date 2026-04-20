@@ -64,7 +64,17 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: const <Widget>[
+              Text(
+                'Odkrywaj',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF1E3A2F),
+                ),
+              ),
+              SizedBox(height: 16),
               DiscoverSearchBar(),
               SizedBox(height: 16),
             ],

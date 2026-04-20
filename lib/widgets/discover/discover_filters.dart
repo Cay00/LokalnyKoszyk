@@ -35,10 +35,10 @@ class DiscoverFilters extends StatelessWidget {
                         : const Color(0xFFE0DDD5),
                   ),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(24),
                   ),
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 ),
                 child: Text(
                   filter,
@@ -53,6 +53,7 @@ class DiscoverFilters extends StatelessWidget {
               ),
             );
           }),
+          const SizedBox(width: 8),
         ],
       ),
     );
