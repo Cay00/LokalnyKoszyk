@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lokalny_koszyk/theme/app_theme.dart';
 import 'package:lokalny_koszyk/widgets/discover/discover_search_bar.dart';
 import 'package:lokalny_koszyk/widgets/home/category_tile.dart';
 import 'package:lokalny_koszyk/widgets/home/producer_tile.dart';
@@ -38,8 +39,8 @@ class _HomeScreenState extends State<HomeScreen> {
       reviews: '64',
       emoji: '🌱',
       tag: 'BIO',
-      bgColor: Color(0xFFE7F1D8),
-      tagColor: Color(0xFF4A7C59),
+      bgColor: AppColors.lightSage,
+      tagColor: AppColors.leafGreen,
     ),
     ProductData(
       id: 'hp2',
@@ -53,8 +54,8 @@ class _HomeScreenState extends State<HomeScreen> {
       reviews: '102',
       emoji: '🥚',
       tag: 'REGIONALNE',
-      bgColor: Color(0xFFF8EED8),
-      tagColor: Color(0xFF9C6B30),
+      bgColor: AppColors.cream,
+      tagColor: AppColors.warmBrown,
     ),
   ];
 
@@ -138,10 +139,10 @@ class _HomeHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          colors: <Color>[Color(0xFF1E3A2F), Color(0xFF356C53)],
+          colors: <Color>[AppColors.darkGreen, AppColors.midGreen],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -160,10 +161,9 @@ class _HomeHeader extends StatelessWidget {
                         Text(
                           'Znajdz lokalne smaki',
                           style: TextStyle(
-                            color: Color(0xFFF7F1E6),
+                            color: AppColors.cream,
                             fontSize: 26,
                             fontWeight: FontWeight.w700,
-                            height: 1.4,
                           ),
                         ),
                       ],
@@ -203,9 +203,9 @@ class _LocationBanner extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
         decoration: BoxDecoration(
-          color: const Color(0xFFDCE9D8),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFC6D8BC)),
+          color: AppColors.lightSage,
+          borderRadius: BorderRadius.circular(AppRadius.normal),
+          border: Border.all(color: AppColors.softSage),
         ),
         child: const Row(
           children: <Widget>[
@@ -218,7 +218,7 @@ class _LocationBanner extends StatelessWidget {
                   Text(
                     'Wrocław, Dolnośląskie',
                     style: TextStyle(
-                      color: Color(0xFF356C53),
+                      color: AppColors.midGreen,
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                     ),
@@ -226,7 +226,7 @@ class _LocationBanner extends StatelessWidget {
                   Text(
                     'Produkty w promieniu 15 km',
                     style: TextStyle(
-                      color: Color(0xFF8B8B8B),
+                      color: AppColors.textLight,
                       fontSize: 12,
                     ),
                   ),
@@ -236,7 +236,7 @@ class _LocationBanner extends StatelessWidget {
             Text(
               'Zmien ->',
               style: TextStyle(
-                color: Color(0xFF4A7C59),
+                color: AppColors.leafGreen,
                 fontSize: 12,
               ),
             ),
@@ -310,22 +310,14 @@ class _SeasonalBanner extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         decoration: BoxDecoration(
           gradient: const LinearGradient(
-            colors: <Color>[Color(0xFFD2A857), Color(0xFFD4A050)],
+            colors: <Color>[AppColors.accent, AppColors.warmBrown],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(AppRadius.normal),
         ),
         child: Stack(
           children: <Widget>[
-            const Positioned(
-              right: -16,
-              top: -16,
-              child: Opacity(
-                opacity: 0.15,
-                child: Text('🌸', style: TextStyle(fontSize: 70)),
-              ),
-            ),
             Row(
               children: <Widget>[
                 const Text('🌱', style: TextStyle(fontSize: 32)),
@@ -337,16 +329,16 @@ class _SeasonalBanner extends StatelessWidget {
                       Text(
                         'Sezon wiosenny!',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: AppColors.white,
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
                       SizedBox(height: 2),
                       Text(
-                        'Swieze nowalijki dostepne juz teraz',
+                        'Świeża bazylia dostepna juz teraz',
                         style: TextStyle(
-                          color: Color(0xD9FFFFFF),
+                          color: Color(0xD9F5F0E8),
                           fontSize: 12,
                         ),
                       ),
@@ -358,12 +350,12 @@ class _SeasonalBanner extends StatelessWidget {
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   decoration: BoxDecoration(
                     color: const Color(0x40FFFFFF),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(AppRadius.md),
                   ),
                   child: const Text(
                     'Odkryj',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: AppColors.white,
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
                     ),

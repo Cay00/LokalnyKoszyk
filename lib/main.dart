@@ -4,6 +4,7 @@ import 'package:lokalny_koszyk/screens/discover_screen.dart';
 import 'package:lokalny_koszyk/screens/home_screen.dart';
 import 'package:lokalny_koszyk/screens/orders_screen.dart';
 import 'package:lokalny_koszyk/screens/profile_screen.dart';
+import 'package:lokalny_koszyk/theme/app_theme.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -13,12 +14,12 @@ void main() {
   );
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
-      statusBarColor: Color(0xFF1E3A2F),
+      statusBarColor: AppColors.primary,
       statusBarIconBrightness: Brightness.light,
       statusBarBrightness: Brightness.dark,
-      systemNavigationBarColor: Color(0xFF1E3A2F),
+      systemNavigationBarColor: AppColors.primary,
       systemNavigationBarIconBrightness: Brightness.light,
-      systemNavigationBarDividerColor: Color(0xFF1E3A2F),
+      systemNavigationBarDividerColor: AppColors.primary,
     ),
   );
   runApp(const MyApp());
@@ -32,9 +33,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-      ),
+      theme: AppTheme.light,
       home: const MyHomePage(),
     );
   }
@@ -61,7 +60,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1E3A2F),
         elevation: 0,
         toolbarHeight: 0,
       ),

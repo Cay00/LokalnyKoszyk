@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../theme/app_theme.dart';
+
 class ProducerTile extends StatelessWidget {
   const ProducerTile({
     super.key,
@@ -20,9 +22,9 @@ class ProducerTile extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFEAE6DE)),
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(AppRadius.normal),
+        border: Border.all(color: AppColors.border),
       ),
       child: Row(
         children: <Widget>[
@@ -30,8 +32,8 @@ class ProducerTile extends StatelessWidget {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: const Color(0xFFDCE9D8),
-              borderRadius: BorderRadius.circular(16),
+                color: AppColors.border,
+              borderRadius: BorderRadius.circular(AppRadius.normal),
             ),
             alignment: Alignment.center,
             child: const Text('🌾', style: TextStyle(fontSize: 22)),
@@ -48,7 +50,7 @@ class ProducerTile extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
-                        color: Color(0xFF1E3A2F),
+                        color: AppColors.textPrimary,
                       ),
                     ),
                     if (verified) ...<Widget>[
@@ -60,7 +62,7 @@ class ProducerTile extends StatelessWidget {
                 Text(
                   '$type · $distance',
                   style: const TextStyle(
-                    color: Color(0xFF8B8B8B),
+                    color: AppColors.textLight,
                     fontSize: 12,
                   ),
                 ),
@@ -70,8 +72,8 @@ class ProducerTile extends StatelessWidget {
           const Text(
             '›',
             style: TextStyle(
-              color: Color(0xFF4A7C59),
-              fontSize: 18,
+              color: AppColors.textLight,
+              fontSize: 16,
             ),
           ),
         ],

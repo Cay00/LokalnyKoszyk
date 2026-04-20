@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../theme/app_theme.dart';
+
 class ProductData {
   const ProductData({
     required this.id,
@@ -51,9 +53,9 @@ class ProductTile extends StatelessWidget {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: const Color(0xFFFFFFFF),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFEAE6DE)),
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(AppRadius.normal),
+        border: Border.all(color: AppColors.border),
       ),
       clipBehavior: Clip.antiAlias,
       child: Column(
@@ -76,7 +78,7 @@ class ProductTile extends StatelessWidget {
                   right: 16,
                   child: InkWell(
                     onTap: onToggleLike,
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(AppRadius.normal),
                     child: Container(
                       width: 32,
                       height: 32,
@@ -100,7 +102,7 @@ class ProductTile extends StatelessWidget {
                         const EdgeInsets.only(left: 8, right: 8, top: 64, bottom: 16),
                     decoration: BoxDecoration(
                       color: product.tagColor,
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(AppRadius.sm),
                     ),
                     child: Text(
                       product.tag,
@@ -131,14 +133,15 @@ class ProductTile extends StatelessWidget {
                             style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
-                              color: Color(0xFF1E3A2F),
+                              color: AppColors.textPrimary,
+
                             ),
                           ),
                           const SizedBox(height: 2),
                           Text(
                             product.producer,
                             style: const TextStyle(
-                              color: Color(0xFF8B8B8B),
+                              color: AppColors.textLight,
                               fontSize: 12,
                             ),
                           ),
@@ -153,13 +156,13 @@ class ProductTile extends StatelessWidget {
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
-                            color: Color(0xFF2F5D50),
+                            color: AppColors.primaryLight,
                           ),
                         ),
                         Text(
                           product.unit,
                           style: const TextStyle(
-                            color: Color(0xFF8B8B8B),
+                            color: AppColors.textLight,
                             fontSize: 12,
                           ),
                         ),
@@ -181,16 +184,14 @@ class ProductTile extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: Color(0xFF2A2A2A),
-                      ),
+                        color: AppColors.textPrimary,                      ),
                     ),
                     const SizedBox(width: 4),
                     Text(
                       '(${product.reviews})',
                       style: const TextStyle(
                         fontSize: 12,
-                        color: Color(0xFF8B8B8B),
-                      ),
+                        color: AppColors.textLight,                      ),
                     ),
                   ],
                 ),
@@ -200,10 +201,10 @@ class ProductTile extends StatelessWidget {
                   child: ElevatedButton(
                     onPressed: onAddToCart,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF1E3A2F),
-                      foregroundColor: const Color(0xFFF7F1E6),
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: AppColors.white,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(AppRadius.normal),
                       ),
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       elevation: 0,
@@ -242,15 +243,15 @@ class _MetaChip extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFFF5F0E8),
-        borderRadius: BorderRadius.circular(8),
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(AppRadius.sm),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       child: Text(
         text,
         style: const TextStyle(
-          fontSize: 11,
-          color: Color(0xFF6F6F6F),
+          fontSize: 12,
+          color: AppColors.textSecondary,
         ),
       ),
     );

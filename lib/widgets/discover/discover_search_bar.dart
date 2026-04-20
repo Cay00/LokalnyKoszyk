@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../theme/app_theme.dart';
+
 class AppSearchBar extends StatelessWidget {
   const AppSearchBar({
     super.key,
@@ -13,11 +15,11 @@ class AppSearchBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFEAE6DE)),
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(AppRadius.normal),
+        border: Border.all(color: AppColors.border,),
       ),
       child: Row(
         children: <Widget>[
@@ -31,7 +33,7 @@ class AppSearchBar extends StatelessWidget {
               placeholder,
               style: const TextStyle(
                 fontSize: 14,
-                color: Color(0xFF8B8B8B),
+                color: AppColors.textLight,
               ),
             ),
           ),

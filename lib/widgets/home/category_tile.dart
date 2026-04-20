@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lokalny_koszyk/theme/app_theme.dart';
 
 class CategoryTile extends StatelessWidget {
   const CategoryTile({
@@ -28,10 +29,10 @@ class CategoryTile extends StatelessWidget {
           vertical: 12,
         ),
         decoration: BoxDecoration(
-          color: active ? const Color(0xFF1E3A2F) : Colors.white,
+          color: active ? AppColors.primary : AppColors.white,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: active ? const Color(0xFF1E3A2F) : const Color(0xFFE8E4DC),
+            color: active ? AppColors.primaryLight : AppColors.border,
           ),
           boxShadow: <BoxShadow>[
             BoxShadow(
@@ -50,7 +51,7 @@ class CategoryTile extends StatelessWidget {
               style: TextStyle(
                 fontSize: 12,
                 color:
-                    active ? const Color(0xFFF7F1E6) : const Color(0xFF6F6F6F),
+                    active ? AppColors.white : AppColors.textSecondary,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -59,7 +60,7 @@ class CategoryTile extends StatelessWidget {
               style: TextStyle(
                 fontSize: 10,
                 color:
-                    active ? const Color(0xFFC6D8BC) : const Color(0xFF8B8B8B),
+                    active ? AppColors.textOnDark : AppColors.textLight,
               ),
             ),
           ],

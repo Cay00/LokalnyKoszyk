@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:lokalny_koszyk/widgets/home/section_header.dart';
 
+import '../theme/app_theme.dart';
+
 class OrdersScreen extends StatelessWidget {
   const OrdersScreen({super.key});
 
@@ -11,7 +13,7 @@ class OrdersScreen extends StatelessWidget {
       date: '18 kwi',
       items: <String>['Pomidory 2kg', 'ó lipowy'],
       total: '62,00 zł',
-      color: Color(0xFFD2A857),
+      color: AppColors.accent,
       icon: '🚚',
     ),
     _OrderItem(
@@ -20,7 +22,7 @@ class OrdersScreen extends StatelessWidget {
       date: '12 kwi',
       items: <String>['Ser owczy', 'Jaja wiejskie'],
       total: '38,00 zł',
-      color: Color(0xFF4A7C59),
+      color: AppColors.primaryLight,
       icon: '✅',
     ),
     _OrderItem(
@@ -29,7 +31,7 @@ class OrdersScreen extends StatelessWidget {
       date: '5 kwi',
       items: <String>['Chleb razowy', 'Masło'],
       total: '24,00 zł',
-      color: Color(0xFF8B8B8B),
+      color: AppColors.textSecondary,
       icon: '🏡',
     ),
   ];
@@ -44,7 +46,7 @@ class OrdersScreen extends StatelessWidget {
           style: TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.w700,
-            color: Color(0xFF1E3A2F),
+            color: AppColors.textPrimary,
           ),
         ),
         const SizedBox(height: 16),
@@ -76,11 +78,11 @@ class _CartSummaryCard extends StatelessWidget {
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: <Color>[Color(0xFF1E3A2F), Color(0xFF356C53)],
+          colors: <Color>[AppColors.primary, AppColors.primaryLight],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.normal),
       ),
       child: Column(
         children: <Widget>[
@@ -90,7 +92,7 @@ class _CartSummaryCard extends StatelessWidget {
                 child: Text(
                   'Koszyk',
                   style: TextStyle(
-                    color: Color(0xFFF7F1E6),
+                    color: AppColors.white,
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
                   ),
@@ -99,7 +101,7 @@ class _CartSummaryCard extends StatelessWidget {
               Text(
                 '2 produkty',
                 style: TextStyle(
-                  color: Color(0xFFC6D8BC),
+                  color: AppColors.textOnDark,
                   fontSize: 12,
                 ),
               ),
@@ -125,7 +127,7 @@ class _CartSummaryCard extends StatelessWidget {
             margin: const EdgeInsets.only(top: 0),
             decoration: const BoxDecoration(
               border: Border(
-                top: BorderSide(color: Color(0x26FFFFFF)),
+                top: BorderSide(color: Color(0x40FFFFFF)),
               ),
             ),
             child: const Row(
@@ -134,7 +136,7 @@ class _CartSummaryCard extends StatelessWidget {
                   child: Text(
                     'Razem',
                     style: TextStyle(
-                      color: Color(0xFFC6D8BC),
+                      color: AppColors.textOnDark,
                       fontSize: 14,
                     ),
                   ),
@@ -142,7 +144,7 @@ class _CartSummaryCard extends StatelessWidget {
                 Text(
                   '50,00 zł',
                   style: TextStyle(
-                    color: Color(0xFFF7F1E6),
+                    color: AppColors.white,
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
                   ),
@@ -156,10 +158,10 @@ class _CartSummaryCard extends StatelessWidget {
             child: ElevatedButton(
               onPressed: () {},
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFD2A857),
+                backgroundColor: AppColors.accent,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(AppRadius.normal),
                 ),
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 elevation: 0,
@@ -198,7 +200,7 @@ class _CartLineItem extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       decoration: BoxDecoration(
         color: const Color(0x14FFFFFF),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
       ),
       child: Row(
         children: <Widget>[
@@ -211,14 +213,14 @@ class _CartLineItem extends StatelessWidget {
                 Text(
                   name,
                   style: const TextStyle(
-                    color: Color(0xFFF7F1E6),
+                    color: AppColors.white,
                     fontSize: 14,
                   ),
                 ),
                 Text(
                   qty,
                   style: const TextStyle(
-                    color: Color(0xFFC6D8BC),
+                    color: AppColors.textOnDark,
                     fontSize: 12,
                   ),
                 ),
@@ -228,7 +230,7 @@ class _CartLineItem extends StatelessWidget {
           Text(
             price,
             style: const TextStyle(
-              color: Color(0xFFF7F1E6),
+              color: AppColors.white,
               fontSize: 14,
             ),
           ),
@@ -254,8 +256,8 @@ class _OrderHistoryTile extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFEAE6DE)),
+        borderRadius: BorderRadius.circular(AppRadius.normal),
+        border: Border.all(color: AppColors.border),
       ),
       child: Column(
         children: <Widget>[
@@ -273,14 +275,14 @@ class _OrderHistoryTile extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: Color(0xFF1E3A2F),
+                        color: AppColors.textPrimary,
                       ),
                     ),
                     Text(
                       order.date,
                       style: const TextStyle(
                         fontSize: 12,
-                        color: Color(0xFF8B8B8B),
+                        color: AppColors.textLight,
                       ),
                     ),
                   ],
@@ -291,7 +293,7 @@ class _OrderHistoryTile extends StatelessWidget {
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 decoration: BoxDecoration(
                   color: order.color.withOpacity(0.13),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
                 ),
                 child: Text(
                   order.status,
@@ -311,7 +313,7 @@ class _OrderHistoryTile extends StatelessWidget {
               order.items.join(', '),
               style: const TextStyle(
                 fontSize: 12,
-                color: Color(0xFF6F6F6F),
+                  color: AppColors.textSecondary,
               ),
             ),
           ),
@@ -322,7 +324,7 @@ class _OrderHistoryTile extends StatelessWidget {
                 child: Text(
                   'Łącznie',
                   style: TextStyle(
-                    color: Color(0xFF8B8B8B),
+                    color: AppColors.textLight,
                     fontSize: 12,
                   ),
                 ),
@@ -330,7 +332,7 @@ class _OrderHistoryTile extends StatelessWidget {
               Text(
                 order.total,
                 style: const TextStyle(
-                  color: Color(0xFF1E3A2F),
+                  color: AppColors.primary,
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
                 ),

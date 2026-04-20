@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../theme/app_theme.dart';
+
 class DiscoverMapPreview extends StatelessWidget {
   const DiscoverMapPreview({super.key});
 
@@ -13,7 +15,7 @@ class DiscoverMapPreview extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.normal),
         border: Border.all(color: const Color(0xFFC6D8BC)),
       ),
       child: Stack(
@@ -28,13 +30,13 @@ class DiscoverMapPreview extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
                 color: Colors.white.withOpacity(0.9),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppRadius.md),
               ),
               child: const Text(
                 '🗺️ Pokaż na mapie · 23 producenci',
                 style: TextStyle(
                   fontSize: 12,
-                  color: Color(0xFF1E3A2F),
+                  color: AppColors.textPrimary,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -67,7 +69,7 @@ class _MapDot extends StatelessWidget {
         width: size,
         height: size,
         decoration: BoxDecoration(
-          color: isMain ? const Color(0xFFD2A857) : const Color(0xFF4A7C59),
+          color: isMain ? AppColors.accent : AppColors.primary,
           shape: BoxShape.circle,
           border: Border.all(color: Colors.white, width: 2),
           boxShadow: const <BoxShadow>[

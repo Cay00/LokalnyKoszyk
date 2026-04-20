@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../theme/app_theme.dart';
+
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
@@ -22,7 +24,7 @@ class ProfileScreen extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(16, 32, 16, 48),
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: <Color>[Color(0xFF1E3A2F), Color(0xFF356C53)],
+              colors: <Color>[AppColors.primary, AppColors.primaryLight],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -34,7 +36,7 @@ class ProfileScreen extends StatelessWidget {
               Text(
                 'Anna Kowalska',
                 style: TextStyle(
-                  color: Color(0xFFF7F1E6),
+                  color: AppColors.white,
                   fontSize: 22,
                   fontWeight: FontWeight.w700,
                 ),
@@ -43,7 +45,7 @@ class ProfileScreen extends StatelessWidget {
               Text(
                 'Wrocław · Czlonek od 2026',
                 style: TextStyle(
-                  color: Color(0xFFC6D8BC),
+                  color: AppColors.textOnDark,
                   fontSize: 12,
                 ),
               ),
@@ -61,9 +63,9 @@ class ProfileScreen extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: const Color(0xFFEAE6DE)),
+                    color: AppColors.white,
+                    borderRadius: BorderRadius.circular(AppRadius.normal),
+                    border: Border.all(color: AppColors.border),
                   ),
                   child: Column(
                     children: _menu.asMap().entries.map((entry) {
@@ -97,9 +99,9 @@ class _ProfileAvatar extends StatelessWidget {
       width: 80,
       height: 80,
       decoration: BoxDecoration(
-        color: const Color(0xFFDCE9D8),
+        color: AppColors.white,
         shape: BoxShape.circle,
-        border: Border.all(color: const Color(0xFFC6D8BC), width: 3),
+        border: Border.all(color: AppColors.textOnDark, width: 4),
       ),
       alignment: Alignment.center,
       child: const Text('🧑', style: TextStyle(fontSize: 36)),
@@ -138,7 +140,7 @@ class _ProfileStat extends StatelessWidget {
         Text(
           number,
           style: const TextStyle(
-            color: Color(0xFFF7F1E6),
+            color: AppColors.white,
             fontSize: 20,
             fontWeight: FontWeight.w700,
           ),
@@ -146,7 +148,7 @@ class _ProfileStat extends StatelessWidget {
         Text(
           label,
           style: const TextStyle(
-            color: Color(0xFFC6D8BC),
+            color: AppColors.textOnDark,
             fontSize: 12,
           ),
         ),
@@ -172,7 +174,7 @@ class _ProfileMenuTile extends StatelessWidget {
       decoration: BoxDecoration(
         border: withDivider
             ? const Border(
-                bottom: BorderSide(color: Color(0xFFF0EDE5)),
+                bottom: BorderSide(color: AppColors.border),
               )
             : null,
       ),
@@ -194,7 +196,7 @@ class _ProfileMenuTile extends StatelessWidget {
             const Text(
               '›',
               style: TextStyle(
-                color: Color(0xFF8B8B8B),
+                color: AppColors.textLight,
                 fontSize: 16,
               ),
             ),
@@ -214,7 +216,7 @@ class _BecomeProducerCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: const Color(0xFFDCE9D8),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.normal),
         border: Border.all(color: const Color(0xFFC6D8BC)),
       ),
       child: const Row(
@@ -228,7 +230,7 @@ class _BecomeProducerCard extends StatelessWidget {
                 Text(
                   'Zostań producentem',
                   style: TextStyle(
-                    color: Color(0xFF1E3A2F),
+                    color: AppColors.primary,
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                   ),
@@ -237,7 +239,7 @@ class _BecomeProducerCard extends StatelessWidget {
                 Text(
                   'Sprzedawaj swoje produkty lokalnie',
                   style: TextStyle(
-                    color: Color(0xFF6F6F6F),
+                    color: AppColors.textLight,
                     fontSize: 12,
                   ),
                 ),
@@ -247,8 +249,8 @@ class _BecomeProducerCard extends StatelessWidget {
           Text(
             '›',
             style: TextStyle(
-              color: Color(0xFF1E3A2F),
-              fontSize: 18,
+              color: AppColors.textLight,
+              fontSize: 16,
             ),
           ),
         ],

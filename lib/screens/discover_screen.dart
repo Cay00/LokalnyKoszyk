@@ -4,6 +4,8 @@ import 'package:lokalny_koszyk/widgets/discover/discover_map_preview.dart';
 import 'package:lokalny_koszyk/widgets/discover/discover_search_bar.dart';
 import 'package:lokalny_koszyk/widgets/product_tile.dart';
 
+import '../theme/app_theme.dart';
+
 class DiscoverScreen extends StatefulWidget {
   const DiscoverScreen({super.key});
 
@@ -71,7 +73,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.w700,
-                  color: Color(0xFF1E3A2F),
+                  color: AppColors.textPrimary,
                 ),
               ),
               SizedBox(height: 16),

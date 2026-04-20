@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../theme/app_theme.dart';
+
 class DiscoverFilters extends StatelessWidget {
   const DiscoverFilters({
     super.key,
@@ -31,8 +33,8 @@ class DiscoverFilters extends StatelessWidget {
                       isActive ? const Color(0xFF1E3A2F) : Colors.white,
                   side: BorderSide(
                     color: isActive
-                        ? const Color(0xFF1E3A2F)
-                        : const Color(0xFFE0DDD5),
+                        ? AppColors.primaryLight
+                        : AppColors.border,
                   ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(24),
@@ -46,8 +48,8 @@ class DiscoverFilters extends StatelessWidget {
                     fontSize: 12,
                     fontWeight: isActive ? FontWeight.w500 : FontWeight.w400,
                     color: isActive
-                        ? const Color(0xFFF7F1E6)
-                        : const Color(0xFF6F6F6F),
+                        ? AppColors.white
+                        : AppColors.textLight,
                   ),
                 ),
               ),
