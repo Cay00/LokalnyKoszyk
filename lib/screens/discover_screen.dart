@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:lokalny_koszyk/widgets/discover/discover_filters.dart';
 import 'package:lokalny_koszyk/widgets/discover/discover_map_preview.dart';
-import 'package:lokalny_koszyk/widgets/discover/discover_search_bar.dart';
-import 'package:lokalny_koszyk/widgets/product_tile.dart';
+import 'package:lokalny_koszyk/widgets/common/search_bar.dart';
+import 'package:lokalny_koszyk/widgets/common/product_tile.dart';
 
 import '../theme/app_theme.dart';
 

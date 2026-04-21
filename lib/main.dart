@@ -4,7 +4,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:lokalny_koszyk/screens/discover_screen.dart';
 import 'package:lokalny_koszyk/screens/home_screen.dart';
 import 'package:lokalny_koszyk/screens/orders_screen.dart';
-import 'package:lokalny_koszyk/screens/profile_screen.dart';
+import 'package:lokalny_koszyk/screens/profile/favorites_screen.dart';
+import 'package:lokalny_koszyk/screens/profile/profile_screen.dart';
 import 'package:lokalny_koszyk/theme/app_theme.dart';
 
 void main() {
@@ -49,6 +50,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _selectedIndex = 0;
+  bool _showFavoritesInProfile = false;
 
   @override
   Widget build(BuildContext context) {
@@ -56,7 +58,21 @@ class _MyHomePageState extends State<MyHomePage> {
       const HomeScreen(),
       const DiscoverScreen(),
       const OrdersScreen(),
-      const ProfileScreen(),
+      _showFavoritesInProfile
+          ? FavoritesScreen(
+              onBack: () {
+                setState(() {
+                  _showFavoritesInProfile = false;
+                });
+              },
+            )
+          : ProfileScreen(
+              onOpenFavorites: () {
+                setState(() {
+                  _showFavoritesInProfile = true;
+                });
+              },
+            ),
     ];
 
     return Scaffold(
@@ -70,6 +86,9 @@ class _MyHomePageState extends State<MyHomePage> {
         onTap: (int index) {
           setState(() {
             _selectedIndex = index;
+            if (index != 3) {
+              _showFavoritesInProfile = false;
+            }
           });
         },
         type: BottomNavigationBarType.fixed,
@@ -132,6 +151,7 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
     );
   }
+
 }
 
 class _BottomNavItemVisual extends StatelessWidget {

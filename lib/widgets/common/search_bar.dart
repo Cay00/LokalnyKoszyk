@@ -27,16 +27,13 @@ class AppSearchBar extends StatelessWidget {
             ),
             child: Row(
               children: <Widget>[
-                Opacity(
-                  opacity: 0.4,
-                  child: SvgPicture.asset(
-                    'assets/icons/magnifying-glass.svg',
-                    width: 14,
-                    height: 14,
-                    colorFilter: const ColorFilter.mode(
-                      AppColors.textPrimary,
-                      BlendMode.srcIn,
-                    ),
+                SvgPicture.asset(
+                  'assets/icons/magnifying-glass.svg',
+                  width: 14,
+                  height: 14,
+                  colorFilter: const ColorFilter.mode(
+                    AppColors.textPrimary,
+                    BlendMode.srcIn,
                   ),
                 ),
                 const SizedBox(width: 8),

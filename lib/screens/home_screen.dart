@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:lokalny_koszyk/theme/app_theme.dart';
-import 'package:lokalny_koszyk/widgets/discover/discover_search_bar.dart';
+import 'package:lokalny_koszyk/widgets/common/search_bar.dart';
 import 'package:lokalny_koszyk/widgets/home/category_tile.dart';
 import 'package:lokalny_koszyk/widgets/home/producer_tile.dart';
 import 'package:lokalny_koszyk/widgets/home/section_header.dart';
-import 'package:lokalny_koszyk/widgets/product_tile.dart';
+import 'package:lokalny_koszyk/widgets/common/product_tile.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -50,7 +50,7 @@ class _HomeScreenState extends State<HomeScreen> {
       price: '13,50',
       unit: '/ 10 szt.',
       distance: '6 km',
-      season: 'Caly rok',
+      season: 'Cały rok',
       rating: '4.8',
       reviews: '102',
       emoji: '🥚',

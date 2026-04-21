@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-import '../theme/app_theme.dart';
+import '../../theme/app_theme.dart';
 
 class ProfileScreen extends StatelessWidget {
-  const ProfileScreen({super.key});
+  const ProfileScreen({
+    super.key,
+    this.onOpenFavorites,
+  });
+
+  final VoidCallback? onOpenFavorites;
 
   static const List<_ProfileMenuItem> _menu = <_ProfileMenuItem>[
     _ProfileMenuItem(iconAsset: 'assets/icons/heart.svg', label: 'Ulubione produkty'),
@@ -78,6 +83,9 @@ class ProfileScreen extends StatelessWidget {
                           iconAsset: item.iconAsset,
                           label: item.label,
                           withDivider: i < _menu.length - 1,
+                          onTap: item.label == 'Ulubione produkty'
+                              ? onOpenFavorites
+                              : null,
                         );
                       }),
                       const _LogoutTile(),
@@ -168,53 +176,59 @@ class _ProfileMenuTile extends StatelessWidget {
     this.iconAsset,
     required this.label,
     required this.withDivider,
+    this.onTap,
   });
 
   final String icon;
   final String? iconAsset;
   final String label;
   final bool withDivider;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       child: Column(
         children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-            child: Row(
-              children: <Widget>[
-                iconAsset != null
-                    ? SvgPicture.asset(
-                        iconAsset!,
-                        width: 20,
-                        height: 20,
-                        colorFilter: const ColorFilter.mode(
-                          AppColors.primary,
-                          BlendMode.srcIn,
-                        ),
-                      )
-                    : Text(icon, style: const TextStyle(fontSize: 16)),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Text(
-                    label,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: AppColors.textPrimary,
+          InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(AppRadius.sm),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              child: Row(
+                children: <Widget>[
+                  iconAsset != null
+                      ? SvgPicture.asset(
+                          iconAsset!,
+                          width: 20,
+                          height: 20,
+                          colorFilter: const ColorFilter.mode(
+                            AppColors.primary,
+                            BlendMode.srcIn,
+                          ),
+                        )
+                      : Text(icon, style: const TextStyle(fontSize: 16)),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Text(
+                      label,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: AppColors.textPrimary,
+                      ),
                     ),
                   ),
-                ),
-                SvgPicture.asset(
-                  'assets/icons/caret-right.svg',
-                  width: 12,
-                  height: 12,
-                  colorFilter: const ColorFilter.mode(
-                    AppColors.primary,
-                    BlendMode.srcIn,
+                  SvgPicture.asset(
+                    'assets/icons/caret-right.svg',
+                    width: 12,
+                    height: 12,
+                    colorFilter: const ColorFilter.mode(
+                      AppColors.primary,
+                      BlendMode.srcIn,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
           if (withDivider)
