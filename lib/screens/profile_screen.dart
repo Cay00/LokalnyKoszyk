@@ -253,7 +253,7 @@ class _BecomeProducerCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 Text(
-                  'Zostań producentem',
+                  'Zostań sprzedawcą',
                   style: TextStyle(
                     color: AppColors.primary,
                     fontSize: 14,

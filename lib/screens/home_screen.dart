@@ -160,7 +160,7 @@ class _HomeHeader extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
                         Text(
-                          'Znajdz lokalne smaki',
+                          'Znajdź lokalne smaki',
                           style: TextStyle(
                             color: AppColors.cream,
                             fontSize: 26,
@@ -192,7 +192,7 @@ class _HomeHeader extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               const AppSearchBar(
-                placeholder: 'Szukaj produktów, producentów...',
+                placeholder: 'Szukaj produktów, sprzedawców...',
               ),
             ],
           ),
@@ -456,8 +456,8 @@ class _NearbyProducersSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           const SectionHeader(
-            title: 'Producenci w pobliżu',
-            actionLabel: 'Mapa',
+            title: 'Sprzedawcy w pobliżu',
+            actionLabel: 'Zobacz wszystkich',
           ),
           const SizedBox(height: 8),
           ...producers.map((prod) {
