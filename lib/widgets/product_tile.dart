@@ -199,7 +199,7 @@ class ProductTile extends StatelessWidget {
                       width: 12,
                       height: 12,
                       colorFilter: const ColorFilter.mode(
-                        Colors.yellowAccent,
+                        AppColors.accent,
                         BlendMode.srcIn,
                       ),
                     ),

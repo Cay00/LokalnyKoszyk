@@ -168,11 +168,14 @@ class _BottomNavItemVisual extends StatelessWidget {
             color: itemColor,
           ),
         ),
-        const SizedBox(height: 4),
-        Container(
-          height: 2,
-          width: 16,
-          color: isActive ? AppColors.white : Colors.transparent,
+        const SizedBox(height: 0),
+        Transform.translate(
+          offset: const Offset(0, 4),
+          child: Container(
+            height: 2,
+            width: 16,
+            color: isActive ? AppColors.white : Colors.transparent,
+          ),
         ),
       ],
     );

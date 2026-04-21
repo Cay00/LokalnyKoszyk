@@ -64,6 +64,7 @@ class OrdersScreen extends StatelessWidget {
         const SizedBox(height: 32),
         const SectionHeader(
           title: 'Historia zamówień',
+          actionLabel: 'Wszystkie',
         ),
         const SizedBox(height: 16),
         ..._orders.asMap().entries.map((entry) {

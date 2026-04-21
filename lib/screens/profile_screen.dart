@@ -69,16 +69,19 @@ class ProfileScreen extends StatelessWidget {
                     border: Border.all(color: AppColors.border),
                   ),
                   child: Column(
-                    children: _menu.asMap().entries.map((entry) {
-                      final int i = entry.key;
-                      final _ProfileMenuItem item = entry.value;
-                      return _ProfileMenuTile(
-                        icon: item.icon,
-                        iconAsset: item.iconAsset,
-                        label: item.label,
-                        withDivider: i < _menu.length - 1,
-                      );
-                    }).toList(),
+                    children: <Widget>[
+                      ..._menu.asMap().entries.map((entry) {
+                        final int i = entry.key;
+                        final _ProfileMenuItem item = entry.value;
+                        return _ProfileMenuTile(
+                          icon: item.icon,
+                          iconAsset: item.iconAsset,
+                          label: item.label,
+                          withDivider: i < _menu.length - 1,
+                        );
+                      }),
+                      const _LogoutTile(),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -175,49 +178,55 @@ class _ProfileMenuTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
-        border: withDivider
-            ? const Border(
-                bottom: BorderSide(color: AppColors.border),
-              )
-            : null,
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-        child: Row(
-          children: <Widget>[
-            iconAsset != null
-                ? SvgPicture.asset(
-                    iconAsset!,
-                    width: 20,
-                    height: 20,
-                    colorFilter: const ColorFilter.mode(
-                      AppColors.primary,
-                      BlendMode.srcIn,
+      child: Column(
+        children: <Widget>[
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            child: Row(
+              children: <Widget>[
+                iconAsset != null
+                    ? SvgPicture.asset(
+                        iconAsset!,
+                        width: 20,
+                        height: 20,
+                        colorFilter: const ColorFilter.mode(
+                          AppColors.primary,
+                          BlendMode.srcIn,
+                        ),
+                      )
+                    : Text(icon, style: const TextStyle(fontSize: 16)),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Text(
+                    label,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: AppColors.textPrimary,
                     ),
-                  )
-                : Text(icon, style: const TextStyle(fontSize: 16)),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: Color(0xFF1E3A2F),
+                  ),
                 ),
+                SvgPicture.asset(
+                  'assets/icons/caret-right.svg',
+                  width: 12,
+                  height: 12,
+                  colorFilter: const ColorFilter.mode(
+                    AppColors.primary,
+                    BlendMode.srcIn,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (withDivider)
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 8),
+              child: Divider(
+                height: 1,
+                thickness: 1,
+                color: AppColors.border,
               ),
             ),
-            SvgPicture.asset(
-              'assets/icons/caret-right.svg',
-              width: 12,
-              height: 12,
-              colorFilter: const ColorFilter.mode(
-                AppColors.primary,
-                BlendMode.srcIn,
-              ),
-            ),
-          ],
-        ),
+        ],
       ),
     );
   }
@@ -273,6 +282,53 @@ class _BecomeProducerCard extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _LogoutTile extends StatelessWidget {
+  const _LogoutTile();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: <Widget>[
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 8),
+          child: Divider(
+            height: 1,
+            thickness: 1,
+            color: AppColors.border,
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          child: Row(
+            children: <Widget>[
+              SvgPicture.asset(
+                'assets/icons/sign-out.svg',
+                width: 20,
+                height: 20,
+                colorFilter: const ColorFilter.mode(
+                  Colors.redAccent,
+                  BlendMode.srcIn,
+                ),
+              ),
+              const SizedBox(width: 16),
+              const Expanded(
+                child: Text(
+                  'Wyloguj',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.redAccent,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

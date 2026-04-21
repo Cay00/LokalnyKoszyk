@@ -46,7 +46,7 @@ class _HomeScreenState extends State<HomeScreen> {
     ProductData(
       id: 'hp2',
       name: 'Jajka od szczęśliwych kur',
-      producer: 'Farma Pod Lipa',
+      producer: 'Farma Pod Lipą',
       price: '13,50',
       unit: '/ 10 szt.',
       distance: '6 km',
@@ -456,7 +456,7 @@ class _NearbyProducersSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           const SectionHeader(
-            title: 'Producenci w pobliźu',
+            title: 'Producenci w pobliżu',
             actionLabel: 'Mapa',
           ),
           const SizedBox(height: 8),
