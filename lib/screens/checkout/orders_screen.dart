@@ -8,9 +8,11 @@ class OrdersScreen extends StatelessWidget {
   const OrdersScreen({
     super.key,
     this.onOpenCheckout,
+    this.onOpenOrderDetails,
   });
 
   final VoidCallback? onOpenCheckout;
+  final ValueChanged<String>? onOpenOrderDetails;
 
   static const List<_OrderItem> _orders = <_OrderItem>[
     _OrderItem(
@@ -80,6 +82,9 @@ class OrdersScreen extends StatelessWidget {
           return _OrderHistoryTile(
             order: order,
             withBottomSpacing: index < _orders.length - 1,
+            onTap: onOpenOrderDetails != null
+                ? () => onOpenOrderDetails!(order.id)
+                : null,
           );
         }),
       ],
@@ -266,24 +271,29 @@ class _OrderHistoryTile extends StatelessWidget {
   const _OrderHistoryTile({
     required this.order,
     required this.withBottomSpacing,
+    this.onTap,
   });
 
   final _OrderItem order;
   final bool withBottomSpacing;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: EdgeInsets.only(bottom: withBottomSpacing ? 8 : 0),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(AppRadius.normal),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Column(
-        children: <Widget>[
-          Row(
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(AppRadius.normal),
+      child: Container(
+        margin: EdgeInsets.only(bottom: withBottomSpacing ? 8 : 0),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(AppRadius.normal),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: Column(
+          children: <Widget>[
+            Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
               SvgPicture.asset(
@@ -335,9 +345,9 @@ class _OrderHistoryTile extends StatelessWidget {
                 ),
               ),
             ],
-          ),
-          const SizedBox(height: 8),
-          Align(
+            ),
+            const SizedBox(height: 8),
+            Align(
             alignment: Alignment.centerLeft,
             child: Text(
               order.items.join(', '),
@@ -346,9 +356,9 @@ class _OrderHistoryTile extends StatelessWidget {
                   color: AppColors.textSecondary,
               ),
             ),
-          ),
-          const SizedBox(height: 8),
-          Row(
+            ),
+            const SizedBox(height: 8),
+            Row(
             children: <Widget>[
               const Expanded(
                 child: Text(
@@ -368,8 +378,9 @@ class _OrderHistoryTile extends StatelessWidget {
                 ),
               ),
             ],
-          ),
-        ],
+            ),
+          ],
+        ),
       ),
     );
   }

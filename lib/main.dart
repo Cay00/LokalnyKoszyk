@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:lokalny_koszyk/screens/discover_screen.dart';
 import 'package:lokalny_koszyk/screens/home_screen.dart';
 import 'package:lokalny_koszyk/screens/checkout/order_checkout_screen.dart';
+import 'package:lokalny_koszyk/screens/checkout/order_history_detail_screen.dart';
 import 'package:lokalny_koszyk/screens/checkout/orders_screen.dart';
 import 'package:lokalny_koszyk/screens/profile/addresses_screen.dart';
 import 'package:lokalny_koszyk/screens/profile/become_seller_screen.dart';
@@ -59,6 +60,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   int _selectedIndex = 0;
   _OrdersView _ordersView = _OrdersView.main;
+  String _selectedOrderId = '';
   _ProfileView _profileView = _ProfileView.main;
 
   @override
@@ -155,9 +157,20 @@ class _MyHomePageState extends State<MyHomePage> {
       case _OrdersView.main:
         return OrdersScreen(
           onOpenCheckout: () => setState(() => _ordersView = _OrdersView.checkout),
+          onOpenOrderDetails: (String orderId) {
+            setState(() {
+              _selectedOrderId = orderId;
+              _ordersView = _OrdersView.orderDetails;
+            });
+          },
         );
       case _OrdersView.checkout:
         return OrderCheckoutScreen(
+          onBack: () => setState(() => _ordersView = _OrdersView.main),
+        );
+      case _OrdersView.orderDetails:
+        return OrderHistoryDetailScreen(
+          orderId: _selectedOrderId,
           onBack: () => setState(() => _ordersView = _OrdersView.main),
         );
     }
@@ -262,4 +275,5 @@ enum _ProfileView {
 enum _OrdersView {
   main,
   checkout,
+  orderDetails,
 }
