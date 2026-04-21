@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:lokalny_koszyk/widgets/home/section_header.dart';
 
 import '../theme/app_theme.dart';
@@ -14,7 +15,16 @@ class OrdersScreen extends StatelessWidget {
       items: <String>['Pomidory 2kg', 'miód lipowy'],
       total: '62,00 zł',
       color: AppColors.accent,
-      icon: '🚚',
+      iconAsset: 'assets/icons/clock-countdown.svg',
+    ),
+    _OrderItem(
+      id: '#8817',
+      status: 'Złożone',
+      date: '16 kwi',
+      items: <String>['Marchew 1kg', 'Mleko 2l'],
+      total: '28,00 zł',
+      color: AppColors.primary,
+      iconAsset: 'assets/icons/receipt.svg',
     ),
     _OrderItem(
       id: '#8810',
@@ -23,7 +33,7 @@ class OrdersScreen extends StatelessWidget {
       items: <String>['Ser owczy', 'Jaja wiejskie'],
       total: '38,00 zł',
       color: AppColors.primaryLight,
-      icon: '✅',
+      iconAsset: 'assets/icons/package.svg',
     ),
     _OrderItem(
       id: '#8795',
@@ -31,8 +41,8 @@ class OrdersScreen extends StatelessWidget {
       date: '5 kwi',
       items: <String>['Chleb razowy', 'Masło'],
       total: '24,00 zł',
-      color: AppColors.textSecondary,
-      icon: '🏡',
+      color: AppColors.textLight,
+      iconAsset: 'assets/icons/check-circle.svg',
     ),
   ];
 
@@ -163,11 +173,11 @@ class _CartSummaryCard extends StatelessWidget {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(AppRadius.normal),
                 ),
-                padding: const EdgeInsets.symmetric(vertical: 12),
+                padding: const EdgeInsets.symmetric(vertical: 16),
                 elevation: 0,
               ),
               child: const Text(
-                'Przejdź do zamówienia ->',
+                'Przejdź do zamówienia',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -205,7 +215,7 @@ class _CartLineItem extends StatelessWidget {
       child: Row(
         children: <Widget>[
           Text(emoji, style: const TextStyle(fontSize: 24)),
-          const SizedBox(width: 12),
+          const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -262,9 +272,17 @@ class _OrderHistoryTile extends StatelessWidget {
       child: Column(
         children: <Widget>[
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
-              Text(order.icon, style: const TextStyle(fontSize: 20)),
+              SvgPicture.asset(
+                order.iconAsset,
+                width: 22,
+                height: 22,
+                colorFilter: const ColorFilter.mode(
+                  AppColors.primary,
+                  BlendMode.srcIn,
+                ),
+              ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -353,7 +371,7 @@ class _OrderItem {
     required this.items,
     required this.total,
     required this.color,
-    required this.icon,
+    required this.iconAsset,
   });
 
   final String id;
@@ -362,5 +380,5 @@ class _OrderItem {
   final List<String> items;
   final String total;
   final Color color;
-  final String icon;
+  final String iconAsset;
 }

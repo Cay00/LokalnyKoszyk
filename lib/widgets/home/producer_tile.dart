@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../theme/app_theme.dart';
 
@@ -45,17 +46,29 @@ class ProducerTile extends StatelessWidget {
               children: <Widget>[
                 Row(
                   children: <Widget>[
-                    Text(
-                      name,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.textPrimary,
+                    Flexible(
+                      child: Text(
+                        name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.textPrimary,
+                        ),
                       ),
                     ),
                     if (verified) ...<Widget>[
                       const SizedBox(width: 8),
-                      const Text('✅', style: TextStyle(fontSize: 14)),
+                      SvgPicture.asset(
+                        'assets/icons/seal-check-fill.svg',
+                        width: 16,
+                        height: 16,
+                        colorFilter: const ColorFilter.mode(
+                          AppColors.primary,
+                          BlendMode.srcIn,
+                        ),
+                      ),
                     ],
                   ],
                 ),
@@ -69,11 +82,13 @@ class ProducerTile extends StatelessWidget {
               ],
             ),
           ),
-          const Text(
-            '›',
-            style: TextStyle(
-              color: AppColors.textLight,
-              fontSize: 16,
+          SvgPicture.asset(
+            'assets/icons/caret-right.svg',
+            width: 12,
+            height: 12,
+            colorFilter: const ColorFilter.mode(
+              AppColors.primary,
+              BlendMode.srcIn,
             ),
           ),
         ],

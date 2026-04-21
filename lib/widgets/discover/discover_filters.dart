@@ -30,7 +30,7 @@ class DiscoverFilters extends StatelessWidget {
                 onPressed: () => onFilterSelected(filter),
                 style: OutlinedButton.styleFrom(
                   backgroundColor:
-                      isActive ? const Color(0xFF1E3A2F) : Colors.white,
+                      isActive ? AppColors.primary : Colors.white,
                   side: BorderSide(
                     color: isActive
                         ? AppColors.primaryLight
@@ -49,7 +49,7 @@ class DiscoverFilters extends StatelessWidget {
                     fontWeight: isActive ? FontWeight.w500 : FontWeight.w400,
                     color: isActive
                         ? AppColors.white
-                        : AppColors.textLight,
+                        : AppColors.textSecondary,
                   ),
                 ),
               ),

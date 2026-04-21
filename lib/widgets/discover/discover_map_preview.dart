@@ -33,7 +33,7 @@ class DiscoverMapPreview extends StatelessWidget {
                 borderRadius: BorderRadius.circular(AppRadius.md),
               ),
               child: const Text(
-                '🗺️ Pokaż na mapie · 23 producenci',
+                'Pokaż na mapie · 23 producenci',
                 style: TextStyle(
                   fontSize: 12,
                   color: AppColors.textPrimary,

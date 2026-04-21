@@ -8,12 +8,12 @@ class ProfileScreen extends StatelessWidget {
 
   static const List<_ProfileMenuItem> _menu = <_ProfileMenuItem>[
     _ProfileMenuItem(iconAsset: 'assets/icons/heart.svg', label: 'Ulubione produkty'),
-    _ProfileMenuItem(icon: '📍', label: 'Adresy dostawy'),
-    _ProfileMenuItem(icon: '💳', label: 'Metody płatnosci'),
-    _ProfileMenuItem(icon: '🔔', label: 'Powiadomienia'),
-    _ProfileMenuItem(icon: '🌿', label: 'Moje preferencje'),
-    _ProfileMenuItem(icon: '💬', label: 'Wiadomości'),
-    _ProfileMenuItem(icon: '❓', label: 'Pomoc i FAQ'),
+    _ProfileMenuItem(iconAsset: 'assets/icons/map-pin-area.svg', label: 'Adresy dostawy'),
+    _ProfileMenuItem(iconAsset: 'assets/icons/hand-coins.svg', label: 'Metody płatnosci'),
+    _ProfileMenuItem(iconAsset: 'assets/icons/bell.svg', label: 'Powiadomienia'),
+    _ProfileMenuItem(iconAsset: 'assets/icons/gear.svg', label: 'Moje preferencje'),
+    _ProfileMenuItem(iconAsset: 'assets/icons/chat-circle-dots.svg', label: 'Wiadomości'),
+    _ProfileMenuItem(iconAsset: 'assets/icons/question.svg', label: 'Pomoc i FAQ'),
   ];
 
   @override
@@ -58,7 +58,7 @@ class ProfileScreen extends StatelessWidget {
         Transform.translate(
           offset: const Offset(0, -16),
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
             child: Column(
               children: <Widget>[
                 Container(
@@ -192,7 +192,7 @@ class _ProfileMenuTile extends StatelessWidget {
                     width: 20,
                     height: 20,
                     colorFilter: const ColorFilter.mode(
-                      Color(0xFF1E3A2F),
+                      AppColors.primary,
                       BlendMode.srcIn,
                     ),
                   )
@@ -207,11 +207,13 @@ class _ProfileMenuTile extends StatelessWidget {
                 ),
               ),
             ),
-            const Text(
-              '›',
-              style: TextStyle(
-                color: AppColors.textLight,
-                fontSize: 16,
+            SvgPicture.asset(
+              'assets/icons/caret-right.svg',
+              width: 12,
+              height: 12,
+              colorFilter: const ColorFilter.mode(
+                AppColors.primary,
+                BlendMode.srcIn,
               ),
             ),
           ],
@@ -233,10 +235,10 @@ class _BecomeProducerCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppRadius.normal),
         border: Border.all(color: const Color(0xFFC6D8BC)),
       ),
-      child: const Row(
+      child: Row(
         children: <Widget>[
-          Text('🌱', style: TextStyle(fontSize: 28)),
-          SizedBox(width: 12),
+          Text('🌱', style: TextStyle(fontSize: 32)),
+          SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -260,11 +262,13 @@ class _BecomeProducerCard extends StatelessWidget {
               ],
             ),
           ),
-          Text(
-            '›',
-            style: TextStyle(
-              color: AppColors.textLight,
-              fontSize: 16,
+          SvgPicture.asset(
+            'assets/icons/caret-right.svg',
+            width: 12,
+            height: 12,
+            colorFilter: const ColorFilter.mode(
+              AppColors.primary,
+              BlendMode.srcIn,
             ),
           ),
         ],

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../theme/app_theme.dart';
 
@@ -90,9 +91,16 @@ class ProductTile extends StatelessWidget {
                         shape: BoxShape.circle,
                       ),
                       alignment: Alignment.center,
-                      child: Text(
-                        isLiked ? '❤️' : '🤍',
-                        style: const TextStyle(fontSize: 16),
+                      child: SvgPicture.asset(
+                        isLiked
+                            ? 'assets/icons/heart-fill.svg'
+                            : 'assets/icons/heart.svg',
+                        width: 16,
+                        height: 16,
+                        colorFilter: ColorFilter.mode(
+                          isLiked ? Colors.redAccent : AppColors.primary,
+                          BlendMode.srcIn,
+                        ),
                       ),
                     ),
                   ),
@@ -176,11 +184,25 @@ class ProductTile extends StatelessWidget {
                 const SizedBox(height: 12),
                 Row(
                   children: <Widget>[
-                    _MetaChip(text: '📍 ${product.distance}'),
+                    _MetaChip(
+                      text: product.distance,
+                      iconAsset: 'assets/icons/map-pin-area.svg',
+                    ),
                     const SizedBox(width: 8),
-                    _MetaChip(text: '📅 ${product.season}'),
+                    _MetaChip(
+                      text: product.season,
+                      iconAsset: 'assets/icons/calendar-check.svg',
+                    ),
                     const Spacer(),
-                    const Text('⭐', style: TextStyle(fontSize: 12)),
+                    SvgPicture.asset(
+                      'assets/icons/star-fill.svg',
+                      width: 12,
+                      height: 12,
+                      colorFilter: const ColorFilter.mode(
+                        Colors.yellowAccent,
+                        BlendMode.srcIn,
+                      ),
+                    ),
                     const SizedBox(width: 4),
                     Text(
                       product.rating,
@@ -238,9 +260,13 @@ class ProductTile extends StatelessWidget {
 }
 
 class _MetaChip extends StatelessWidget {
-  const _MetaChip({required this.text});
+  const _MetaChip({
+    required this.text,
+    this.iconAsset,
+  });
 
   final String text;
+  final String? iconAsset;
 
   @override
   Widget build(BuildContext context) {
@@ -250,12 +276,29 @@ class _MetaChip extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppRadius.sm),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      child: Text(
-        text,
-        style: const TextStyle(
-          fontSize: 12,
-          color: AppColors.textSecondary,
-        ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          if (iconAsset != null) ...<Widget>[
+            SvgPicture.asset(
+              iconAsset!,
+              width: 12,
+              height: 12,
+              colorFilter: const ColorFilter.mode(
+                AppColors.textSecondary,
+                BlendMode.srcIn,
+              ),
+            ),
+            const SizedBox(width: 8),
+          ],
+          Text(
+            text,
+            style: const TextStyle(
+              fontSize: 12,
+              color: AppColors.textSecondary,
+            ),
+          ),
+        ],
       ),
     );
   }

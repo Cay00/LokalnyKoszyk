@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:lokalny_koszyk/theme/app_theme.dart';
 import 'package:lokalny_koszyk/widgets/discover/discover_search_bar.dart';
 import 'package:lokalny_koszyk/widgets/home/category_tile.dart';
@@ -32,7 +33,7 @@ class _HomeScreenState extends State<HomeScreen> {
       name: 'Rzodkiewka BIO',
       producer: 'Gospodarstwo Zielone Pole',
       price: '7,90',
-      unit: '/ peczek',
+      unit: '/ pęczek',
       distance: '3 km',
       season: 'Wiosna',
       rating: '4.9',
@@ -44,7 +45,7 @@ class _HomeScreenState extends State<HomeScreen> {
     ),
     ProductData(
       id: 'hp2',
-      name: 'Jajka od szczesliwych kur',
+      name: 'Jajka od szczęśliwych kur',
       producer: 'Farma Pod Lipa',
       price: '13,50',
       unit: '/ 10 szt.',
@@ -177,7 +178,15 @@ class _HomeHeader extends StatelessWidget {
                       shape: BoxShape.circle,
                     ),
                     alignment: Alignment.center,
-                    child: const Text('🔔', style: TextStyle(fontSize: 16)),
+                    child: SvgPicture.asset(
+                      'assets/icons/bell.svg',
+                      width: 16,
+                      height: 16,
+                      colorFilter: const ColorFilter.mode(
+                        AppColors.cream,
+                        BlendMode.srcIn,
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -201,16 +210,24 @@ class _LocationBanner extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
           color: AppColors.lightSage,
           borderRadius: BorderRadius.circular(AppRadius.normal),
           border: Border.all(color: AppColors.softSage),
         ),
-        child: const Row(
+        child: Row(
           children: <Widget>[
-            Text('📍', style: TextStyle(fontSize: 14)),
-            SizedBox(width: 8),
+            SvgPicture.asset(
+              'assets/icons/map-pin-area.svg',
+              width: 24,
+              height: 24,
+              colorFilter: const ColorFilter.mode(
+                AppColors.primary,
+                BlendMode.srcIn,
+              ),
+            ),
+            SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -233,12 +250,26 @@ class _LocationBanner extends StatelessWidget {
                 ],
               ),
             ),
-            Text(
-              'Zmien ->',
-              style: TextStyle(
-                color: AppColors.leafGreen,
-                fontSize: 12,
-              ),
+            Row(
+              children: <Widget>[
+                Text(
+                  'Zmień',
+                  style: TextStyle(
+                    color: AppColors.leafGreen,
+                    fontSize: 12,
+                  ),
+                ),
+                SizedBox(width: 4),
+                SvgPicture.asset(
+                  'assets/icons/caret-right.svg',
+                  width: 12,
+                  height: 12,
+                  colorFilter: const ColorFilter.mode(
+                    AppColors.primary,
+                    BlendMode.srcIn,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -267,7 +298,7 @@ class _CategoriesSection extends StatelessWidget {
           padding: EdgeInsets.fromLTRB(16, 0, 16, 0),
           child: SectionHeader(
             title: 'Kategorie',
-            actionLabel: 'Zobacz wszystkie ->',
+            actionLabel: 'Zobacz wszystkie',
           ),
         ),
         const SizedBox(height: 16),
@@ -392,7 +423,7 @@ class _FeaturedProductsSection extends StatelessWidget {
         children: <Widget>[
           const SectionHeader(
             title: 'Polecane',
-            actionLabel: 'Wszystkie ->',
+            actionLabel: 'Wszystkie',
           ),
           const SizedBox(height: 16),
           ...products.map((product) {
@@ -426,7 +457,7 @@ class _NearbyProducersSection extends StatelessWidget {
         children: <Widget>[
           const SectionHeader(
             title: 'Producenci w pobliźu',
-            actionLabel: 'Mapa ->',
+            actionLabel: 'Mapa',
           ),
           const SizedBox(height: 8),
           ...producers.map((prod) {
