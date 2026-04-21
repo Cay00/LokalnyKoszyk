@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:lokalny_koszyk/screens/discover_screen.dart';
 import 'package:lokalny_koszyk/screens/home_screen.dart';
 import 'package:lokalny_koszyk/screens/orders_screen.dart';
@@ -77,12 +78,12 @@ class _MyHomePageState extends State<MyHomePage> {
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: _BottomNavItemVisual(
-              icon: Icons.home,
+              assetPath: 'assets/icons/barn.svg',
               label: 'Ekran główny',
               isActive: false,
             ),
             activeIcon: _BottomNavItemVisual(
-              icon: Icons.home,
+              assetPath: 'assets/icons/barn.svg',
               label: 'Ekran główny',
               isActive: true,
             ),
@@ -90,12 +91,12 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
           BottomNavigationBarItem(
             icon: _BottomNavItemVisual(
-              icon: Icons.explore,
+              assetPath: 'assets/icons/compass.svg',
               label: 'Odkrywaj',
               isActive: false,
             ),
             activeIcon: _BottomNavItemVisual(
-              icon: Icons.explore,
+              assetPath: 'assets/icons/compass.svg',
               label: 'Odkrywaj',
               isActive: true,
             ),
@@ -103,12 +104,12 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
           BottomNavigationBarItem(
             icon: _BottomNavItemVisual(
-              icon: Icons.receipt_long,
+              assetPath: 'assets/icons/basket.svg',
               label: 'Zamówienia',
               isActive: false,
             ),
             activeIcon: _BottomNavItemVisual(
-              icon: Icons.receipt_long,
+              assetPath: 'assets/icons/basket.svg',
               label: 'Zamówienia',
               isActive: true,
             ),
@@ -116,12 +117,12 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
           BottomNavigationBarItem(
             icon: _BottomNavItemVisual(
-              icon: Icons.person,
+              assetPath: 'assets/icons/user.svg',
               label: 'Profil',
               isActive: false,
             ),
             activeIcon: _BottomNavItemVisual(
-              icon: Icons.person,
+              assetPath: 'assets/icons/user.svg',
               label: 'Profil',
               isActive: true,
             ),
@@ -135,12 +136,12 @@ class _MyHomePageState extends State<MyHomePage> {
 
 class _BottomNavItemVisual extends StatelessWidget {
   const _BottomNavItemVisual({
-    required this.icon,
+    required this.assetPath,
     required this.label,
     required this.isActive,
   });
 
-  final IconData icon;
+  final String assetPath;
   final String label;
   final bool isActive;
 
@@ -151,8 +152,13 @@ class _BottomNavItemVisual extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
-        const SizedBox(height: 8),
-        Icon(icon, size: 22, color: AppColors.textOnDark),
+        const SizedBox(height: 2),
+        SvgPicture.asset(
+          assetPath,
+          width: 22,
+          height: 22,
+          colorFilter: ColorFilter.mode(itemColor, BlendMode.srcIn),
+        ),
         const SizedBox(height: 4),
         Text(
           label,

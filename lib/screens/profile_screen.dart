@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../theme/app_theme.dart';
 
@@ -6,7 +7,7 @@ class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
   static const List<_ProfileMenuItem> _menu = <_ProfileMenuItem>[
-    _ProfileMenuItem(icon: '❤️', label: 'Ulubione produkty'),
+    _ProfileMenuItem(iconAsset: 'assets/icons/heart.svg', label: 'Ulubione produkty'),
     _ProfileMenuItem(icon: '📍', label: 'Adresy dostawy'),
     _ProfileMenuItem(icon: '💳', label: 'Metody płatnosci'),
     _ProfileMenuItem(icon: '🔔', label: 'Powiadomienia'),
@@ -73,6 +74,7 @@ class ProfileScreen extends StatelessWidget {
                       final _ProfileMenuItem item = entry.value;
                       return _ProfileMenuTile(
                         icon: item.icon,
+                        iconAsset: item.iconAsset,
                         label: item.label,
                         withDivider: i < _menu.length - 1,
                       );
@@ -160,11 +162,13 @@ class _ProfileStat extends StatelessWidget {
 class _ProfileMenuTile extends StatelessWidget {
   const _ProfileMenuTile({
     required this.icon,
+    this.iconAsset,
     required this.label,
     required this.withDivider,
   });
 
   final String icon;
+  final String? iconAsset;
   final String label;
   final bool withDivider;
 
@@ -182,7 +186,17 @@ class _ProfileMenuTile extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         child: Row(
           children: <Widget>[
-            Text(icon, style: const TextStyle(fontSize: 16)),
+            iconAsset != null
+                ? SvgPicture.asset(
+                    iconAsset!,
+                    width: 20,
+                    height: 20,
+                    colorFilter: const ColorFilter.mode(
+                      Color(0xFF1E3A2F),
+                      BlendMode.srcIn,
+                    ),
+                  )
+                : Text(icon, style: const TextStyle(fontSize: 16)),
             const SizedBox(width: 16),
             Expanded(
               child: Text(
@@ -261,10 +275,12 @@ class _BecomeProducerCard extends StatelessWidget {
 
 class _ProfileMenuItem {
   const _ProfileMenuItem({
-    required this.icon,
+    this.icon = '',
+    this.iconAsset,
     required this.label,
   });
 
   final String icon;
+  final String? iconAsset;
   final String label;
 }
