@@ -3,8 +3,16 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:lokalny_koszyk/screens/discover_screen.dart';
 import 'package:lokalny_koszyk/screens/home_screen.dart';
-import 'package:lokalny_koszyk/screens/orders_screen.dart';
+import 'package:lokalny_koszyk/screens/checkout/order_checkout_screen.dart';
+import 'package:lokalny_koszyk/screens/checkout/orders_screen.dart';
+import 'package:lokalny_koszyk/screens/profile/addresses_screen.dart';
+import 'package:lokalny_koszyk/screens/profile/become_seller_screen.dart';
 import 'package:lokalny_koszyk/screens/profile/favorites_screen.dart';
+import 'package:lokalny_koszyk/screens/profile/help_screen.dart';
+import 'package:lokalny_koszyk/screens/profile/messages_screen.dart';
+import 'package:lokalny_koszyk/screens/profile/notifications_screen.dart';
+import 'package:lokalny_koszyk/screens/profile/payments_screen.dart';
+import 'package:lokalny_koszyk/screens/profile/preferences_screen.dart';
 import 'package:lokalny_koszyk/screens/profile/profile_screen.dart';
 import 'package:lokalny_koszyk/theme/app_theme.dart';
 
@@ -50,29 +58,16 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _selectedIndex = 0;
-  bool _showFavoritesInProfile = false;
+  _OrdersView _ordersView = _OrdersView.main;
+  _ProfileView _profileView = _ProfileView.main;
 
   @override
   Widget build(BuildContext context) {
     final List<Widget> screens = <Widget>[
       const HomeScreen(),
       const DiscoverScreen(),
-      const OrdersScreen(),
-      _showFavoritesInProfile
-          ? FavoritesScreen(
-              onBack: () {
-                setState(() {
-                  _showFavoritesInProfile = false;
-                });
-              },
-            )
-          : ProfileScreen(
-              onOpenFavorites: () {
-                setState(() {
-                  _showFavoritesInProfile = true;
-                });
-              },
-            ),
+      _buildOrdersContent(),
+      _buildProfileContent(),
     ];
 
     return Scaffold(
@@ -86,8 +81,11 @@ class _MyHomePageState extends State<MyHomePage> {
         onTap: (int index) {
           setState(() {
             _selectedIndex = index;
+            if (index != 2) {
+              _ordersView = _OrdersView.main;
+            }
             if (index != 3) {
-              _showFavoritesInProfile = false;
+              _profileView = _ProfileView.main;
             }
           });
         },
@@ -152,6 +150,53 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
+  Widget _buildOrdersContent() {
+    switch (_ordersView) {
+      case _OrdersView.main:
+        return OrdersScreen(
+          onOpenCheckout: () => setState(() => _ordersView = _OrdersView.checkout),
+        );
+      case _OrdersView.checkout:
+        return OrderCheckoutScreen(
+          onBack: () => setState(() => _ordersView = _OrdersView.main),
+        );
+    }
+  }
+
+  Widget _buildProfileContent() {
+    switch (_profileView) {
+      case _ProfileView.main:
+        return ProfileScreen(
+          onOpenFavorites: () => setState(() => _profileView = _ProfileView.favorites),
+          onOpenAddresses: () => setState(() => _profileView = _ProfileView.addresses),
+          onOpenPayments: () => setState(() => _profileView = _ProfileView.payments),
+          onOpenNotifications:
+              () => setState(() => _profileView = _ProfileView.notifications),
+          onOpenPreferences: () => setState(() => _profileView = _ProfileView.preferences),
+          onOpenMessages: () => setState(() => _profileView = _ProfileView.messages),
+          onOpenHelp: () => setState(() => _profileView = _ProfileView.help),
+          onOpenBecomeSeller: () => setState(() => _profileView = _ProfileView.becomeSeller),
+        );
+      case _ProfileView.favorites:
+        return FavoritesScreen(onBack: () => setState(() => _profileView = _ProfileView.main));
+      case _ProfileView.addresses:
+        return AddressesScreen(onBack: () => setState(() => _profileView = _ProfileView.main));
+      case _ProfileView.payments:
+        return PaymentsScreen(onBack: () => setState(() => _profileView = _ProfileView.main));
+      case _ProfileView.notifications:
+        return NotificationsScreen(
+          onBack: () => setState(() => _profileView = _ProfileView.main),
+        );
+      case _ProfileView.preferences:
+        return PreferencesScreen(onBack: () => setState(() => _profileView = _ProfileView.main));
+      case _ProfileView.messages:
+        return MessagesScreen(onBack: () => setState(() => _profileView = _ProfileView.main));
+      case _ProfileView.help:
+        return HelpScreen(onBack: () => setState(() => _profileView = _ProfileView.main));
+      case _ProfileView.becomeSeller:
+        return BecomeSellerScreen(onBack: () => setState(() => _profileView = _ProfileView.main));
+    }
+  }
 }
 
 class _BottomNavItemVisual extends StatelessWidget {
@@ -200,4 +245,21 @@ class _BottomNavItemVisual extends StatelessWidget {
       ],
     );
   }
+}
+
+enum _ProfileView {
+  main,
+  favorites,
+  addresses,
+  payments,
+  notifications,
+  preferences,
+  messages,
+  help,
+  becomeSeller,
+}
+
+enum _OrdersView {
+  main,
+  checkout,
 }

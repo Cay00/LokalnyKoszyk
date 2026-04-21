@@ -7,9 +7,23 @@ class ProfileScreen extends StatelessWidget {
   const ProfileScreen({
     super.key,
     this.onOpenFavorites,
+    this.onOpenAddresses,
+    this.onOpenPayments,
+    this.onOpenNotifications,
+    this.onOpenPreferences,
+    this.onOpenMessages,
+    this.onOpenHelp,
+    this.onOpenBecomeSeller,
   });
 
   final VoidCallback? onOpenFavorites;
+  final VoidCallback? onOpenAddresses;
+  final VoidCallback? onOpenPayments;
+  final VoidCallback? onOpenNotifications;
+  final VoidCallback? onOpenPreferences;
+  final VoidCallback? onOpenMessages;
+  final VoidCallback? onOpenHelp;
+  final VoidCallback? onOpenBecomeSeller;
 
   static const List<_ProfileMenuItem> _menu = <_ProfileMenuItem>[
     _ProfileMenuItem(iconAsset: 'assets/icons/heart.svg', label: 'Ulubione produkty'),
@@ -83,9 +97,16 @@ class ProfileScreen extends StatelessWidget {
                           iconAsset: item.iconAsset,
                           label: item.label,
                           withDivider: i < _menu.length - 1,
-                          onTap: item.label == 'Ulubione produkty'
-                              ? onOpenFavorites
-                              : null,
+                          onTap: switch (item.label) {
+                            'Ulubione produkty' => onOpenFavorites,
+                            'Adresy dostawy' => onOpenAddresses,
+                            'Metody płatnosci' => onOpenPayments,
+                            'Powiadomienia' => onOpenNotifications,
+                            'Moje preferencje' => onOpenPreferences,
+                            'Wiadomości' => onOpenMessages,
+                            'Pomoc i FAQ' => onOpenHelp,
+                            _ => null,
+                          },
                         );
                       }),
                       const _LogoutTile(),
@@ -93,7 +114,9 @@ class ProfileScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 16),
-                const _BecomeProducerCard(),
+                _BecomeProducerCard(
+                  onTap: onOpenBecomeSeller,
+                ),
               ],
             ),
           ),
@@ -247,54 +270,62 @@ class _ProfileMenuTile extends StatelessWidget {
 }
 
 class _BecomeProducerCard extends StatelessWidget {
-  const _BecomeProducerCard();
+  const _BecomeProducerCard({
+    this.onTap,
+  });
+
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFFDCE9D8),
-        borderRadius: BorderRadius.circular(AppRadius.normal),
-        border: Border.all(color: const Color(0xFFC6D8BC)),
-      ),
-      child: Row(
-        children: <Widget>[
-          Text('🌱', style: TextStyle(fontSize: 32)),
-          SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(
-                  'Zostań sprzedawcą',
-                  style: TextStyle(
-                    color: AppColors.primary,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(AppRadius.normal),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.lightSage,
+          borderRadius: BorderRadius.circular(AppRadius.normal),
+          border: Border.all(color: AppColors.softSage),
+        ),
+        child: Row(
+          children: <Widget>[
+            Text('🌱', style: TextStyle(fontSize: 32)),
+            SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(
+                    'Zostań sprzedawcą',
+                    style: TextStyle(
+                      color: AppColors.primary,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                ),
-                SizedBox(height: 2),
-                Text(
-                  'Sprzedawaj swoje produkty lokalnie',
-                  style: TextStyle(
-                    color: AppColors.textLight,
-                    fontSize: 12,
+                  SizedBox(height: 2),
+                  Text(
+                    'Sprzedawaj swoje produkty lokalnie',
+                    style: TextStyle(
+                      color: AppColors.textLight,
+                      fontSize: 12,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          SvgPicture.asset(
-            'assets/icons/caret-right.svg',
-            width: 12,
-            height: 12,
-            colorFilter: const ColorFilter.mode(
-              AppColors.primary,
-              BlendMode.srcIn,
+            SvgPicture.asset(
+              'assets/icons/caret-right.svg',
+              width: 12,
+              height: 12,
+              colorFilter: const ColorFilter.mode(
+                AppColors.primary,
+                BlendMode.srcIn,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

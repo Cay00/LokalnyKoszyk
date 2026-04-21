@@ -2,10 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:lokalny_koszyk/widgets/home/section_header.dart';
 
-import '../theme/app_theme.dart';
+import '../../theme/app_theme.dart';
 
 class OrdersScreen extends StatelessWidget {
-  const OrdersScreen({super.key});
+  const OrdersScreen({
+    super.key,
+    this.onOpenCheckout,
+  });
+
+  final VoidCallback? onOpenCheckout;
 
   static const List<_OrderItem> _orders = <_OrderItem>[
     _OrderItem(
@@ -60,7 +65,9 @@ class OrdersScreen extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
-        const _CartSummaryCard(),
+        _CartSummaryCard(
+          onOpenCheckout: onOpenCheckout,
+        ),
         const SizedBox(height: 32),
         const SectionHeader(
           title: 'Historia zamówień',
@@ -81,7 +88,11 @@ class OrdersScreen extends StatelessWidget {
 }
 
 class _CartSummaryCard extends StatelessWidget {
-  const _CartSummaryCard();
+  const _CartSummaryCard({
+    this.onOpenCheckout,
+  });
+
+  final VoidCallback? onOpenCheckout;
 
   @override
   Widget build(BuildContext context) {
@@ -167,7 +178,7 @@ class _CartSummaryCard extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: () {},
+              onPressed: onOpenCheckout,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.accent,
                 foregroundColor: Colors.white,
