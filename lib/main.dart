@@ -6,6 +6,7 @@ import 'package:lokalny_koszyk/screens/home_screen.dart';
 import 'package:lokalny_koszyk/screens/checkout/order_checkout_screen.dart';
 import 'package:lokalny_koszyk/screens/checkout/order_history_detail_screen.dart';
 import 'package:lokalny_koszyk/screens/checkout/orders_screen.dart';
+import 'package:lokalny_koszyk/screens/product/product_details_screen.dart';
 import 'package:lokalny_koszyk/screens/profile/addresses_screen.dart';
 import 'package:lokalny_koszyk/screens/profile/become_seller_screen.dart';
 import 'package:lokalny_koszyk/screens/profile/favorites_screen.dart';
@@ -16,6 +17,7 @@ import 'package:lokalny_koszyk/screens/profile/payments_screen.dart';
 import 'package:lokalny_koszyk/screens/profile/preferences_screen.dart';
 import 'package:lokalny_koszyk/screens/profile/profile_screen.dart';
 import 'package:lokalny_koszyk/theme/app_theme.dart';
+import 'package:lokalny_koszyk/screens/product/product_tile.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -59,6 +61,10 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _selectedIndex = 0;
+  _HomeView _homeView = _HomeView.main;
+  ProductData? _selectedHomeProduct;
+  _DiscoverView _discoverView = _DiscoverView.main;
+  ProductData? _selectedDiscoverProduct;
   _OrdersView _ordersView = _OrdersView.main;
   String _selectedOrderId = '';
   _ProfileView _profileView = _ProfileView.main;
@@ -66,8 +72,8 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     final List<Widget> screens = <Widget>[
-      const HomeScreen(),
-      const DiscoverScreen(),
+      _buildHomeContent(),
+      _buildDiscoverContent(),
       _buildOrdersContent(),
       _buildProfileContent(),
     ];
@@ -88,6 +94,12 @@ class _MyHomePageState extends State<MyHomePage> {
             }
             if (index != 3) {
               _profileView = _ProfileView.main;
+            }
+            if (index != 0) {
+              _homeView = _HomeView.main;
+            }
+            if (index != 1) {
+              _discoverView = _DiscoverView.main;
             }
           });
         },
@@ -150,6 +162,44 @@ class _MyHomePageState extends State<MyHomePage> {
         ],
       ),
     );
+  }
+
+  Widget _buildHomeContent() {
+    switch (_homeView) {
+      case _HomeView.main:
+        return HomeScreen(
+          onOpenProductDetails: (ProductData product) {
+            setState(() {
+              _selectedHomeProduct = product;
+              _homeView = _HomeView.productDetails;
+            });
+          },
+        );
+      case _HomeView.productDetails:
+        return ProductDetailsScreen(
+          product: _selectedHomeProduct!,
+          onBack: () => setState(() => _homeView = _HomeView.main),
+        );
+    }
+  }
+
+  Widget _buildDiscoverContent() {
+    switch (_discoverView) {
+      case _DiscoverView.main:
+        return DiscoverScreen(
+          onOpenProductDetails: (ProductData product) {
+            setState(() {
+              _selectedDiscoverProduct = product;
+              _discoverView = _DiscoverView.productDetails;
+            });
+          },
+        );
+      case _DiscoverView.productDetails:
+        return ProductDetailsScreen(
+          product: _selectedDiscoverProduct!,
+          onBack: () => setState(() => _discoverView = _DiscoverView.main),
+        );
+    }
   }
 
   Widget _buildOrdersContent() {
@@ -270,6 +320,16 @@ enum _ProfileView {
   messages,
   help,
   becomeSeller,
+}
+
+enum _HomeView {
+  main,
+  productDetails,
+}
+
+enum _DiscoverView {
+  main,
+  productDetails,
 }
 
 enum _OrdersView {

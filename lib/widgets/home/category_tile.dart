@@ -21,7 +21,7 @@ class CategoryTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(AppRadius.normal),
       child: Container(
         constraints: const BoxConstraints(minWidth: 68),
         padding: const EdgeInsets.symmetric(
@@ -30,17 +30,10 @@ class CategoryTile extends StatelessWidget {
         ),
         decoration: BoxDecoration(
           color: active ? AppColors.primary : AppColors.white,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppRadius.normal),
           border: Border.all(
             color: active ? AppColors.primaryLight : AppColors.border,
           ),
-          boxShadow: <BoxShadow>[
-            BoxShadow(
-              color: active ? const Color(0x401C3A2A) : const Color(0x12000000),
-              blurRadius: active ? 12 : 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
         ),
         child: Column(
           children: <Widget>[

@@ -2,12 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:lokalny_koszyk/widgets/discover/discover_filters.dart';
 import 'package:lokalny_koszyk/widgets/discover/discover_map_preview.dart';
 import 'package:lokalny_koszyk/widgets/common/search_bar.dart';
-import 'package:lokalny_koszyk/widgets/common/product_tile.dart';
+import 'package:lokalny_koszyk/screens/product/product_tile.dart';
 
 import '../theme/app_theme.dart';
 
 class DiscoverScreen extends StatefulWidget {
-  const DiscoverScreen({super.key});
+  const DiscoverScreen({
+    super.key,
+    this.onOpenProductDetails,
+  });
+
+  final ValueChanged<ProductData>? onOpenProductDetails;
 
   @override
   State<DiscoverScreen> createState() => _DiscoverScreenState();
@@ -20,7 +25,6 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   static const List<String> _filters = <String>[
     'Wszystkie',
     'BIO',
-    'Tradycyjne',
     'Regionalne',
     'Sezonowe',
   ];
@@ -106,6 +110,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
             child: ProductTile(
               product: product,
               isLiked: _liked.contains(product.id),
+              onOpenDetails: () => widget.onOpenProductDetails?.call(product),
               onToggleLike: () {
                 setState(() {
                   if (_liked.contains(product.id)) {

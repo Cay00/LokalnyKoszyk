@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../theme/app_theme.dart';
+import '../../widgets/common/product_info_chip.dart';
 
 class ProductData {
   const ProductData({
@@ -40,31 +41,35 @@ class ProductTile extends StatelessWidget {
     super.key,
     required this.product,
     required this.isLiked,
+    required this.onOpenDetails,
     required this.onToggleLike,
     required this.onAddToCart,
   });
 
   final ProductData product;
   final bool isLiked;
+  final VoidCallback onOpenDetails;
   final VoidCallback onToggleLike;
   final VoidCallback onAddToCart;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(AppRadius.normal),
-      ),
-      foregroundDecoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(AppRadius.normal),
-        border: Border.all(color: AppColors.border),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
+    return GestureDetector(
+      onTap: onOpenDetails,
+      child: Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(AppRadius.normal),
+        ),
+        foregroundDecoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(AppRadius.normal),
+          border: Border.all(color: AppColors.border),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
           Container(
             height: 160,
             width: double.infinity,
@@ -184,12 +189,12 @@ class ProductTile extends StatelessWidget {
                 const SizedBox(height: 12),
                 Row(
                   children: <Widget>[
-                    _MetaChip(
+                    ProductInfoChip(
                       text: product.distance,
                       iconAsset: 'assets/icons/map-pin-area.svg',
                     ),
                     const SizedBox(width: 8),
-                    _MetaChip(
+                    ProductInfoChip(
                       text: product.season,
                       iconAsset: 'assets/icons/calendar-check.svg',
                     ),
@@ -253,52 +258,8 @@ class ProductTile extends StatelessWidget {
               ],
             ),
           ),
-        ],
-      ),
-    );
-  }
-}
-
-class _MetaChip extends StatelessWidget {
-  const _MetaChip({
-    required this.text,
-    this.iconAsset,
-  });
-
-  final String text;
-  final String? iconAsset;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.background,
-        borderRadius: BorderRadius.circular(AppRadius.sm),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          if (iconAsset != null) ...<Widget>[
-            SvgPicture.asset(
-              iconAsset!,
-              width: 12,
-              height: 12,
-              colorFilter: const ColorFilter.mode(
-                AppColors.textSecondary,
-                BlendMode.srcIn,
-              ),
-            ),
-            const SizedBox(width: 8),
           ],
-          Text(
-            text,
-            style: const TextStyle(
-              fontSize: 12,
-              color: AppColors.textSecondary,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

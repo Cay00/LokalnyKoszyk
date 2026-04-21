@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/common/screen_header.dart';
-import '../../widgets/common/product_tile.dart';
+import '../product/product_tile.dart';
 
 class FavoritesScreen extends StatefulWidget {
   const FavoritesScreen({
@@ -49,6 +49,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                       child: ProductTile(
                         product: product,
                         isLiked: true,
+                        onOpenDetails: () {},
                         onToggleLike: () {
                           setState(() {
                             _favoriteProducts.removeWhere((p) => p.id == product.id);

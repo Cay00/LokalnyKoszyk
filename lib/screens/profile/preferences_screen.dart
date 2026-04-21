@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-
-import '../../theme/app_theme.dart';
-import '../../widgets/common/screen_header.dart';
+import '../../widgets/common/default_screen.dart';
 
 class PreferencesScreen extends StatelessWidget {
   const PreferencesScreen({
@@ -13,25 +11,10 @@ class PreferencesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: <Widget>[
-        ScreenHeader(
-          title: 'Moje preferencje',
-          onBack: onBack,
-        ),
-        const Expanded(
-          child: Center(
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 24),
-              child: Text(
-                'Ustaw swoje preferencje zakupowe, aby lepiej dopasować oferty.',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: AppColors.textLight, fontSize: 14),
-              ),
-            ),
-          ),
-        ),
-      ],
+    return DefaultScreen(
+      title: 'Moje preferencje',
+      message: 'Ustaw swoje preferencje zakupowe, aby lepiej dopasować oferty.',
+      onBack: onBack,
     );
   }
 }

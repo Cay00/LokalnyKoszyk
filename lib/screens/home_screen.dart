@@ -5,10 +5,15 @@ import 'package:lokalny_koszyk/widgets/common/search_bar.dart';
 import 'package:lokalny_koszyk/widgets/home/category_tile.dart';
 import 'package:lokalny_koszyk/widgets/home/producer_tile.dart';
 import 'package:lokalny_koszyk/widgets/home/section_header.dart';
-import 'package:lokalny_koszyk/widgets/common/product_tile.dart';
+import 'package:lokalny_koszyk/screens/product/product_tile.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  const HomeScreen({
+    super.key,
+    this.onOpenProductDetails,
+  });
+
+  final ValueChanged<ProductData>? onOpenProductDetails;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -105,6 +110,9 @@ class _HomeScreenState extends State<HomeScreen> {
         _FeaturedProductsSection(
           products: _products,
           liked: _liked,
+          onOpenDetails: (ProductData product) {
+            widget.onOpenProductDetails?.call(product);
+          },
           onToggleLike: (String id) {
             setState(() {
               if (_liked.contains(id)) {
@@ -143,7 +151,7 @@ class _HomeHeader extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          colors: <Color>[AppColors.darkGreen, AppColors.midGreen],
+          colors: <Color>[AppColors.primary, AppColors.primaryLight],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -235,7 +243,7 @@ class _LocationBanner extends StatelessWidget {
                   Text(
                     'Wrocław, Dolnośląskie',
                     style: TextStyle(
-                      color: AppColors.midGreen,
+                      color: AppColors.primaryLight,
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                     ),
@@ -405,12 +413,14 @@ class _FeaturedProductsSection extends StatelessWidget {
   const _FeaturedProductsSection({
     required this.products,
     required this.liked,
+    required this.onOpenDetails,
     required this.onToggleLike,
     required this.onAddToCart,
   });
 
   final List<ProductData> products;
   final Set<String> liked;
+  final ValueChanged<ProductData> onOpenDetails;
   final ValueChanged<String> onToggleLike;
   final VoidCallback onAddToCart;
 
@@ -432,6 +442,7 @@ class _FeaturedProductsSection extends StatelessWidget {
               child: ProductTile(
                 product: product,
                 isLiked: liked.contains(product.id),
+                onOpenDetails: () => onOpenDetails(product),
                 onToggleLike: () => onToggleLike(product.id),
                 onAddToCart: onAddToCart,
               ),

@@ -4,8 +4,8 @@ class AppColors {
   const AppColors._();
 
   static const Color cream = Color(0xFFF5F0E8);
-  static const Color darkGreen = Color(0xFF1C3A2A);
-  static const Color midGreen = Color(0xFF2D5A3D);
+  //static const Color darkGreen = Color(0xFF1C3A2A);
+  //static const Color midGreen = Color(0xFF2D5A3D);
   static const Color leafGreen = Color(0xFF4A7C59);
   //static const Color accentGold = Color(0xFFC8923A);
   static const Color warmBrown = Color(0xFF8B5E3C);
