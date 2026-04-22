@@ -53,6 +53,10 @@ class MyApp extends StatelessWidget {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Root – tylko BottomNavigationBar + IndexedStack
+// ---------------------------------------------------------------------------
+
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
 
@@ -62,244 +66,367 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _selectedIndex = 0;
-  _HomeView _homeView = _HomeView.main;
-  _HomeView? _homeViewBeforeProducer;
-  ProductData? _selectedHomeProduct;
-  _DiscoverView _discoverView = _DiscoverView.main;
-  _DiscoverView? _discoverViewBeforeProducer;
-  ProductData? _selectedDiscoverProduct;
-  _OrdersView _ordersView = _OrdersView.main;
-  String _selectedOrderId = '';
-  _ProfileView _profileView = _ProfileView.main;
+
+  static const List<({String assetPath, String label})> _navItems = [
+    (assetPath: 'assets/icons/barn.svg',    label: 'Ekran główny'),
+    (assetPath: 'assets/icons/compass.svg', label: 'Odkrywaj'),
+    (assetPath: 'assets/icons/basket.svg',  label: 'Zamówienia'),
+    (assetPath: 'assets/icons/user.svg',    label: 'Profil'),
+  ];
+
+  // Klucze zachowują stan każdej zakładki niezależnie przy przełączaniu.
+  final List<GlobalKey<NavigatorState>> _navigatorKeys = List.generate(
+    4,
+        (_) => GlobalKey<NavigatorState>(),
+  );
+
+  Future<bool> _onWillPop() async {
+    final navigator = _navigatorKeys[_selectedIndex].currentState;
+    if (navigator != null && navigator.canPop()) {
+      navigator.pop();
+      return false;
+    }
+    return true;
+  }
 
   @override
   Widget build(BuildContext context) {
-    final List<Widget> screens = <Widget>[
-      _buildHomeContent(),
-      _buildDiscoverContent(),
-      _buildOrdersContent(),
-      _buildProfileContent(),
-    ];
-
-    return Scaffold(
-      appBar: AppBar(
-        elevation: 0,
-        toolbarHeight: 0,
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
+        statusBarColor: AppColors.primary,
+        statusBarIconBrightness: Brightness.light,
+        statusBarBrightness: Brightness.dark,
       ),
-      body: screens[_selectedIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: (int index) {
-          setState(() {
-            _selectedIndex = index;
-            if (index != 2) {
-              _ordersView = _OrdersView.main;
-            }
-            if (index != 3) {
-              _profileView = _ProfileView.main;
-            }
-            if (index != 0) {
-              _homeView = _HomeView.main;
-            }
-            if (index != 1) {
-              _discoverView = _DiscoverView.main;
-            }
-          });
+      child: PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, _) async {
+          if (didPop) return;
+          final shouldPop = await _onWillPop();
+          if (shouldPop && context.mounted) {
+            Navigator.of(context).pop();
+          }
         },
-        type: BottomNavigationBarType.fixed,
-        showSelectedLabels: false,
-        showUnselectedLabels: false,
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: _BottomNavItemVisual(
-              assetPath: 'assets/icons/barn.svg',
-              label: 'Ekran główny',
-              isActive: false,
-            ),
-            activeIcon: _BottomNavItemVisual(
-              assetPath: 'assets/icons/barn.svg',
-              label: 'Ekran główny',
-              isActive: true,
-            ),
-            label: '',
+        child: Scaffold(
+          backgroundColor: AppColors.background,
+          body: Column(
+            children: <Widget>[
+              Container(
+                height: MediaQuery.paddingOf(context).top,
+                color: AppColors.primary,
+              ),
+              Expanded(
+                child: IndexedStack(
+                  index: _selectedIndex,
+                  children: [
+                    HomeTab(navigatorKey: _navigatorKeys[0]),
+                    DiscoverTab(navigatorKey: _navigatorKeys[1]),
+                    OrdersTab(navigatorKey: _navigatorKeys[2]),
+                    ProfileTab(navigatorKey: _navigatorKeys[3]),
+                  ],
+                ),
+              ),
+            ],
           ),
-          BottomNavigationBarItem(
-            icon: _BottomNavItemVisual(
-              assetPath: 'assets/icons/compass.svg',
-              label: 'Odkrywaj',
-              isActive: false,
-            ),
-            activeIcon: _BottomNavItemVisual(
-              assetPath: 'assets/icons/compass.svg',
-              label: 'Odkrywaj',
-              isActive: true,
-            ),
-            label: '',
+          bottomNavigationBar: BottomNavigationBar(
+            currentIndex: _selectedIndex,
+            onTap: (int index) => setState(() => _selectedIndex = index),
+            type: BottomNavigationBarType.fixed,
+            showSelectedLabels: false,
+            showUnselectedLabels: false,
+            items: _navItems
+                .map(
+                  (item) => BottomNavigationBarItem(
+                icon: _BottomNavItemVisual(
+                  assetPath: item.assetPath,
+                  label: item.label,
+                  isActive: false,
+                ),
+                activeIcon: _BottomNavItemVisual(
+                  assetPath: item.assetPath,
+                  label: item.label,
+                  isActive: true,
+                ),
+                label: '',
+              ),
+            )
+                .toList(),
           ),
-          BottomNavigationBarItem(
-            icon: _BottomNavItemVisual(
-              assetPath: 'assets/icons/basket.svg',
-              label: 'Zamówienia',
-              isActive: false,
-            ),
-            activeIcon: _BottomNavItemVisual(
-              assetPath: 'assets/icons/basket.svg',
-              label: 'Zamówienia',
-              isActive: true,
-            ),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: _BottomNavItemVisual(
-              assetPath: 'assets/icons/user.svg',
-              label: 'Profil',
-              isActive: false,
-            ),
-            activeIcon: _BottomNavItemVisual(
-              assetPath: 'assets/icons/user.svg',
-              label: 'Profil',
-              isActive: true,
-            ),
-            label: '',
-          ),
-        ],
+        ),
       ),
     );
   }
+}
 
-  Widget _buildHomeContent() {
-    switch (_homeView) {
-      case _HomeView.main:
-        return HomeScreen(
-          onOpenProductDetails: (ProductData product) {
-            setState(() {
-              _selectedHomeProduct = product;
-              _homeView = _HomeView.productDetails;
-            });
-          },
-          onOpenProducerDetails: () {
-            setState(() {
-              _homeViewBeforeProducer = _homeView;
-              _homeView = _HomeView.producerDetails;
-            });
-          },
-        );
-      case _HomeView.productDetails:
-        return ProductDetailsScreen(
-          product: _selectedHomeProduct!,
-          onBack: () => setState(() => _homeView = _HomeView.main),
-          onOpenProducerDetails: () {
-            setState(() {
-              _homeViewBeforeProducer = _homeView;
-              _homeView = _HomeView.producerDetails;
-            });
-          },
-        );
-      case _HomeView.producerDetails:
-        return ProducerDetailsScreen(
-          onBack: () {
-            setState(() {
-              _homeView = _homeViewBeforeProducer ?? _HomeView.main;
-              _homeViewBeforeProducer = null;
-            });
-          },
-        );
-    }
-  }
+// ---------------------------------------------------------------------------
+// Wspólna baza dla zakładek z własnym Navigator
+// ---------------------------------------------------------------------------
 
-  Widget _buildDiscoverContent() {
-    switch (_discoverView) {
-      case _DiscoverView.main:
-        return DiscoverScreen(
-          onOpenProductDetails: (ProductData product) {
-            setState(() {
-              _selectedDiscoverProduct = product;
-              _discoverView = _DiscoverView.productDetails;
-            });
-          },
-        );
-      case _DiscoverView.productDetails:
-        return ProductDetailsScreen(
-          product: _selectedDiscoverProduct!,
-          onBack: () => setState(() => _discoverView = _DiscoverView.main),
-          onOpenProducerDetails: () {
-            setState(() {
-              _discoverViewBeforeProducer = _discoverView;
-              _discoverView = _DiscoverView.producerDetails;
-            });
-          },
-        );
-      case _DiscoverView.producerDetails:
-        return ProducerDetailsScreen(
-          onBack: () {
-            setState(() {
-              _discoverView = _discoverViewBeforeProducer ?? _DiscoverView.main;
-              _discoverViewBeforeProducer = null;
-            });
-          },
-        );
-    }
-  }
+abstract class _TabBase extends StatelessWidget {
+  const _TabBase({required this.navigatorKey});
 
-  Widget _buildOrdersContent() {
-    switch (_ordersView) {
-      case _OrdersView.main:
-        return OrdersScreen(
-          onOpenCheckout: () => setState(() => _ordersView = _OrdersView.checkout),
-          onOpenOrderDetails: (String orderId) {
-            setState(() {
-              _selectedOrderId = orderId;
-              _ordersView = _OrdersView.orderDetails;
-            });
-          },
-        );
-      case _OrdersView.checkout:
-        return OrderCheckoutScreen(
-          onBack: () => setState(() => _ordersView = _OrdersView.main),
-        );
-      case _OrdersView.orderDetails:
-        return OrderHistoryDetailScreen(
-          orderId: _selectedOrderId,
-          onBack: () => setState(() => _ordersView = _OrdersView.main),
-        );
-    }
-  }
+  final GlobalKey<NavigatorState> navigatorKey;
 
-  Widget _buildProfileContent() {
-    switch (_profileView) {
-      case _ProfileView.main:
-        return ProfileScreen(
-          onOpenFavorites: () => setState(() => _profileView = _ProfileView.favorites),
-          onOpenAddresses: () => setState(() => _profileView = _ProfileView.addresses),
-          onOpenPayments: () => setState(() => _profileView = _ProfileView.payments),
-          onOpenNotifications:
-              () => setState(() => _profileView = _ProfileView.notifications),
-          onOpenPreferences: () => setState(() => _profileView = _ProfileView.preferences),
-          onOpenMessages: () => setState(() => _profileView = _ProfileView.messages),
-          onOpenHelp: () => setState(() => _profileView = _ProfileView.help),
-          onOpenBecomeSeller: () => setState(() => _profileView = _ProfileView.becomeSeller),
-        );
-      case _ProfileView.favorites:
-        return FavoritesScreen(onBack: () => setState(() => _profileView = _ProfileView.main));
-      case _ProfileView.addresses:
-        return AddressesScreen(onBack: () => setState(() => _profileView = _ProfileView.main));
-      case _ProfileView.payments:
-        return PaymentsScreen(onBack: () => setState(() => _profileView = _ProfileView.main));
-      case _ProfileView.notifications:
-        return NotificationsScreen(
-          onBack: () => setState(() => _profileView = _ProfileView.main),
-        );
-      case _ProfileView.preferences:
-        return PreferencesScreen(onBack: () => setState(() => _profileView = _ProfileView.main));
-      case _ProfileView.messages:
-        return MessagesScreen(onBack: () => setState(() => _profileView = _ProfileView.main));
-      case _ProfileView.help:
-        return HelpScreen(onBack: () => setState(() => _profileView = _ProfileView.main));
-      case _ProfileView.becomeSeller:
-        return BecomeSellerScreen(onBack: () => setState(() => _profileView = _ProfileView.main));
-    }
+  Route<dynamic> buildInitialRoute(RouteSettings settings);
+
+  @override
+  Widget build(BuildContext context) {
+    return Navigator(
+      key: navigatorKey,
+      onGenerateRoute: buildInitialRoute,
+    );
   }
 }
+
+// ---------------------------------------------------------------------------
+// HomeTab
+// ---------------------------------------------------------------------------
+
+enum _HomeView { main, productDetails, producerDetails }
+
+class HomeTab extends _TabBase {
+  const HomeTab({required super.navigatorKey});
+
+  @override
+  Route<dynamic> buildInitialRoute(RouteSettings settings) {
+    return MaterialPageRoute<void>(
+      builder: (_) => const _HomeNavigator(),
+    );
+  }
+}
+
+class _HomeNavigator extends StatefulWidget {
+  const _HomeNavigator();
+
+  @override
+  State<_HomeNavigator> createState() => _HomeNavigatorState();
+}
+
+class _HomeNavigatorState extends State<_HomeNavigator> {
+  _HomeView _view = _HomeView.main;
+  _HomeView? _viewBeforeProducer;
+  ProductData? _selectedProduct;
+
+  void _goTo(_HomeView view, {ProductData? product}) {
+    setState(() {
+      if (view == _HomeView.producerDetails) _viewBeforeProducer = _view;
+      if (product != null) _selectedProduct = product;
+      _view = view;
+    });
+  }
+
+  void _goBack() {
+    setState(() {
+      switch (_view) {
+        case _HomeView.producerDetails:
+          _view = _viewBeforeProducer ?? _HomeView.main;
+          _viewBeforeProducer = null;
+        case _HomeView.productDetails:
+        case _HomeView.main:
+          _view = _HomeView.main;
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return switch (_view) {
+      _HomeView.main => HomeScreen(
+        onOpenProductDetails: (p) => _goTo(_HomeView.productDetails, product: p),
+        onOpenProducerDetails: () => _goTo(_HomeView.producerDetails),
+      ),
+      _HomeView.productDetails => ProductDetailsScreen(
+        product: _selectedProduct!,
+        onBack: _goBack,
+        onOpenProducerDetails: () => _goTo(_HomeView.producerDetails),
+      ),
+      _HomeView.producerDetails => ProducerDetailsScreen(onBack: _goBack),
+    };
+  }
+}
+
+// ---------------------------------------------------------------------------
+// DiscoverTab – ta sama struktura co HomeTab
+// ---------------------------------------------------------------------------
+
+enum _DiscoverView { main, productDetails, producerDetails }
+
+class DiscoverTab extends _TabBase {
+  const DiscoverTab({required super.navigatorKey});
+
+  @override
+  Route<dynamic> buildInitialRoute(RouteSettings settings) {
+    return MaterialPageRoute<void>(
+      builder: (_) => const _DiscoverNavigator(),
+    );
+  }
+}
+
+class _DiscoverNavigator extends StatefulWidget {
+  const _DiscoverNavigator();
+
+  @override
+  State<_DiscoverNavigator> createState() => _DiscoverNavigatorState();
+}
+
+class _DiscoverNavigatorState extends State<_DiscoverNavigator> {
+  _DiscoverView _view = _DiscoverView.main;
+  _DiscoverView? _viewBeforeProducer;
+  ProductData? _selectedProduct;
+
+  void _goTo(_DiscoverView view, {ProductData? product}) {
+    setState(() {
+      if (view == _DiscoverView.producerDetails) _viewBeforeProducer = _view;
+      if (product != null) _selectedProduct = product;
+      _view = view;
+    });
+  }
+
+  void _goBack() {
+    setState(() {
+      switch (_view) {
+        case _DiscoverView.producerDetails:
+          _view = _viewBeforeProducer ?? _DiscoverView.main;
+          _viewBeforeProducer = null;
+        case _DiscoverView.productDetails:
+        case _DiscoverView.main:
+          _view = _DiscoverView.main;
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return switch (_view) {
+      _DiscoverView.main => DiscoverScreen(
+        onOpenProductDetails: (p) => _goTo(_DiscoverView.productDetails, product: p),
+      ),
+      _DiscoverView.productDetails => ProductDetailsScreen(
+        product: _selectedProduct!,
+        onBack: _goBack,
+        onOpenProducerDetails: () => _goTo(_DiscoverView.producerDetails),
+      ),
+      _DiscoverView.producerDetails => ProducerDetailsScreen(onBack: _goBack),
+    };
+  }
+}
+
+// ---------------------------------------------------------------------------
+// OrdersTab
+// ---------------------------------------------------------------------------
+
+enum _OrdersView { main, checkout, orderDetails }
+
+class OrdersTab extends _TabBase {
+  const OrdersTab({required super.navigatorKey});
+
+  @override
+  Route<dynamic> buildInitialRoute(RouteSettings settings) {
+    return MaterialPageRoute<void>(
+      builder: (_) => const _OrdersNavigator(),
+    );
+  }
+}
+
+class _OrdersNavigator extends StatefulWidget {
+  const _OrdersNavigator();
+
+  @override
+  State<_OrdersNavigator> createState() => _OrdersNavigatorState();
+}
+
+class _OrdersNavigatorState extends State<_OrdersNavigator> {
+  _OrdersView _view = _OrdersView.main;
+  String? _selectedOrderId;
+
+  @override
+  Widget build(BuildContext context) {
+    return switch (_view) {
+      _OrdersView.main => OrdersScreen(
+        onOpenCheckout: () => setState(() => _view = _OrdersView.checkout),
+        onOpenOrderDetails: (String id) => setState(() {
+          _selectedOrderId = id;
+          _view = _OrdersView.orderDetails;
+        }),
+      ),
+      _OrdersView.checkout => OrderCheckoutScreen(
+        onBack: () => setState(() => _view = _OrdersView.main),
+      ),
+      _OrdersView.orderDetails => OrderHistoryDetailScreen(
+        orderId: _selectedOrderId!,
+        onBack: () => setState(() => _view = _OrdersView.main),
+      ),
+    };
+  }
+}
+
+// ---------------------------------------------------------------------------
+// ProfileTab
+// ---------------------------------------------------------------------------
+
+enum _ProfileView {
+  main,
+  favorites,
+  addresses,
+  payments,
+  notifications,
+  preferences,
+  messages,
+  help,
+  becomeSeller,
+}
+
+class ProfileTab extends _TabBase {
+  const ProfileTab({required super.navigatorKey});
+
+  @override
+  Route<dynamic> buildInitialRoute(RouteSettings settings) {
+    return MaterialPageRoute<void>(
+      builder: (_) => const _ProfileNavigator(),
+    );
+  }
+}
+
+class _ProfileNavigator extends StatefulWidget {
+  const _ProfileNavigator();
+
+  @override
+  State<_ProfileNavigator> createState() => _ProfileNavigatorState();
+}
+
+class _ProfileNavigatorState extends State<_ProfileNavigator> {
+  _ProfileView _view = _ProfileView.main;
+
+  void _goTo(_ProfileView view) => setState(() => _view = view);
+  void _goBack() => setState(() => _view = _ProfileView.main);
+
+  @override
+  Widget build(BuildContext context) {
+    return switch (_view) {
+      _ProfileView.main => ProfileScreen(
+        onOpenFavorites:     () => _goTo(_ProfileView.favorites),
+        onOpenAddresses:     () => _goTo(_ProfileView.addresses),
+        onOpenPayments:      () => _goTo(_ProfileView.payments),
+        onOpenNotifications: () => _goTo(_ProfileView.notifications),
+        onOpenPreferences:   () => _goTo(_ProfileView.preferences),
+        onOpenMessages:      () => _goTo(_ProfileView.messages),
+        onOpenHelp:          () => _goTo(_ProfileView.help),
+        onOpenBecomeSeller:  () => _goTo(_ProfileView.becomeSeller),
+      ),
+      _ProfileView.favorites    => FavoritesScreen(onBack: _goBack),
+      _ProfileView.addresses    => AddressesScreen(onBack: _goBack),
+      _ProfileView.payments     => PaymentsScreen(onBack: _goBack),
+      _ProfileView.notifications => NotificationsScreen(onBack: _goBack),
+      _ProfileView.preferences  => PreferencesScreen(onBack: _goBack),
+      _ProfileView.messages     => MessagesScreen(onBack: _goBack),
+      _ProfileView.help         => HelpScreen(onBack: _goBack),
+      _ProfileView.becomeSeller => BecomeSellerScreen(onBack: _goBack),
+    };
+  }
+}
+
+// ---------------------------------------------------------------------------
+// BottomNavItemVisual – bez zmian funkcjonalnych
+// ---------------------------------------------------------------------------
 
 class _BottomNavItemVisual extends StatelessWidget {
   const _BottomNavItemVisual({
@@ -318,7 +445,7 @@ class _BottomNavItemVisual extends StatelessWidget {
 
     return Column(
       mainAxisSize: MainAxisSize.min,
-      children: <Widget>[
+      children: [
         const SizedBox(height: 2),
         SvgPicture.asset(
           assetPath,
@@ -335,7 +462,6 @@ class _BottomNavItemVisual extends StatelessWidget {
             color: itemColor,
           ),
         ),
-        const SizedBox(height: 0),
         Transform.translate(
           offset: const Offset(0, 4),
           child: Container(
@@ -347,34 +473,4 @@ class _BottomNavItemVisual extends StatelessWidget {
       ],
     );
   }
-}
-
-enum _ProfileView {
-  main,
-  favorites,
-  addresses,
-  payments,
-  notifications,
-  preferences,
-  messages,
-  help,
-  becomeSeller,
-}
-
-enum _HomeView {
-  main,
-  productDetails,
-  producerDetails,
-}
-
-enum _DiscoverView {
-  main,
-  productDetails,
-  producerDetails,
-}
-
-enum _OrdersView {
-  main,
-  checkout,
-  orderDetails,
 }
