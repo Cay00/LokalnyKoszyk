@@ -71,22 +71,25 @@ class _HomeScreenState extends State<HomeScreen> {
     _ProducerItem(
       id: 'pr1',
       name: 'Eko Zagroda Liski',
-      type: 'Warzywa i owoce',
       dist: '4 km',
+      rating: '4.9',
+      reviews: '64',
       verified: true,
     ),
     _ProducerItem(
       id: 'pr2',
       name: 'Sery od Braci',
-      type: 'Nabiał',
       dist: '9 km',
+      rating: '4.8',
+      reviews: '51',
       verified: true,
     ),
     _ProducerItem(
       id: 'pr3',
       name: 'Piekarnia Królewska',
-      type: 'Pieczywo',
       dist: '2 km',
+      rating: '4.7',
+      reviews: '38',
       verified: false,
     ),
   ];
@@ -483,8 +486,9 @@ class _NearbyProducersSection extends StatelessWidget {
           ...producers.map((prod) {
             return ProducerTile(
               name: prod.name,
-              type: prod.type,
               distance: prod.dist,
+              rating: prod.rating,
+              reviews: prod.reviews,
               verified: prod.verified,
               onTap: onOpenProducerDetails,
             );
@@ -513,14 +517,16 @@ class _ProducerItem {
   const _ProducerItem({
     required this.id,
     required this.name,
-    required this.type,
     required this.dist,
+    required this.rating,
+    required this.reviews,
     required this.verified,
   });
 
   final String id;
   final String name;
-  final String type;
   final String dist;
+  final String rating;
+  final String reviews;
   final bool verified;
 }

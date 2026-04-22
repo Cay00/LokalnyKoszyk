@@ -89,8 +89,9 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
             const SizedBox(height: 16),
             ProducerTile(
               name: widget.product.producer,
-              type: 'Producent lokalny',
               distance: widget.product.distance,
+              rating: widget.product.rating,
+              reviews: '16',
               verified: true,
               onTap: widget.onOpenProducerDetails,
             ),

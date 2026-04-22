@@ -7,15 +7,17 @@ class ProducerTile extends StatelessWidget {
   const ProducerTile({
     super.key,
     required this.name,
-    required this.type,
     required this.distance,
+    required this.rating,
+    required this.reviews,
     required this.verified,
     this.onTap,
   });
 
   final String name;
-  final String type;
   final String distance;
+  final String rating;
+  final String reviews;
   final bool verified;
   final VoidCallback? onTap;
 
@@ -26,6 +28,11 @@ class ProducerTile extends StatelessWidget {
       child: InkWell(
         borderRadius: BorderRadius.circular(AppRadius.normal),
         onTap: onTap,
+        splashFactory: NoSplash.splashFactory,
+        splashColor: Colors.transparent,
+        highlightColor: Colors.transparent,
+        hoverColor: Colors.transparent,
+        focusColor: Colors.transparent,
         child: Container(
           margin: const EdgeInsets.only(bottom: 8),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -40,11 +47,20 @@ class ProducerTile extends StatelessWidget {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: AppColors.border,
-                  borderRadius: BorderRadius.circular(AppRadius.normal),
+                  color: AppColors.background,
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
+                  border: Border.all(color: AppColors.border),
                 ),
                 alignment: Alignment.center,
-                child: const Text('🌾', style: TextStyle(fontSize: 22)),
+                child: SvgPicture.asset(
+                  'assets/icons/farm.svg',
+                  width: 32,
+                  height: 32,
+                  colorFilter: const ColorFilter.mode(
+                    AppColors.primary,
+                    BlendMode.srcIn,
+                  ),
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -79,12 +95,52 @@ class ProducerTile extends StatelessWidget {
                         ],
                       ],
                     ),
-                    Text(
-                      '$type · $distance',
-                      style: const TextStyle(
-                        color: AppColors.textLight,
-                        fontSize: 12,
-                      ),
+                    Row(
+                      children: <Widget>[
+                        SvgPicture.asset(
+                          'assets/icons/star-fill.svg',
+                          width: 12,
+                          height: 12,
+                          colorFilter: const ColorFilter.mode(
+                            AppColors.accent,
+                            BlendMode.srcIn,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          rating,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '($reviews)',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textLight,
+                          ),
+                        ),
+                        // Don't show distance for now, as it's not implemented in the backend yet
+                        // const SizedBox(width: 8),
+                        // Text(
+                        //   "•",
+                        //   style: const TextStyle(
+                        //     color: AppColors.textLight,
+                        //     fontSize: 12,
+                        //   ),
+                        // ),
+                        // const SizedBox(width: 8),
+                        // Text(
+                        //   distance,
+                        //   style: const TextStyle(
+                        //     color: AppColors.textLight,
+                        //     fontSize: 12,
+                        //   ),
+                        // ),
+                      ],
                     ),
                   ],
                 ),
