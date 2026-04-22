@@ -96,92 +96,6 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
               onTap: widget.onOpenProducerDetails,
             ),
             const SizedBox(height: 8),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppColors.white,
-                borderRadius: BorderRadius.circular(AppRadius.normal),
-                border: Border.all(color: AppColors.border),
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: <Widget>[
-                  Container(
-                    width: 64,
-                    height: 64,
-                    decoration: BoxDecoration(
-                      color: AppColors.background,
-                      borderRadius: BorderRadius.circular(AppRadius.sm),
-                      border: Border.all(color: AppColors.border),
-                    ),
-                    alignment: Alignment.center,
-                    child: SvgPicture.asset(
-                      'assets/icons/farm.svg',
-                      width: 32,
-                      height: 32,
-                      colorFilter: const ColorFilter.mode(
-                        AppColors.primary,
-                        BlendMode.srcIn,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Text(
-                          widget.product.producer,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Row(
-                          children: <Widget>[
-                            ProductInfoChip(
-                              text: widget.product.distance,
-                              iconAsset: 'assets/icons/map-pin-area.svg',
-                            ),
-                            const Spacer(),
-                            SvgPicture.asset(
-                              'assets/icons/star-fill.svg',
-                              width: 12,
-                              height: 12,
-                              colorFilter: const ColorFilter.mode(
-                                AppColors.accent,
-                                BlendMode.srcIn,
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              widget.product.rating,
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.textPrimary,
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              '(${widget.product.reviews})',
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: AppColors.textLight,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
@@ -255,7 +169,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
             const SectionHeader(title: 'Opis'),
             const SizedBox(height: 16),
             Text(
@@ -292,7 +206,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
@@ -318,39 +232,10 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 24),
             const SectionHeader(title: 'Dostępność'),
             const SizedBox(height: 12),
             _MonthAvailabilityGrid(monthsAvailable: details.availableMonthIndices),
-            const SizedBox(height: 32),
-            const SectionHeader(title: 'Szczegóły produktu'),
-            const SizedBox(height: 8),
-            ...details.highlights.map(
-              (String item) => Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    const Text(
-                      '• ',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                    Expanded(
-                      child: Text(
-                        item,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
             const SizedBox(height: 24),
             const SectionHeader(title: 'Składniki'),
             const SizedBox(height: 8),

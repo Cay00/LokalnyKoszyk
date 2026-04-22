@@ -75,10 +75,17 @@ class _MyHomePageState extends State<MyHomePage> {
   ];
 
   // Klucze zachowują stan każdej zakładki niezależnie przy przełączaniu.
-  final List<GlobalKey<NavigatorState>> _navigatorKeys = List.generate(
-    4,
-        (_) => GlobalKey<NavigatorState>(),
-  );
+  final GlobalKey<NavigatorState> _homeNavigatorKey = GlobalKey<NavigatorState>();
+  final GlobalKey<NavigatorState> _discoverNavigatorKey = GlobalKey<NavigatorState>();
+  final GlobalKey<NavigatorState> _ordersNavigatorKey = GlobalKey<NavigatorState>();
+  final GlobalKey<NavigatorState> _profileNavigatorKey = GlobalKey<NavigatorState>();
+
+  List<GlobalKey<NavigatorState>> get _navigatorKeys => [
+    _homeNavigatorKey,
+    _discoverNavigatorKey,
+    _ordersNavigatorKey,
+    _profileNavigatorKey,
+  ];
 
   Future<bool> _onWillPop() async {
     final navigator = _navigatorKeys[_selectedIndex].currentState;
@@ -118,10 +125,10 @@ class _MyHomePageState extends State<MyHomePage> {
                 child: IndexedStack(
                   index: _selectedIndex,
                   children: [
-                    HomeTab(navigatorKey: _navigatorKeys[0]),
-                    DiscoverTab(navigatorKey: _navigatorKeys[1]),
-                    OrdersTab(navigatorKey: _navigatorKeys[2]),
-                    ProfileTab(navigatorKey: _navigatorKeys[3]),
+                    HomeTab(navigatorKey: _homeNavigatorKey),
+                    DiscoverTab(navigatorKey: _discoverNavigatorKey),
+                    OrdersTab(navigatorKey: _ordersNavigatorKey),
+                    ProfileTab(navigatorKey: _profileNavigatorKey),
                   ],
                 ),
               ),
@@ -157,39 +164,31 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Wspólna baza dla zakładek z własnym Navigator
-// ---------------------------------------------------------------------------
-
-abstract class _TabBase extends StatelessWidget {
-  const _TabBase({required this.navigatorKey});
-
-  final GlobalKey<NavigatorState> navigatorKey;
-
-  Route<dynamic> buildInitialRoute(RouteSettings settings);
-
-  @override
-  Widget build(BuildContext context) {
-    return Navigator(
-      key: navigatorKey,
-      onGenerateRoute: buildInitialRoute,
-    );
-  }
+class _NoAnimationPageRoute<T> extends PageRouteBuilder<T> {
+  _NoAnimationPageRoute({required WidgetBuilder builder})
+      : super(
+          pageBuilder: (context, animation, secondaryAnimation) => builder(context),
+          transitionDuration: Duration.zero,
+          reverseTransitionDuration: Duration.zero,
+        );
 }
 
 // ---------------------------------------------------------------------------
 // HomeTab
 // ---------------------------------------------------------------------------
 
-enum _HomeView { main, productDetails, producerDetails }
+class HomeTab extends StatelessWidget {
+  const HomeTab({required this.navigatorKey, super.key});
 
-class HomeTab extends _TabBase {
-  const HomeTab({required super.navigatorKey});
+  final GlobalKey<NavigatorState> navigatorKey;
 
   @override
-  Route<dynamic> buildInitialRoute(RouteSettings settings) {
-    return MaterialPageRoute<void>(
-      builder: (_) => const _HomeNavigator(),
+  Widget build(BuildContext context) {
+    return Navigator(
+      key: navigatorKey,
+      onGenerateRoute: (_) => _NoAnimationPageRoute<void>(
+        builder: (_) => const _HomeNavigator(),
+      ),
     );
   }
 }
@@ -202,45 +201,41 @@ class _HomeNavigator extends StatefulWidget {
 }
 
 class _HomeNavigatorState extends State<_HomeNavigator> {
-  _HomeView _view = _HomeView.main;
-  _HomeView? _viewBeforeProducer;
-  ProductData? _selectedProduct;
-
-  void _goTo(_HomeView view, {ProductData? product}) {
-    setState(() {
-      if (view == _HomeView.producerDetails) _viewBeforeProducer = _view;
-      if (product != null) _selectedProduct = product;
-      _view = view;
-    });
-  }
-
-  void _goBack() {
-    setState(() {
-      switch (_view) {
-        case _HomeView.producerDetails:
-          _view = _viewBeforeProducer ?? _HomeView.main;
-          _viewBeforeProducer = null;
-        case _HomeView.productDetails:
-        case _HomeView.main:
-          _view = _HomeView.main;
-      }
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
-    return switch (_view) {
-      _HomeView.main => HomeScreen(
-        onOpenProductDetails: (p) => _goTo(_HomeView.productDetails, product: p),
-        onOpenProducerDetails: () => _goTo(_HomeView.producerDetails),
-      ),
-      _HomeView.productDetails => ProductDetailsScreen(
-        product: _selectedProduct!,
-        onBack: _goBack,
-        onOpenProducerDetails: () => _goTo(_HomeView.producerDetails),
-      ),
-      _HomeView.producerDetails => ProducerDetailsScreen(onBack: _goBack),
-    };
+    return HomeScreen(
+      onOpenProductDetails: (product) {
+        Navigator.push(
+          context,
+          _NoAnimationPageRoute<void>(
+            builder: (_) => ProductDetailsScreen(
+              product: product,
+              onBack: () => Navigator.pop(context),
+              onOpenProducerDetails: () {
+                Navigator.push(
+                  context,
+                  _NoAnimationPageRoute<void>(
+                    builder: (_) => ProducerDetailsScreen(
+                      onBack: () => Navigator.pop(context),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        );
+      },
+      onOpenProducerDetails: () {
+        Navigator.push(
+          context,
+          _NoAnimationPageRoute<void>(
+            builder: (_) => ProducerDetailsScreen(
+              onBack: () => Navigator.pop(context),
+            ),
+          ),
+        );
+      },
+    );
   }
 }
 
@@ -248,15 +243,18 @@ class _HomeNavigatorState extends State<_HomeNavigator> {
 // DiscoverTab – ta sama struktura co HomeTab
 // ---------------------------------------------------------------------------
 
-enum _DiscoverView { main, productDetails, producerDetails }
+class DiscoverTab extends StatelessWidget {
+  const DiscoverTab({required this.navigatorKey, super.key});
 
-class DiscoverTab extends _TabBase {
-  const DiscoverTab({required super.navigatorKey});
+  final GlobalKey<NavigatorState> navigatorKey;
 
   @override
-  Route<dynamic> buildInitialRoute(RouteSettings settings) {
-    return MaterialPageRoute<void>(
-      builder: (_) => const _DiscoverNavigator(),
+  Widget build(BuildContext context) {
+    return Navigator(
+      key: navigatorKey,
+      onGenerateRoute: (_) => _NoAnimationPageRoute<void>(
+        builder: (_) => const _DiscoverNavigator(),
+      ),
     );
   }
 }
@@ -269,44 +267,31 @@ class _DiscoverNavigator extends StatefulWidget {
 }
 
 class _DiscoverNavigatorState extends State<_DiscoverNavigator> {
-  _DiscoverView _view = _DiscoverView.main;
-  _DiscoverView? _viewBeforeProducer;
-  ProductData? _selectedProduct;
-
-  void _goTo(_DiscoverView view, {ProductData? product}) {
-    setState(() {
-      if (view == _DiscoverView.producerDetails) _viewBeforeProducer = _view;
-      if (product != null) _selectedProduct = product;
-      _view = view;
-    });
-  }
-
-  void _goBack() {
-    setState(() {
-      switch (_view) {
-        case _DiscoverView.producerDetails:
-          _view = _viewBeforeProducer ?? _DiscoverView.main;
-          _viewBeforeProducer = null;
-        case _DiscoverView.productDetails:
-        case _DiscoverView.main:
-          _view = _DiscoverView.main;
-      }
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
-    return switch (_view) {
-      _DiscoverView.main => DiscoverScreen(
-        onOpenProductDetails: (p) => _goTo(_DiscoverView.productDetails, product: p),
-      ),
-      _DiscoverView.productDetails => ProductDetailsScreen(
-        product: _selectedProduct!,
-        onBack: _goBack,
-        onOpenProducerDetails: () => _goTo(_DiscoverView.producerDetails),
-      ),
-      _DiscoverView.producerDetails => ProducerDetailsScreen(onBack: _goBack),
-    };
+    return DiscoverScreen(
+      onOpenProductDetails: (product) {
+        Navigator.push(
+          context,
+          _NoAnimationPageRoute<void>(
+            builder: (_) => ProductDetailsScreen(
+              product: product,
+              onBack: () => Navigator.pop(context),
+              onOpenProducerDetails: () {
+                Navigator.push(
+                  context,
+                  _NoAnimationPageRoute<void>(
+                    builder: (_) => ProducerDetailsScreen(
+                      onBack: () => Navigator.pop(context),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        );
+      },
+    );
   }
 }
 
@@ -314,15 +299,18 @@ class _DiscoverNavigatorState extends State<_DiscoverNavigator> {
 // OrdersTab
 // ---------------------------------------------------------------------------
 
-enum _OrdersView { main, checkout, orderDetails }
+class OrdersTab extends StatelessWidget {
+  const OrdersTab({required this.navigatorKey, super.key});
 
-class OrdersTab extends _TabBase {
-  const OrdersTab({required super.navigatorKey});
+  final GlobalKey<NavigatorState> navigatorKey;
 
   @override
-  Route<dynamic> buildInitialRoute(RouteSettings settings) {
-    return MaterialPageRoute<void>(
-      builder: (_) => const _OrdersNavigator(),
+  Widget build(BuildContext context) {
+    return Navigator(
+      key: navigatorKey,
+      onGenerateRoute: (_) => _NoAnimationPageRoute<void>(
+        builder: (_) => const _OrdersNavigator(),
+      ),
     );
   }
 }
@@ -335,27 +323,31 @@ class _OrdersNavigator extends StatefulWidget {
 }
 
 class _OrdersNavigatorState extends State<_OrdersNavigator> {
-  _OrdersView _view = _OrdersView.main;
-  String? _selectedOrderId;
-
   @override
   Widget build(BuildContext context) {
-    return switch (_view) {
-      _OrdersView.main => OrdersScreen(
-        onOpenCheckout: () => setState(() => _view = _OrdersView.checkout),
-        onOpenOrderDetails: (String id) => setState(() {
-          _selectedOrderId = id;
-          _view = _OrdersView.orderDetails;
-        }),
-      ),
-      _OrdersView.checkout => OrderCheckoutScreen(
-        onBack: () => setState(() => _view = _OrdersView.main),
-      ),
-      _OrdersView.orderDetails => OrderHistoryDetailScreen(
-        orderId: _selectedOrderId!,
-        onBack: () => setState(() => _view = _OrdersView.main),
-      ),
-    };
+    return OrdersScreen(
+      onOpenCheckout: () {
+        Navigator.push(
+          context,
+          _NoAnimationPageRoute<void>(
+            builder: (_) => OrderCheckoutScreen(
+              onBack: () => Navigator.pop(context),
+            ),
+          ),
+        );
+      },
+      onOpenOrderDetails: (String id) {
+        Navigator.push(
+          context,
+          _NoAnimationPageRoute<void>(
+            builder: (_) => OrderHistoryDetailScreen(
+              orderId: id,
+              onBack: () => Navigator.pop(context),
+            ),
+          ),
+        );
+      },
+    );
   }
 }
 
@@ -363,25 +355,18 @@ class _OrdersNavigatorState extends State<_OrdersNavigator> {
 // ProfileTab
 // ---------------------------------------------------------------------------
 
-enum _ProfileView {
-  main,
-  favorites,
-  addresses,
-  payments,
-  notifications,
-  preferences,
-  messages,
-  help,
-  becomeSeller,
-}
+class ProfileTab extends StatelessWidget {
+  const ProfileTab({required this.navigatorKey, super.key});
 
-class ProfileTab extends _TabBase {
-  const ProfileTab({required super.navigatorKey});
+  final GlobalKey<NavigatorState> navigatorKey;
 
   @override
-  Route<dynamic> buildInitialRoute(RouteSettings settings) {
-    return MaterialPageRoute<void>(
-      builder: (_) => const _ProfileNavigator(),
+  Widget build(BuildContext context) {
+    return Navigator(
+      key: navigatorKey,
+      onGenerateRoute: (_) => _NoAnimationPageRoute<void>(
+        builder: (_) => const _ProfileNavigator(),
+      ),
     );
   }
 }
@@ -394,33 +379,90 @@ class _ProfileNavigator extends StatefulWidget {
 }
 
 class _ProfileNavigatorState extends State<_ProfileNavigator> {
-  _ProfileView _view = _ProfileView.main;
-
-  void _goTo(_ProfileView view) => setState(() => _view = view);
-  void _goBack() => setState(() => _view = _ProfileView.main);
-
   @override
   Widget build(BuildContext context) {
-    return switch (_view) {
-      _ProfileView.main => ProfileScreen(
-        onOpenFavorites:     () => _goTo(_ProfileView.favorites),
-        onOpenAddresses:     () => _goTo(_ProfileView.addresses),
-        onOpenPayments:      () => _goTo(_ProfileView.payments),
-        onOpenNotifications: () => _goTo(_ProfileView.notifications),
-        onOpenPreferences:   () => _goTo(_ProfileView.preferences),
-        onOpenMessages:      () => _goTo(_ProfileView.messages),
-        onOpenHelp:          () => _goTo(_ProfileView.help),
-        onOpenBecomeSeller:  () => _goTo(_ProfileView.becomeSeller),
-      ),
-      _ProfileView.favorites    => FavoritesScreen(onBack: _goBack),
-      _ProfileView.addresses    => AddressesScreen(onBack: _goBack),
-      _ProfileView.payments     => PaymentsScreen(onBack: _goBack),
-      _ProfileView.notifications => NotificationsScreen(onBack: _goBack),
-      _ProfileView.preferences  => PreferencesScreen(onBack: _goBack),
-      _ProfileView.messages     => MessagesScreen(onBack: _goBack),
-      _ProfileView.help         => HelpScreen(onBack: _goBack),
-      _ProfileView.becomeSeller => BecomeSellerScreen(onBack: _goBack),
-    };
+    return ProfileScreen(
+      onOpenFavorites: () {
+        Navigator.push(
+          context,
+          _NoAnimationPageRoute<void>(
+            builder: (_) => FavoritesScreen(
+              onBack: () => Navigator.pop(context),
+            ),
+          ),
+        );
+      },
+      onOpenAddresses: () {
+        Navigator.push(
+          context,
+          _NoAnimationPageRoute<void>(
+            builder: (_) => AddressesScreen(
+              onBack: () => Navigator.pop(context),
+            ),
+          ),
+        );
+      },
+      onOpenPayments: () {
+        Navigator.push(
+          context,
+          _NoAnimationPageRoute<void>(
+            builder: (_) => PaymentsScreen(
+              onBack: () => Navigator.pop(context),
+            ),
+          ),
+        );
+      },
+      onOpenNotifications: () {
+        Navigator.push(
+          context,
+          _NoAnimationPageRoute<void>(
+            builder: (_) => NotificationsScreen(
+              onBack: () => Navigator.pop(context),
+            ),
+          ),
+        );
+      },
+      onOpenPreferences: () {
+        Navigator.push(
+          context,
+          _NoAnimationPageRoute<void>(
+            builder: (_) => PreferencesScreen(
+              onBack: () => Navigator.pop(context),
+            ),
+          ),
+        );
+      },
+      onOpenMessages: () {
+        Navigator.push(
+          context,
+          _NoAnimationPageRoute<void>(
+            builder: (_) => MessagesScreen(
+              onBack: () => Navigator.pop(context),
+            ),
+          ),
+        );
+      },
+      onOpenHelp: () {
+        Navigator.push(
+          context,
+          _NoAnimationPageRoute<void>(
+            builder: (_) => HelpScreen(
+              onBack: () => Navigator.pop(context),
+            ),
+          ),
+        );
+      },
+      onOpenBecomeSeller: () {
+        Navigator.push(
+          context,
+          _NoAnimationPageRoute<void>(
+            builder: (_) => BecomeSellerScreen(
+              onBack: () => Navigator.pop(context),
+            ),
+          ),
+        );
+      },
+    );
   }
 }
 

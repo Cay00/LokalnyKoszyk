@@ -86,6 +86,10 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       colorScheme: colorScheme,
+      splashFactory: NoSplash.splashFactory,
+      highlightColor: Colors.transparent,
+      splashColor: Colors.transparent,
+      hoverColor: Colors.transparent,
       scaffoldBackgroundColor: AppColors.background,
       textTheme: const TextTheme(
         displayLarge: AppTypography.h1,
