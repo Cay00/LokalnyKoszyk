@@ -11,9 +11,11 @@ class HomeScreen extends StatefulWidget {
   const HomeScreen({
     super.key,
     this.onOpenProductDetails,
+    this.onOpenProducerDetails,
   });
 
   final ValueChanged<ProductData>? onOpenProductDetails;
+  final VoidCallback? onOpenProducerDetails;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -134,7 +136,10 @@ class _HomeScreenState extends State<HomeScreen> {
             );
           },
         ),
-        _NearbyProducersSection(producers: _producers),
+        _NearbyProducersSection(
+          producers: _producers,
+          onOpenProducerDetails: widget.onOpenProducerDetails,
+        ),
       ],
     );
   }
@@ -455,9 +460,13 @@ class _FeaturedProductsSection extends StatelessWidget {
 }
 
 class _NearbyProducersSection extends StatelessWidget {
-  const _NearbyProducersSection({required this.producers});
+  const _NearbyProducersSection({
+    required this.producers,
+    this.onOpenProducerDetails,
+  });
 
   final List<_ProducerItem> producers;
+  final VoidCallback? onOpenProducerDetails;
 
   @override
   Widget build(BuildContext context) {
@@ -477,6 +486,7 @@ class _NearbyProducersSection extends StatelessWidget {
               type: prod.type,
               distance: prod.dist,
               verified: prod.verified,
+              onTap: onOpenProducerDetails,
             );
           }),
         ],

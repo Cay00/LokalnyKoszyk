@@ -7,6 +7,7 @@ import 'package:lokalny_koszyk/screens/checkout/order_checkout_screen.dart';
 import 'package:lokalny_koszyk/screens/checkout/order_history_detail_screen.dart';
 import 'package:lokalny_koszyk/screens/checkout/orders_screen.dart';
 import 'package:lokalny_koszyk/screens/product/product_details_screen.dart';
+import 'package:lokalny_koszyk/screens/producer/producer_details_screen.dart';
 import 'package:lokalny_koszyk/screens/profile/addresses_screen.dart';
 import 'package:lokalny_koszyk/screens/profile/become_seller_screen.dart';
 import 'package:lokalny_koszyk/screens/profile/favorites_screen.dart';
@@ -174,10 +175,24 @@ class _MyHomePageState extends State<MyHomePage> {
               _homeView = _HomeView.productDetails;
             });
           },
+          onOpenProducerDetails: () {
+            setState(() {
+              _homeView = _HomeView.producerDetails;
+            });
+          },
         );
       case _HomeView.productDetails:
         return ProductDetailsScreen(
           product: _selectedHomeProduct!,
+          onBack: () => setState(() => _homeView = _HomeView.main),
+          onOpenProducerDetails: () {
+            setState(() {
+              _homeView = _HomeView.producerDetails;
+            });
+          },
+        );
+      case _HomeView.producerDetails:
+        return ProducerDetailsScreen(
           onBack: () => setState(() => _homeView = _HomeView.main),
         );
     }
@@ -197,6 +212,15 @@ class _MyHomePageState extends State<MyHomePage> {
       case _DiscoverView.productDetails:
         return ProductDetailsScreen(
           product: _selectedDiscoverProduct!,
+          onBack: () => setState(() => _discoverView = _DiscoverView.main),
+          onOpenProducerDetails: () {
+            setState(() {
+              _discoverView = _DiscoverView.producerDetails;
+            });
+          },
+        );
+      case _DiscoverView.producerDetails:
+        return ProducerDetailsScreen(
           onBack: () => setState(() => _discoverView = _DiscoverView.main),
         );
     }
@@ -325,11 +349,13 @@ enum _ProfileView {
 enum _HomeView {
   main,
   productDetails,
+  producerDetails,
 }
 
 enum _DiscoverView {
   main,
   productDetails,
+  producerDetails,
 }
 
 enum _OrdersView {
