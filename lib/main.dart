@@ -63,8 +63,10 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   int _selectedIndex = 0;
   _HomeView _homeView = _HomeView.main;
+  _HomeView? _homeViewBeforeProducer;
   ProductData? _selectedHomeProduct;
   _DiscoverView _discoverView = _DiscoverView.main;
+  _DiscoverView? _discoverViewBeforeProducer;
   ProductData? _selectedDiscoverProduct;
   _OrdersView _ordersView = _OrdersView.main;
   String _selectedOrderId = '';
@@ -177,6 +179,7 @@ class _MyHomePageState extends State<MyHomePage> {
           },
           onOpenProducerDetails: () {
             setState(() {
+              _homeViewBeforeProducer = _homeView;
               _homeView = _HomeView.producerDetails;
             });
           },
@@ -187,13 +190,19 @@ class _MyHomePageState extends State<MyHomePage> {
           onBack: () => setState(() => _homeView = _HomeView.main),
           onOpenProducerDetails: () {
             setState(() {
+              _homeViewBeforeProducer = _homeView;
               _homeView = _HomeView.producerDetails;
             });
           },
         );
       case _HomeView.producerDetails:
         return ProducerDetailsScreen(
-          onBack: () => setState(() => _homeView = _HomeView.main),
+          onBack: () {
+            setState(() {
+              _homeView = _homeViewBeforeProducer ?? _HomeView.main;
+              _homeViewBeforeProducer = null;
+            });
+          },
         );
     }
   }
@@ -215,13 +224,19 @@ class _MyHomePageState extends State<MyHomePage> {
           onBack: () => setState(() => _discoverView = _DiscoverView.main),
           onOpenProducerDetails: () {
             setState(() {
+              _discoverViewBeforeProducer = _discoverView;
               _discoverView = _DiscoverView.producerDetails;
             });
           },
         );
       case _DiscoverView.producerDetails:
         return ProducerDetailsScreen(
-          onBack: () => setState(() => _discoverView = _DiscoverView.main),
+          onBack: () {
+            setState(() {
+              _discoverView = _discoverViewBeforeProducer ?? _DiscoverView.main;
+              _discoverViewBeforeProducer = null;
+            });
+          },
         );
     }
   }
