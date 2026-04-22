@@ -104,9 +104,14 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                       border: Border.all(color: AppColors.border),
                     ),
                     alignment: Alignment.center,
-                    child: const Text(
-                      '🏪',
-                      style: TextStyle(fontSize: 20),
+                    child: SvgPicture.asset(
+                      'assets/icons/farm.svg',
+                      width: 32,
+                      height: 32,
+                      colorFilter: const ColorFilter.mode(
+                        AppColors.primary,
+                        BlendMode.srcIn,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -200,7 +205,15 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 8),
+            Text(
+              '*Najniższa cena z ostatnich 30 dni: ${widget.product.price} zł',
+              style: const TextStyle(
+                fontSize: 12,
+                color: AppColors.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 8),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
@@ -293,6 +306,10 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                 ),
               ],
             ),
+            const SizedBox(height: 32),
+            const SectionHeader(title: 'Dostępność'),
+            const SizedBox(height: 12),
+            _MonthAvailabilityGrid(monthsAvailable: details.availableMonthIndices),
             const SizedBox(height: 32),
             const SectionHeader(title: 'Szczegóły produktu'),
             const SizedBox(height: 8),
@@ -419,6 +436,85 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
   }
 }
 
+const List<String> _polishMonthLabels = <String>[
+  'Styczeń',
+  'Luty',
+  'Marzec',
+  'Kwiecień',
+  'Maj',
+  'Czerwiec',
+  'Lipiec',
+  'Sierpień',
+  'Wrzesień',
+  'Październik',
+  'Listopad',
+  'Grudzień',
+];
+
+class _MonthAvailabilityGrid extends StatelessWidget {
+  const _MonthAvailabilityGrid({
+    required this.monthsAvailable,
+  });
+
+  final Set<int> monthsAvailable;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: List<Widget>.generate(3, (int row) {
+        return Padding(
+          padding: EdgeInsets.only(bottom: row < 2 ? 8 : 0),
+          child: Row(
+            children: List<Widget>.generate(4, (int col) {
+              final int month = row * 4 + col + 1;
+              final bool active = monthsAvailable.contains(month);
+              return Expanded(
+                child: Padding(
+                  padding: EdgeInsets.only(right: col < 3 ? 8 : 0),
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: active ? AppColors.primary : AppColors.background,
+                      borderRadius: BorderRadius.circular(AppRadius.sm),
+                      border: Border.all(
+                        color: active ? AppColors.primary : AppColors.border,
+                      ),
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () {},
+                        borderRadius: BorderRadius.circular(AppRadius.sm),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 2),
+                          child: Center(
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                _polishMonthLabels[month - 1],
+                                textAlign: TextAlign.center,
+                                maxLines: 1,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: active ? FontWeight.w600 : FontWeight.w500,
+                                  color: active ? AppColors.white : AppColors.textLight,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }),
+          ),
+        );
+      }),
+    );
+  }
+}
+
 const String _sharedStorageDetailsText =
     'Przechowuj produkt w chłodnym miejscu, najlepiej w oryginalnym opakowaniu lub szczelnym pojemniku. '
     '\nPo otwarciu spożyć w możliwie krótkim czasie, zgodnie z informacją na etykiecie lub od sprzedawcy.';
@@ -429,12 +525,14 @@ class _LocalProductDetails {
     required this.highlights,
     required this.ingredients,
     required this.requiresColdStorage,
+    required this.availableMonthIndices,
   });
 
   final String description;
   final List<String> highlights;
   final List<String> ingredients;
   final bool requiresColdStorage;
+  final Set<int> availableMonthIndices;
 }
 
 const Map<String, _LocalProductDetails> _detailsById = <String, _LocalProductDetails>{
@@ -450,6 +548,7 @@ const Map<String, _LocalProductDetails> _detailsById = <String, _LocalProductDet
       'Rzodkiewka BIO 100%',
     ],
     requiresColdStorage: true,
+    availableMonthIndices: <int>{3, 4, 5, 6},
   ),
   'hp2': _LocalProductDetails(
     description:
@@ -463,6 +562,7 @@ const Map<String, _LocalProductDetails> _detailsById = <String, _LocalProductDet
       'Jaja kurze świeże',
     ],
     requiresColdStorage: true,
+    availableMonthIndices: <int>{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12},
   ),
   'p1': _LocalProductDetails(
     description:
@@ -476,6 +576,7 @@ const Map<String, _LocalProductDetails> _detailsById = <String, _LocalProductDet
       'Pomidory malinowe 100%',
     ],
     requiresColdStorage: false,
+    availableMonthIndices: <int>{6, 7, 8, 9, 10},
   ),
   'p2': _LocalProductDetails(
     description:
@@ -492,6 +593,7 @@ const Map<String, _LocalProductDetails> _detailsById = <String, _LocalProductDet
       'Podpuszczka',
     ],
     requiresColdStorage: true,
+    availableMonthIndices: <int>{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12},
   ),
 };
 
@@ -507,4 +609,5 @@ const _LocalProductDetails _fallbackDetails = _LocalProductDetails(
     'Składniki zostaną uzupełnione wkrótce.',
   ],
   requiresColdStorage: false,
+  availableMonthIndices: <int>{5, 6, 7, 8, 9},
 );
