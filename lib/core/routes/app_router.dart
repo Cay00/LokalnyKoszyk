@@ -52,7 +52,11 @@ class _AppRouterState extends State<AppRouter> {
       navigator.pop();
       return false;
     }
-    return true;
+    if (_selectedIndex != 0) {
+      setState(() => _selectedIndex = 0);
+      return false;
+    }
+    return false;
   }
 
   @override
@@ -67,10 +71,7 @@ class _AppRouterState extends State<AppRouter> {
         canPop: false,
         onPopInvokedWithResult: (didPop, _) async {
           if (didPop) return;
-          final shouldPop = await _onWillPop();
-          if (shouldPop && context.mounted) {
-            Navigator.of(context).pop();
-          }
+          await _onWillPop();
         },
         child: Scaffold(
           backgroundColor: AppColors.background,
