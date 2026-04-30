@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:lokalny_koszyk/theme/app_theme.dart';
+import 'package:lokalny_koszyk/core/themes/app_theme.dart';
 
 class CategoryTile extends StatelessWidget {
   const CategoryTile({

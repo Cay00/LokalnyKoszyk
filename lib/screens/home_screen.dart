@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:lokalny_koszyk/theme/app_theme.dart';
+import 'package:lokalny_koszyk/core/themes/app_theme.dart';
 import 'package:lokalny_koszyk/widgets/common/search_bar.dart';
 import 'package:lokalny_koszyk/widgets/home/category_tile.dart';
 import 'package:lokalny_koszyk/widgets/home/producer_tile.dart';
@@ -62,7 +62,7 @@ class _HomeScreenState extends State<HomeScreen> {
       reviews: '102',
       emoji: '🥚',
       tag: 'REGIONALNE',
-      bgColor: AppColors.cream,
+      bgColor: AppColors.background,
       tagColor: AppColors.warmBrown,
     ),
   ];
@@ -178,7 +178,7 @@ class _HomeHeader extends StatelessWidget {
                         Text(
                           'Znajdź lokalne smaki',
                           style: TextStyle(
-                            color: AppColors.cream,
+                            color: AppColors.background,
                             fontSize: 26,
                             fontWeight: FontWeight.w700,
                           ),
@@ -199,7 +199,7 @@ class _HomeHeader extends StatelessWidget {
                       width: 16,
                       height: 16,
                       colorFilter: const ColorFilter.mode(
-                        AppColors.cream,
+                        AppColors.background,
                         BlendMode.srcIn,
                       ),
                     ),

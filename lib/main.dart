@@ -17,7 +17,7 @@ import 'package:lokalny_koszyk/screens/profile/notifications_screen.dart';
 import 'package:lokalny_koszyk/screens/profile/payments_screen.dart';
 import 'package:lokalny_koszyk/screens/profile/preferences_screen.dart';
 import 'package:lokalny_koszyk/screens/profile/profile_screen.dart';
-import 'package:lokalny_koszyk/theme/app_theme.dart';
+import 'package:lokalny_koszyk/core/themes/app_theme.dart';
 import 'package:lokalny_koszyk/screens/product/product_tile.dart';
 
 void main() {

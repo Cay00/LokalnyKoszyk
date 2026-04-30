@@ -4,7 +4,7 @@ import 'package:lokalny_koszyk/screens/product/product_tile.dart';
 import 'package:lokalny_koszyk/widgets/common/product_info_chip.dart';
 import 'package:lokalny_koszyk/widgets/home/producer_tile.dart';
 
-import '../../theme/app_theme.dart';
+import '../../core/themes/app_theme.dart';
 import '../../widgets/common/default_screen.dart';
 import '../../widgets/home/section_header.dart';
 

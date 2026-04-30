@@ -4,7 +4,7 @@ import 'package:lokalny_koszyk/widgets/discover/discover_map_preview.dart';
 import 'package:lokalny_koszyk/widgets/common/search_bar.dart';
 import 'package:lokalny_koszyk/screens/product/product_tile.dart';
 
-import '../theme/app_theme.dart';
+import '../core/themes/app_theme.dart';
 
 class DiscoverScreen extends StatefulWidget {
   const DiscoverScreen({
