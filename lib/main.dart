@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:lokalny_koszyk/core/app_bootstrap.dart';
+import 'package:lokalny_koszyk/core/themes/app_bootstrap.dart';
 import 'package:lokalny_koszyk/core/routes/app_router.dart';
 import 'package:lokalny_koszyk/core/themes/app_theme.dart';
 
