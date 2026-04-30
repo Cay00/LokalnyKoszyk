@@ -14,9 +14,9 @@ class AppColors {
   //static const Color textDark = Color(0xFF1A1A18);
   //static const Color textMid = Color(0xFF4A4A42);
   // static const Color textLight = Color(0xFF7A7A6A);
-  static const Color white = Color(0xFFFFFFFF);
 
-  // Aliasy semantyczne do użycia w ThemeData i UI.
+  /// Main Colors
+  static const Color white = Color(0xFFFFFFFF);
   static const Color background = Color(0xFFF5F0E8);
   static const Color primary = Color(0xFF1C3A2A);
   static const Color primaryLight = Color(0xFF2D5A3D);
