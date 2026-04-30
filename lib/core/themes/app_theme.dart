@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 class AppColors {
   const AppColors._();
 
+  /* <----------- Colors ------------> */
   static const Color cream = Color(0xFFF5F0E8);
   //static const Color darkGreen = Color(0xFF1C3A2A);
   //static const Color midGreen = Color(0xFF2D5A3D);
@@ -32,6 +33,7 @@ class AppColors {
 class AppTypography {
   const AppTypography._();
 
+  /* <----------- Typography ------------> */
   static const TextStyle h1 = TextStyle(
     fontSize: 26,
     fontWeight: FontWeight.w700,
@@ -67,6 +69,7 @@ class AppTypography {
 class AppRadius {
   const AppRadius._();
 
+  /* <----------- Radius ------------> */
   static const double sm = 8;
   static const double md = 12;
   static const double normal = 16;
