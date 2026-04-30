@@ -28,6 +28,8 @@ class Product {
     required this.currency,
     required this.stockQuantity,
     this.ingredients = const [],
+    this.allergens,
+    this.lowestPriceLast30Days,
     this.storageCondition,
     this.averageRating = 0,
     this.reviewsCount = 0,
@@ -51,6 +53,8 @@ class Product {
   final Currency currency;
   final double stockQuantity;
   final List<ProductIngredient> ingredients;
+  final String? allergens;
+  final double? lowestPriceLast30Days;
   final StorageCondition? storageCondition;
   final double averageRating;
   final int reviewsCount;
@@ -74,6 +78,8 @@ class Product {
       'currency': currency.name.toUpperCase(),
       'stock_quantity': stockQuantity,
       'ingredients': ingredients.map((item) => item.toJson()).toList(),
+      'allergens': allergens,
+      'lowest_price_last_30_days': lowestPriceLast30Days,
       'storage_condition': storageCondition?.toJson(),
       'average_rating': averageRating,
       'reviews_count': reviewsCount,
@@ -113,6 +119,9 @@ class Product {
           .map((item) =>
               ProductIngredient.fromJson(item as Map<String, dynamic>))
           .toList(),
+      allergens: json['allergens'] as String?,
+      lowestPriceLast30Days:
+          (json['lowest_price_last_30_days'] as num?)?.toDouble(),
       storageCondition: json['storage_condition'] == null
           ? null
           : StorageCondition.fromJson(
