@@ -45,23 +45,37 @@ class ProductTileSmall extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
-                AspectRatio(
-                  aspectRatio: 1,
+                SizedBox(
+                  width: 80,
+                  height: 80,
                   child: Container(
                     decoration: BoxDecoration(
                       color: AppColors.background,
                       borderRadius: BorderRadius.circular(AppRadius.sm),
                       border: Border.all(color: AppColors.border),
                     ),
-                    alignment: Alignment.center,
-                    child: SvgPicture.asset(
-                      'assets/icons/farm.svg',
-                      width: 32,
-                      height: 32,
-                      colorFilter: const ColorFilter.mode(
-                        AppColors.primary,
-                        BlendMode.srcIn,
-                      ),
+                    clipBehavior: Clip.antiAlias,
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: <Widget>[
+                        Center(
+                          child: SvgPicture.asset(
+                            'assets/icons/farm.svg',
+                            width: 28,
+                            height: 28,
+                            colorFilter: const ColorFilter.mode(
+                              AppColors.primary,
+                              BlendMode.srcIn,
+                            ),
+                          ),
+                        ),
+                        Image.asset(
+                          'assets/images/food_default.png',
+                          fit: BoxFit.cover,
+                          alignment: Alignment.center,
+                          errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -103,16 +117,6 @@ class ProductTileSmall extends StatelessWidget {
                                       color: AppColors.textSecondary,
                                     ),
                                   ),
-                                  // const SizedBox(width: 8),
-                                  // SvgPicture.asset(
-                                  //   'assets/icons/package.svg',
-                                  //   width: 12,
-                                  //   height: 12,
-                                  //   colorFilter: const ColorFilter.mode(
-                                  //     AppColors.primaryLight,
-                                  //     BlendMode.srcIn,
-                                  //   ),
-                                  // ),
                                 ],
                               ),
                               const SizedBox(height: 8),

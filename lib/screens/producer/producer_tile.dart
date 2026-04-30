@@ -51,15 +51,27 @@ class ProducerTile extends StatelessWidget {
                   borderRadius: BorderRadius.circular(AppRadius.sm),
                   border: Border.all(color: AppColors.border),
                 ),
-                alignment: Alignment.center,
-                child: SvgPicture.asset(
-                  'assets/icons/farm.svg',
-                  width: 32,
-                  height: 32,
-                  colorFilter: const ColorFilter.mode(
-                    AppColors.primary,
-                    BlendMode.srcIn,
-                  ),
+                clipBehavior: Clip.antiAlias,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: <Widget>[
+                    Center(
+                      child: SvgPicture.asset(
+                        'assets/icons/farm.svg',
+                        width: 24,
+                        height: 24,
+                        colorFilter: const ColorFilter.mode(
+                          AppColors.primary,
+                          BlendMode.srcIn,
+                        ),
+                      ),
+                    ),
+                    Image.asset(
+                      'assets/images/farm_logo.png',
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(width: 12),

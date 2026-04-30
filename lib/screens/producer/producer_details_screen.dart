@@ -37,7 +37,9 @@ class _ProducerDetailsScreenState extends State<ProducerDetailsScreen> {
                 borderRadius: BorderRadius.circular(AppRadius.normal),
                 border: Border.all(color: AppColors.border),
               ),
+              clipBehavior: Clip.antiAlias,
               child: Stack(
+                fit: StackFit.expand,
                 children: <Widget>[
                   Center(
                     child: SvgPicture.asset(
@@ -49,6 +51,11 @@ class _ProducerDetailsScreenState extends State<ProducerDetailsScreen> {
                         BlendMode.srcIn,
                       ),
                     ),
+                  ),
+                  Image.asset(
+                    'assets/images/farm_bg.png',
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => const SizedBox.shrink(),
                   ),
                   Positioned(
                     top: 12,
@@ -83,74 +90,120 @@ class _ProducerDetailsScreenState extends State<ProducerDetailsScreen> {
             ),
             const SizedBox(height: 16),
             Row(
-              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                const Text(
-                  'Eko Zagroda Liski',
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
+                Container(
+                  width: 86,
+                  height: 86,
+                  decoration: BoxDecoration(
+                    color: AppColors.background,
+                    borderRadius: BorderRadius.circular(AppRadius.normal),
+                    border: Border.all(color: AppColors.border),
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: <Widget>[
+                      Center(
+                        child: SvgPicture.asset(
+                          'assets/icons/farm.svg',
+                          width: 36,
+                          height: 36,
+                          colorFilter: const ColorFilter.mode(
+                            AppColors.primary,
+                            BlendMode.srcIn,
+                          ),
+                        ),
+                      ),
+                      Image.asset(
+                        'assets/images/farm_logo.png',
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(width: 8),
-                SvgPicture.asset(
-                  'assets/icons/seal-check-fill.svg',
-                  width: 18,
-                  height: 18,
-                  colorFilter: const ColorFilter.mode(
-                    AppColors.primary,
-                    BlendMode.srcIn,
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          const Flexible(
+                            child: Text(
+                              'Eko Zagroda Liski',
+                              style: TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          SvgPicture.asset(
+                            'assets/icons/seal-check-fill.svg',
+                            width: 18,
+                            height: 18,
+                            colorFilter: const ColorFilter.mode(
+                              AppColors.primary,
+                              BlendMode.srcIn,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Odległość: 4 km',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: <Widget>[
+                          SvgPicture.asset(
+                            'assets/icons/star-fill.svg',
+                            width: 16,
+                            height: 16,
+                            colorFilter: const ColorFilter.mode(
+                              AppColors.accent,
+                              BlendMode.srcIn,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          const Text(
+                            '4.9',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          const Text(
+                            '(64)',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: AppColors.textLight,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 8),
-            const Text(
-              'Odległość: 4 km',
-              style: TextStyle(
-                fontSize: 14,
-                color: AppColors.textSecondary,
-              ),
-            ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 16),
             const Text(
               'Średni czas realizacji zamówienia: 2h 30 min',
               style: TextStyle(
                 fontSize: 14,
                 color: AppColors.textSecondary,
               ),
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: <Widget>[
-                SvgPicture.asset(
-                  'assets/icons/star-fill.svg',
-                  width: 16,
-                  height: 16,
-                  colorFilter: const ColorFilter.mode(
-                    AppColors.accent,
-                    BlendMode.srcIn,
-                  ),
-                ),
-                const SizedBox(width: 6),
-                const Text(
-                  '4.9',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                const SizedBox(width: 6),
-                const Text(
-                  '(64)',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: AppColors.textLight,
-                  ),
-                ),
-              ],
             ),
             const SizedBox(height: 24),
             const Text(
