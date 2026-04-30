@@ -19,6 +19,7 @@ class ProducerDetailsScreen extends StatefulWidget {
 
 class _ProducerDetailsScreenState extends State<ProducerDetailsScreen> {
   bool _isLiked = false;
+  _InfoSection _selectedInfoSection = _InfoSection.address;
 
   @override
   Widget build(BuildContext context) {
@@ -205,61 +206,70 @@ class _ProducerDetailsScreenState extends State<ProducerDetailsScreen> {
                 color: AppColors.textSecondary,
               ),
             ),
+            const SizedBox(height: 16),
+            Container(
+              decoration: BoxDecoration(
+                color: AppColors.white,
+                borderRadius: BorderRadius.circular(AppRadius.normal),
+                border: Border.all(color: AppColors.border),
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Padding(
+                    padding: const EdgeInsets.all(4),
+                    child: Row(
+                      children: <Widget>[
+                        _buildInfoTabButton(
+                          label: 'Adres',
+                          section: _InfoSection.address,
+                        ),
+                        _buildInfoTabButton(
+                          label: 'Kontakt',
+                          section: _InfoSection.contact,
+                        ),
+                        _buildInfoTabButton(
+                          label: 'Płatność',
+                          section: _InfoSection.payments,
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(height: 1, color: AppColors.border),
+                  SizedBox(
+                    height: 130,
+                    width: double.infinity,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Text(
+                            _selectedInfoSection.title,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            _selectedInfoSection.content,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              height: 1.5,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
             const SizedBox(height: 24),
-            const Text(
-              'Adres',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
-              ),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'ul. Zielona 12, 55-040 Kobierzyce',
-              style: TextStyle(
-                fontSize: 14,
-                height: 1.4,
-                color: AppColors.textSecondary,
-              ),
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              'Kontakt',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
-              ),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'tel. +48 600 123 456\nemail: kontakt@ekozagroda.pl',
-              style: TextStyle(
-                fontSize: 14,
-                height: 1.4,
-                color: AppColors.textSecondary,
-              ),
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              'Metody płatności',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
-              ),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'BLIK\nKarta płatnicza\nGotówka przy odbiorze',
-              style: TextStyle(
-                fontSize: 14,
-                height: 1.4,
-                color: AppColors.textSecondary,
-              ),
-            ),
-            const SizedBox(height: 20),
             const Text(
               'Opis',
               style: TextStyle(
@@ -278,7 +288,7 @@ class _ProducerDetailsScreenState extends State<ProducerDetailsScreen> {
                 color: AppColors.textSecondary,
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 24),
             const Text(
               'Jakość i certyfikaty',
               style: TextStyle(
@@ -315,7 +325,7 @@ class _ProducerDetailsScreenState extends State<ProducerDetailsScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 24),
             const Text(
               'Wszystkie produkty',
               style: TextStyle(
@@ -340,6 +350,58 @@ class _ProducerDetailsScreenState extends State<ProducerDetailsScreen> {
       onBack: widget.onBack,
     );
   }
+
+  Widget _buildInfoTabButton({
+    required String label,
+    required _InfoSection section,
+  }) {
+    final bool isSelected = _selectedInfoSection == section;
+    return Expanded(
+      child: InkWell(
+        onTap: () => setState(() => _selectedInfoSection = section),
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: isSelected ? AppColors.primary : Colors.transparent,
+            borderRadius: BorderRadius.circular(AppRadius.md),
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: isSelected ? AppColors.white : AppColors.textSecondary,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+enum _InfoSection {
+  address(
+    title: 'Adres',
+    content: 'ul. Zielona 12,\n55-040 Kobierzyce',
+  ),
+  contact(
+    title: 'Kontakt',
+    content: 'tel. +48 600 123 456\nemail: kontakt@ekozagroda.pl',
+  ),
+  payments(
+    title: 'Metody płatności',
+    content: 'BLIK\nKarta płatnicza\nGotówka przy odbiorze',
+  );
+
+  const _InfoSection({
+    required this.title,
+    required this.content,
+  });
+
+  final String title;
+  final String content;
 }
 
 const List<String> _qualityAndCertificates = <String>[
