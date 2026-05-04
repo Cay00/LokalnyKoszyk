@@ -3,7 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../core/themes/app_theme.dart';
 import 'package:lokalny_koszyk/core/supabase/supabase_client.dart';
-import 'package:lokalny_koszyk/screens/profile/add_product_screen.dart';
+import 'package:lokalny_koszyk/screens/profile/seller/add_product_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({
@@ -16,6 +16,7 @@ class ProfileScreen extends StatelessWidget {
     this.onOpenMessages,
     this.onOpenHelp,
     this.onOpenBecomeSeller,
+    this.onOpenSellerPanel,
   });
 
   final VoidCallback? onOpenFavorites;
@@ -26,6 +27,7 @@ class ProfileScreen extends StatelessWidget {
   final VoidCallback? onOpenMessages;
   final VoidCallback? onOpenHelp;
   final VoidCallback? onOpenBecomeSeller;
+  final VoidCallback? onOpenSellerPanel;
 
   static const List<_ProfileMenuItem> _menu = <_ProfileMenuItem>[
     _ProfileMenuItem(iconAsset: 'assets/icons/heart.svg', label: 'Ulubione produkty'),
@@ -121,6 +123,10 @@ class ProfileScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 16),
+                _SellerPanelCard(
+                  onTap: onOpenSellerPanel,
+                ),
+                const SizedBox(height: 12),
                 _BecomeProducerCard(
                   onTap: onOpenBecomeSeller,
                 ),
@@ -269,6 +275,74 @@ class _ProfileMenuTile extends StatelessWidget {
             ),
           ),
       ],
+    );
+  }
+}
+
+class _SellerPanelCard extends StatelessWidget {
+  const _SellerPanelCard({this.onTap});
+
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(AppRadius.normal),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(AppRadius.normal),
+          border: Border.all(color: AppColors.primary, width: 1.5),
+        ),
+        child: Row(
+          children: <Widget>[
+            SvgPicture.asset(
+              'assets/icons/package.svg',
+              width: 32,
+              height: 32,
+              colorFilter: const ColorFilter.mode(
+                AppColors.primary,
+                BlendMode.srcIn,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(
+                    'Panel sprzedawcy',
+                    style: TextStyle(
+                      color: AppColors.primary,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Dane konta, weryfikacja i lokalizacje z bazy',
+                    style: TextStyle(
+                      color: AppColors.textLight,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SvgPicture.asset(
+              'assets/icons/caret-right.svg',
+              width: 12,
+              height: 12,
+              colorFilter: const ColorFilter.mode(
+                AppColors.primary,
+                BlendMode.srcIn,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

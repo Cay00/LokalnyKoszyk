@@ -103,8 +103,19 @@ class _AddProductScreenState extends State<AddProductScreen> {
     }
   }
 
+  Future<String?> _sellerRecordIdForCurrentUser() async {
+    final userId = supabase.auth.currentUser?.id;
+    if (userId == null || userId.isEmpty) return null;
+    final row = await supabase
+        .from('sellers')
+        .select('id')
+        .eq('user_id', userId)
+        .maybeSingle();
+    return row?['id'] as String?;
+  }
+
   Future<void> _submit() async {
-    final sellerId = supabase.auth.currentUser?.id;
+    final userId = supabase.auth.currentUser?.id;
     final name = nameController.text.trim();
     final description = descriptionController.text.trim();
     final categoryId = _selectedCategoryId;
@@ -132,7 +143,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
       );
       return;
     }
-    if (sellerId == null || sellerId.isEmpty) {
+    if (userId == null || userId.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Brak zalogowanego użytkownika. Zaloguj się ponownie.'),
@@ -141,10 +152,23 @@ class _AddProductScreenState extends State<AddProductScreen> {
       return;
     }
 
+    final sellerRecordId = await _sellerRecordIdForCurrentUser();
+    if (!mounted) return;
+    if (sellerRecordId == null || sellerRecordId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Najpierw zarejestruj konto sprzedawcy (Profil → Zostań sprzedawcą).',
+          ),
+        ),
+      );
+      return;
+    }
+
     setState(() => _isSaving = true);
     try {
       await supabase.from(_tableName).insert({
-        'seller_id': sellerId,
+        'seller_id': sellerRecordId,
         'name': name,
         'description': description,
         'category_id': categoryId,
@@ -197,7 +221,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
             const Align(
               alignment: Alignment.centerLeft,
               child: Text(
-                'seller_id: aktualnie zalogowany użytkownik',
+                'seller_id: rekord z tabeli sellers dla Twojego user_id',
                 style: TextStyle(
                   fontSize: 12,
                   color: AppColors.textLight,

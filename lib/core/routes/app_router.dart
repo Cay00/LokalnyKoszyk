@@ -11,7 +11,7 @@ import 'package:lokalny_koszyk/screens/home_screen.dart';
 import 'package:lokalny_koszyk/screens/producer/producer_details_screen.dart';
 import 'package:lokalny_koszyk/screens/product/product_details_screen.dart';
 import 'package:lokalny_koszyk/screens/profile/addresses_screen.dart';
-import 'package:lokalny_koszyk/screens/profile/become_seller_screen.dart';
+import 'package:lokalny_koszyk/screens/profile/seller/become_seller_screen.dart';
 import 'package:lokalny_koszyk/screens/profile/favorites_screen.dart';
 import 'package:lokalny_koszyk/screens/profile/help_screen.dart';
 import 'package:lokalny_koszyk/screens/profile/messages_screen.dart';
@@ -19,6 +19,7 @@ import 'package:lokalny_koszyk/screens/profile/notifications_screen.dart';
 import 'package:lokalny_koszyk/screens/profile/payments_screen.dart';
 import 'package:lokalny_koszyk/screens/profile/preferences_screen.dart';
 import 'package:lokalny_koszyk/screens/profile/profile_screen.dart';
+import 'package:lokalny_koszyk/screens/profile/seller_panel_screen.dart';
 
 // GŁÓWNY ROUTER APLIKACJI
 // Odpowiada za:
@@ -316,6 +317,16 @@ class _ProfileNavigator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ProfileScreen(
+      onOpenSellerPanel: () {
+        Navigator.push(
+          context,
+          _NoAnimationPageRoute<void>(
+            builder: (_) => SellerPanelScreen(
+              onBack: () => Navigator.pop(context),
+            ),
+          ),
+        );
+      },
       onOpenFavorites: () {
         Navigator.push(
           context,
