@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:lokalny_koszyk/widgets/home/section_header.dart';
 
-import '../../theme/app_theme.dart';
+import '../../core/themes/app_theme.dart';
 
 class OrdersScreen extends StatelessWidget {
   const OrdersScreen({

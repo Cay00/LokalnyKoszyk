@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../theme/app_theme.dart';
+import '../../core/themes/app_theme.dart';
 
 class DiscoverFilters extends StatelessWidget {
   const DiscoverFilters({

@@ -3,24 +3,18 @@ import 'package:flutter/material.dart';
 class AppColors {
   const AppColors._();
 
-  static const Color cream = Color(0xFFF5F0E8);
-  //static const Color darkGreen = Color(0xFF1C3A2A);
-  //static const Color midGreen = Color(0xFF2D5A3D);
+  /* <----------- Colors ------------> */
   static const Color leafGreen = Color(0xFF4A7C59);
-  //static const Color accentGold = Color(0xFFC8923A);
   static const Color warmBrown = Color(0xFF8B5E3C);
   static const Color softSage = Color(0xFFA8C5A0);
   static const Color lightSage = Color(0xFFD4E8CD);
-  //static const Color textDark = Color(0xFF1A1A18);
-  //static const Color textMid = Color(0xFF4A4A42);
-  // static const Color textLight = Color(0xFF7A7A6A);
-  static const Color white = Color(0xFFFFFFFF);
 
-  // Aliasy semantyczne do użycia w ThemeData i UI.
-  static const Color background = Color(0xFFF5F0E8);
-  static const Color primary = Color(0xFF1C3A2A);
-  static const Color primaryLight = Color(0xFF2D5A3D);
-  static const Color accent = Color(0xFFC8923A);
+  /// Main Colors
+  static const Color white = Color(0xFFFFFFFF);
+  static const Color background = Color(0xFFF5F0E8); /// Cream
+  static const Color primary = Color(0xFF1C3A2A); /// Dark Green
+  static const Color primaryLight = Color(0xFF2D5A3D); /// Mid Green
+  static const Color accent = Color(0xFFC8923A); /// Warm Gold
   static const Color surface = Color(0xFFFFFFFF);
   static const Color textPrimary = Color(0xFF1A1A18);
   static const Color textSecondary = Color(0xFF4A4A42);
@@ -32,6 +26,7 @@ class AppColors {
 class AppTypography {
   const AppTypography._();
 
+  /* <----------- Typography ------------> */
   static const TextStyle h1 = TextStyle(
     fontSize: 26,
     fontWeight: FontWeight.w700,
@@ -67,6 +62,7 @@ class AppTypography {
 class AppRadius {
   const AppRadius._();
 
+  /* <----------- Radius ------------> */
   static const double sm = 8;
   static const double md = 12;
   static const double normal = 16;
