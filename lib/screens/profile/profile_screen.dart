@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../core/themes/app_theme.dart';
+import 'package:lokalny_koszyk/core/supabase/supabase_client.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({
@@ -37,6 +38,12 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final user = supabase.auth.currentUser;
+    final metadataName = user?.userMetadata?['name'];
+    final displayName = metadataName is String && metadataName.trim().isNotEmpty
+        ? metadataName.trim()
+        : 'Użytkownik';
+
     return ListView(
       padding: EdgeInsets.zero,
       children: <Widget>[
@@ -49,28 +56,28 @@ class ProfileScreen extends StatelessWidget {
               end: Alignment.bottomRight,
             ),
           ),
-          child: const Column(
+          child: Column(
             children: <Widget>[
-              _ProfileAvatar(),
-              SizedBox(height: 16),
+              const _ProfileAvatar(),
+              const SizedBox(height: 16),
               Text(
-                'Krzysztof Turek',
-                style: TextStyle(
+                displayName,
+                style: const TextStyle(
                   color: AppColors.white,
                   fontSize: 22,
                   fontWeight: FontWeight.w700,
                 ),
               ),
-              SizedBox(height: 8),
-              Text(
+              const SizedBox(height: 8),
+              const Text(
                 'Wrocław · Członek od 2026',
                 style: TextStyle(
                   color: AppColors.textOnDark,
                   fontSize: 12,
                 ),
               ),
-              SizedBox(height: 16),
-              _ProfileStats(),
+              const SizedBox(height: 16),
+              const _ProfileStats(),
             ],
           ),
         ),
@@ -93,7 +100,6 @@ class ProfileScreen extends StatelessWidget {
                         final int i = entry.key;
                         final _ProfileMenuItem item = entry.value;
                         return _ProfileMenuTile(
-                          icon: item.icon,
                           iconAsset: item.iconAsset,
                           label: item.label,
                           withDivider: i < _menu.length - 1,
@@ -195,14 +201,12 @@ class _ProfileStat extends StatelessWidget {
 
 class _ProfileMenuTile extends StatelessWidget {
   const _ProfileMenuTile({
-    required this.icon,
     this.iconAsset,
     required this.label,
     required this.withDivider,
     this.onTap,
   });
 
-  final String icon;
   final String? iconAsset;
   final String label;
   final bool withDivider;
@@ -210,61 +214,58 @@ class _ProfileMenuTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: Column(
-        children: <Widget>[
-          InkWell(
-            onTap: onTap,
-            borderRadius: BorderRadius.circular(AppRadius.sm),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-              child: Row(
-                children: <Widget>[
-                  iconAsset != null
-                      ? SvgPicture.asset(
-                          iconAsset!,
-                          width: 20,
-                          height: 20,
-                          colorFilter: const ColorFilter.mode(
-                            AppColors.primary,
-                            BlendMode.srcIn,
-                          ),
-                        )
-                      : Text(icon, style: const TextStyle(fontSize: 16)),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Text(
-                      label,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                  ),
+    return Column(
+      children: <Widget>[
+        InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(AppRadius.sm),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            child: Row(
+              children: <Widget>[
+                if (iconAsset != null)
                   SvgPicture.asset(
-                    'assets/icons/caret-right.svg',
-                    width: 12,
-                    height: 12,
+                    iconAsset!,
+                    width: 20,
+                    height: 20,
                     colorFilter: const ColorFilter.mode(
                       AppColors.primary,
                       BlendMode.srcIn,
                     ),
                   ),
-                ],
-              ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Text(
+                    label,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                ),
+                SvgPicture.asset(
+                  'assets/icons/caret-right.svg',
+                  width: 12,
+                  height: 12,
+                  colorFilter: const ColorFilter.mode(
+                    AppColors.primary,
+                    BlendMode.srcIn,
+                  ),
+                ),
+              ],
             ),
           ),
-          if (withDivider)
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 8),
-              child: Divider(
-                height: 1,
-                thickness: 1,
-                color: AppColors.border,
-              ),
+        ),
+        if (withDivider)
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 8),
+            child: Divider(
+              height: 1,
+              thickness: 1,
+              color: AppColors.border,
             ),
-        ],
-      ),
+          ),
+      ],
     );
   }
 }
@@ -347,30 +348,61 @@ class _LogoutTile extends StatelessWidget {
           ),
         ),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-          child: Row(
-            children: <Widget>[
-              SvgPicture.asset(
-                'assets/icons/sign-out.svg',
-                width: 20,
-                height: 20,
-                colorFilter: const ColorFilter.mode(
-                  Colors.redAccent,
-                  BlendMode.srcIn,
-                ),
-              ),
-              const SizedBox(width: 16),
-              const Expanded(
-                child: Text(
-                  'Wyloguj',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.redAccent,
-                    fontWeight: FontWeight.w600,
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(AppRadius.sm),
+            onTap: () async {
+              final shouldLogout = await showDialog<bool>(
+                context: context,
+                builder: (dialogContext) {
+                  return AlertDialog(
+                    title: const Text('Potwierdzenie'),
+                    content: const Text('Czy na pewno chcesz się wylogować?'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(dialogContext).pop(false),
+                        child: const Text('Anuluj'),
+                      ),
+                      FilledButton(
+                        onPressed: () => Navigator.of(dialogContext).pop(true),
+                        child: const Text('Wyloguj'),
+                      ),
+                    ],
+                  );
+                },
+              );
+
+              if (shouldLogout == true) {
+                await supabase.auth.signOut();
+              }
+            },
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+              child: Row(
+                children: <Widget>[
+                  SvgPicture.asset(
+                    'assets/icons/sign-out.svg',
+                    width: 20,
+                    height: 20,
+                    colorFilter: const ColorFilter.mode(
+                      Colors.redAccent,
+                      BlendMode.srcIn,
+                    ),
                   ),
-                ),
+                  const SizedBox(width: 16),
+                  const Expanded(
+                    child: Text(
+                      'Wyloguj',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.redAccent,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ],
@@ -380,12 +412,10 @@ class _LogoutTile extends StatelessWidget {
 
 class _ProfileMenuItem {
   const _ProfileMenuItem({
-    this.icon = '',
     this.iconAsset,
     required this.label,
   });
 
-  final String icon;
   final String? iconAsset;
   final String label;
 }
