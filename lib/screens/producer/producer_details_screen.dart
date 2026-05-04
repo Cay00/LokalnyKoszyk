@@ -6,10 +6,7 @@ import '../product/product_tile_small.dart';
 import '../../widgets/common/default_screen.dart';
 
 class ProducerDetailsScreen extends StatefulWidget {
-  const ProducerDetailsScreen({
-    super.key,
-    this.onBack,
-  });
+  const ProducerDetailsScreen({super.key, this.onBack});
 
   final VoidCallback? onBack;
 
@@ -201,10 +198,7 @@ class _ProducerDetailsScreenState extends State<ProducerDetailsScreen> {
             const SizedBox(height: 16),
             const Text(
               'Średni czas realizacji zamówienia: 2h 30 min',
-              style: TextStyle(
-                fontSize: 14,
-                color: AppColors.textSecondary,
-              ),
+              style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
             ),
             const SizedBox(height: 16),
             Container(
@@ -241,7 +235,10 @@ class _ProducerDetailsScreenState extends State<ProducerDetailsScreen> {
                     height: 130,
                     width: double.infinity,
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 8,
+                        horizontal: 16,
+                      ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
@@ -382,10 +379,7 @@ class _ProducerDetailsScreenState extends State<ProducerDetailsScreen> {
 }
 
 enum _InfoSection {
-  address(
-    title: 'Adres',
-    content: 'ul. Zielona 12,\n55-040 Kobierzyce',
-  ),
+  address(title: 'Adres', content: 'ul. Zielona 12,\n55-040 Kobierzyce'),
   contact(
     title: 'Kontakt',
     content: 'tel. +48 600 123 456\nemail: kontakt@ekozagroda.pl',
@@ -395,10 +389,7 @@ enum _InfoSection {
     content: 'BLIK\nKarta płatnicza\nGotówka przy odbiorze',
   );
 
-  const _InfoSection({
-    required this.title,
-    required this.content,
-  });
+  const _InfoSection({required this.title, required this.content});
 
   final String title;
   final String content;
@@ -410,11 +401,36 @@ const List<String> _qualityAndCertificates = <String>[
 ];
 
 const List<_ProductListItem> _products = <_ProductListItem>[
-  _ProductListItem(name: 'Rzodkiewka BIO', distance: '4 km', price: '20', unit: '0.9 L'),
-  _ProductListItem(name: 'Jajka od szczęśliwych kur', distance: '6 km', price: '10', unit: '1 szt.'),
-  _ProductListItem(name: 'Ser koryciński tradycyjny', distance: '5 km', price: '28', unit: '0.5 kg'),
-  _ProductListItem(name: 'Mleko świeże 3,2%', distance: '3 km', price: '12', unit: '1 L'),
-  _ProductListItem(name: 'Masło wiejskie', distance: '7 km', price: '14', unit: '200 g'),
+  _ProductListItem(
+    name: 'Rzodkiewka BIO',
+    distance: '4 km',
+    price: '20',
+    unit: '0.9 L',
+  ),
+  _ProductListItem(
+    name: 'Jajka od szczęśliwych kur',
+    distance: '6 km',
+    price: '10',
+    unit: '1 szt.',
+  ),
+  _ProductListItem(
+    name: 'Ser koryciński tradycyjny',
+    distance: '5 km',
+    price: '28',
+    unit: '0.5 kg',
+  ),
+  _ProductListItem(
+    name: 'Mleko świeże 3,2%',
+    distance: '3 km',
+    price: '12',
+    unit: '1 L',
+  ),
+  _ProductListItem(
+    name: 'Masło wiejskie',
+    distance: '7 km',
+    price: '14',
+    unit: '200 g',
+  ),
 ];
 
 class _ProductListItem {
