@@ -3,6 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../core/themes/app_theme.dart';
 import 'package:lokalny_koszyk/core/supabase/supabase_client.dart';
+import 'package:lokalny_koszyk/screens/profile/add_product_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({
@@ -123,6 +124,8 @@ class ProfileScreen extends StatelessWidget {
                 _BecomeProducerCard(
                   onTap: onOpenBecomeSeller,
                 ),
+                const SizedBox(height: 12),
+                const _QuickAddProductCard(),
               ],
             ),
           ),
@@ -418,4 +421,29 @@ class _ProfileMenuItem {
 
   final String? iconAsset;
   final String label;
+}
+
+class _QuickAddProductCard extends StatelessWidget {
+  const _QuickAddProductCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedButton.icon(
+      onPressed: () {
+        Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => const AddProductScreen(),
+          ),
+        );
+      },
+      icon: const Icon(Icons.add_box_outlined),
+      label: const Text('Tymczasowo: dodaj produkt'),
+      style: OutlinedButton.styleFrom(
+        minimumSize: const Size.fromHeight(48),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.normal),
+        ),
+      ),
+    );
+  }
 }
