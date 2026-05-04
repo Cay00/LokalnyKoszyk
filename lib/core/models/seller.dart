@@ -1,6 +1,7 @@
 class Seller {
   const Seller({
-    required this.sellerId,
+    required this.id, // ID SELLERA (rekord)
+    required this.userId, // ID USERA (auth/profile)
     required this.name,
     required this.description,
     required this.email,
@@ -16,8 +17,8 @@ class Seller {
     this.coverImage,
   });
 
-  // UUID represented as String.
-  final String sellerId;
+  final String id;
+  final String userId;
   final String name;
   final String description;
   final String email;
@@ -34,7 +35,8 @@ class Seller {
 
   Map<String, dynamic> toJson() {
     return {
-      'seller_id': sellerId,
+      'id': id,
+      'user_id': userId,
       'name': name,
       'description': description,
       'email': email,
@@ -53,7 +55,8 @@ class Seller {
 
   factory Seller.fromJson(Map<String, dynamic> json) {
     return Seller(
-      sellerId: json['seller_id'] as String? ?? '',
+      id: json['id'] as String? ?? json['seller_id'] as String? ?? '',
+      userId: json['user_id'] as String? ?? '',
       name: json['name'] as String? ?? '',
       description: json['description'] as String? ?? '',
       email: json['email'] as String? ?? '',

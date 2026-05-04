@@ -3,7 +3,8 @@ import 'package:lokalny_koszyk/core/models/seller.dart';
 
 final List<Seller> sampleSellers = [
   Seller(
-    sellerId: '6f3e61f1-7220-4f95-9a3f-c9086ab14571',
+    id: '6f3e61f1-7220-4f95-9a3f-c9086ab14571',
+    userId: 'f1111111-1111-4111-8111-111111111111',
     name: 'Gospodarstwo Zielona Dolina',
     description: 'Rodzinne gospodarstwo z warzywami sezonowymi i przetworami.',
     email: 'kontakt@zielonadolina.pl',
@@ -29,7 +30,8 @@ final List<Seller> sampleSellers = [
     coverImage: 'assets/images/farm_bg.png',
   ),
   Seller(
-    sellerId: '4c3d17eb-c303-40bc-9f74-c871c2b8c69f',
+    id: '4c3d17eb-c303-40bc-9f74-c871c2b8c69f',
+    userId: 'f2222222-2222-4222-8222-222222222222',
     name: 'Mleczna Zagroda',
     description: 'Nabiał rzemieślniczy od krów z wolnego wybiegu.',
     email: 'biuro@mlecznazagroda.pl',
@@ -55,7 +57,8 @@ final List<Seller> sampleSellers = [
   ),
 
   Seller(
-    sellerId: 'a9b1c2d3-1111-4aaa-9bbb-123456789001',
+    id: 'a9b1c2d3-1111-4aaa-9bbb-123456789001',
+    userId: 'f3333333-3333-4333-8333-333333333333',
     name: 'Pasieka Złoty Ul',
     description: 'Naturalne miody i produkty pszczele.',
     email: 'kontakt@zlotyul.pl',
@@ -81,7 +84,8 @@ final List<Seller> sampleSellers = [
   ),
 
   Seller(
-    sellerId: 'b2c3d4e5-2222-4bbb-8ccc-123456789002',
+    id: 'b2c3d4e5-2222-4bbb-8ccc-123456789002',
+    userId: 'f4444444-4444-4444-8444-444444444444',
     name: 'Sad Owocowy Raj',
     description: 'Świeże owoce i soki tłoczone.',
     email: 'biuro@owocowyraj.pl',
@@ -107,7 +111,8 @@ final List<Seller> sampleSellers = [
   ),
 
   Seller(
-    sellerId: 'c3d4e5f6-3333-4ccc-7ddd-123456789003',
+    id: 'c3d4e5f6-3333-4ccc-7ddd-123456789003',
+    userId: 'f5555555-5555-4555-8555-555555555555',
     name: 'Eko Mięso Tradycja',
     description: 'Mięso i wędliny tradycyjne.',
     email: 'kontakt@ekomieso.pl',
