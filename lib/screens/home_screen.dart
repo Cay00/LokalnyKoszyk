@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:lokalny_koszyk/core/supabase/cart_repository.dart';
+import 'package:lokalny_koszyk/core/supabase/supabase_client.dart';
 import 'package:lokalny_koszyk/core/themes/app_theme.dart';
 import 'package:lokalny_koszyk/widgets/common/search_bar.dart';
 import 'package:lokalny_koszyk/widgets/home/category_tile.dart';
@@ -15,7 +17,7 @@ class HomeScreen extends StatefulWidget {
   });
 
   final ValueChanged<ProductData>? onOpenProductDetails;
-  final VoidCallback? onOpenProducerDetails;
+  final ValueChanged<String>? onOpenProducerDetails;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -25,6 +27,10 @@ class _HomeScreenState extends State<HomeScreen> {
   int _cartCount = 0;
   String? _activeCategoryId;
   final Set<String> _liked = <String>{};
+  bool _isAddingToCart = false;
+  bool _isLoadingSellers = true;
+  String? _sellersError;
+  List<_ProducerItem> _nearbySellers = const <_ProducerItem>[];
 
   static const List<_CategoryItem> _categories = <_CategoryItem>[
     _CategoryItem(id: 'warzywa', icon: '🥕', name: 'Warzywa', count: 18),
@@ -67,32 +73,72 @@ class _HomeScreenState extends State<HomeScreen> {
     ),
   ];
 
-  static const List<_ProducerItem> _producers = <_ProducerItem>[
-    _ProducerItem(
-      id: 'pr1',
-      name: 'Eko Zagroda Liski',
-      dist: '4 km',
-      rating: '4.9',
-      reviews: '64',
-      verified: true,
-    ),
-    _ProducerItem(
-      id: 'pr2',
-      name: 'Sery od Braci',
-      dist: '9 km',
-      rating: '4.8',
-      reviews: '51',
-      verified: true,
-    ),
-    _ProducerItem(
-      id: 'pr3',
-      name: 'Piekarnia Królewska',
-      dist: '2 km',
-      rating: '4.7',
-      reviews: '38',
-      verified: false,
-    ),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _loadNearbySellers();
+  }
+
+  Future<void> _loadNearbySellers() async {
+    setState(() {
+      _isLoadingSellers = true;
+      _sellersError = null;
+    });
+    try {
+      final rows = await supabase
+          .from('sellers')
+          .select('id, name, is_verified')
+          .order('created_at', ascending: false)
+          .limit(20);
+
+      final mapped = rows.map<_ProducerItem>((dynamic row) {
+        final map = Map<String, dynamic>.from(row as Map);
+        return _ProducerItem(
+          id: (map['id'] ?? '').toString(),
+          name: (map['name'] ?? 'Sprzedawca').toString(),
+          dist: '',
+          rating: '0.0',
+          reviews: '0',
+          verified: map['is_verified'] == true,
+        );
+      }).where((seller) => seller.id.isNotEmpty).toList();
+
+      if (!mounted) return;
+      setState(() {
+        _nearbySellers = mapped;
+        _isLoadingSellers = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isLoadingSellers = false;
+        _sellersError = 'Nie udało się pobrać sprzedawców: $e';
+      });
+    }
+  }
+
+  Future<void> _addToCart(ProductData product) async {
+    if (_isAddingToCart) return;
+    setState(() => _isAddingToCart = true);
+    try {
+      await CartRepository.addToCart(productId: product.id);
+      if (!mounted) return;
+      setState(() => _cartCount++);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          duration: const Duration(milliseconds: 900),
+          content: Text('Dodano do koszyka: ${product.name} (razem: $_cartCount)'),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Nie udało się dodać do koszyka: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _isAddingToCart = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -127,20 +173,13 @@ class _HomeScreenState extends State<HomeScreen> {
               }
             });
           },
-          onAddToCart: () {
-            setState(() {
-              _cartCount++;
-            });
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                duration: const Duration(milliseconds: 700),
-                content: Text('Koszyk: $_cartCount'),
-              ),
-            );
-          },
+          onAddToCart: _addToCart,
         ),
         _NearbyProducersSection(
-          producers: _producers,
+          producers: _nearbySellers,
+          isLoading: _isLoadingSellers,
+          errorText: _sellersError,
+          onRetry: _loadNearbySellers,
           onOpenProducerDetails: widget.onOpenProducerDetails,
         ),
       ],
@@ -430,7 +469,7 @@ class _FeaturedProductsSection extends StatelessWidget {
   final Set<String> liked;
   final ValueChanged<ProductData> onOpenDetails;
   final ValueChanged<String> onToggleLike;
-  final VoidCallback onAddToCart;
+  final ValueChanged<ProductData> onAddToCart;
 
   @override
   Widget build(BuildContext context) {
@@ -452,7 +491,7 @@ class _FeaturedProductsSection extends StatelessWidget {
                 isLiked: liked.contains(product.id),
                 onOpenDetails: () => onOpenDetails(product),
                 onToggleLike: () => onToggleLike(product.id),
-                onAddToCart: onAddToCart,
+                onAddToCart: () => onAddToCart(product),
               ),
             );
           }),
@@ -465,11 +504,17 @@ class _FeaturedProductsSection extends StatelessWidget {
 class _NearbyProducersSection extends StatelessWidget {
   const _NearbyProducersSection({
     required this.producers,
+    required this.isLoading,
+    required this.errorText,
+    required this.onRetry,
     this.onOpenProducerDetails,
   });
 
   final List<_ProducerItem> producers;
-  final VoidCallback? onOpenProducerDetails;
+  final bool isLoading;
+  final String? errorText;
+  final VoidCallback onRetry;
+  final ValueChanged<String>? onOpenProducerDetails;
 
   @override
   Widget build(BuildContext context) {
@@ -483,16 +528,54 @@ class _NearbyProducersSection extends StatelessWidget {
             actionLabel: 'Zobacz wszystkich',
           ),
           const SizedBox(height: 8),
-          ...producers.map((prod) {
-            return ProducerTile(
-              name: prod.name,
-              distance: prod.dist,
-              rating: prod.rating,
-              reviews: prod.reviews,
-              verified: prod.verified,
-              onTap: onOpenProducerDetails,
-            );
-          }),
+          if (isLoading)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 8),
+              child: LinearProgressIndicator(),
+            )
+          else if (errorText != null)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Row(
+                children: <Widget>[
+                  Expanded(
+                    child: Text(
+                      errorText!,
+                      style: const TextStyle(
+                        color: Colors.redAccent,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: onRetry,
+                    child: const Text('Ponów'),
+                  ),
+                ],
+              ),
+            )
+          else if (producers.isEmpty)
+            const Padding(
+              padding: EdgeInsets.only(bottom: 8),
+              child: Text(
+                'Brak sprzedawców do wyświetlenia.',
+                style: TextStyle(
+                  color: AppColors.textLight,
+                  fontSize: 13,
+                ),
+              ),
+            )
+          else
+            ...producers.map((prod) {
+              return ProducerTile(
+                name: prod.name,
+                distance: prod.dist,
+                rating: prod.rating,
+                reviews: prod.reviews,
+                verified: prod.verified,
+                onTap: () => onOpenProducerDetails?.call(prod.id),
+              );
+            }),
         ],
       ),
     );

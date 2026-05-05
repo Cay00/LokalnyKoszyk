@@ -165,26 +165,16 @@ class _HomeNavigator extends StatelessWidget {
             builder: (_) => ProductDetailsScreen(
               product: product,
               onBack: () => Navigator.pop(context),
-              // zagnieżdżona nawigacja: Product -> Producer
-              onOpenProducerDetails: () {
-                Navigator.push(
-                  context,
-                  _NoAnimationPageRoute<void>(
-                    builder: (_) => ProducerDetailsScreen(
-                      onBack: () => Navigator.pop(context),
-                    ),
-                  ),
-                );
-              },
             ),
           ),
         );
       },
-      onOpenProducerDetails: () {
+      onOpenProducerDetails: (sellerId) {
         Navigator.push(
           context,
           _NoAnimationPageRoute<void>(
             builder: (_) => ProducerDetailsScreen(
+              sellerId: sellerId,
               onBack: () => Navigator.pop(context),
             ),
           ),
@@ -225,16 +215,6 @@ class _DiscoverNavigator extends StatelessWidget {
             builder: (_) => ProductDetailsScreen(
               product: product,
               onBack: () => Navigator.pop(context),
-              onOpenProducerDetails: () {
-                Navigator.push(
-                  context,
-                  _NoAnimationPageRoute<void>(
-                    builder: (_) => ProducerDetailsScreen(
-                      onBack: () => Navigator.pop(context),
-                    ),
-                  ),
-                );
-              },
             ),
           ),
         );

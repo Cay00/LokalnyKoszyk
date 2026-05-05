@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lokalny_koszyk/core/supabase/cart_repository.dart';
 import 'package:lokalny_koszyk/widgets/discover/discover_filters.dart';
 import 'package:lokalny_koszyk/widgets/discover/discover_map_preview.dart';
 import 'package:lokalny_koszyk/widgets/common/search_bar.dart';
@@ -22,6 +23,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   int _cartCount = 0;
   String _activeFilter = 'Wszystkie';
   final Set<String> _liked = <String>{};
+  bool _isAddingToCart = false;
   static const List<String> _filters = <String>[
     'Wszystkie',
     'BIO',
@@ -61,6 +63,29 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
       tagColor: Color(0xFF9C6B30),
     ),
   ];
+
+  Future<void> _addToCart(ProductData product) async {
+    if (_isAddingToCart) return;
+    setState(() => _isAddingToCart = true);
+    try {
+      await CartRepository.addToCart(productId: product.id);
+      if (!mounted) return;
+      setState(() => _cartCount++);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          duration: const Duration(milliseconds: 900),
+          content: Text('Dodano do koszyka: ${product.name} (razem: $_cartCount)'),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Nie udało się dodać do koszyka: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _isAddingToCart = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -120,17 +145,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                   }
                 });
               },
-              onAddToCart: () {
-                setState(() {
-                  _cartCount++;
-                });
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    duration: const Duration(milliseconds: 700),
-                    content: Text('Koszyk: $_cartCount'),
-                  ),
-                );
-              },
+              onAddToCart: () => _addToCart(product),
             ),
           );
         }),

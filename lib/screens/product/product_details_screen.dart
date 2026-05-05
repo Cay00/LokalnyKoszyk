@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:lokalny_koszyk/core/supabase/cart_repository.dart';
 import 'package:lokalny_koszyk/screens/product/product_tile.dart';
 import 'package:lokalny_koszyk/screens/producer/producer_tile.dart';
 
@@ -25,6 +26,26 @@ class ProductDetailsScreen extends StatefulWidget {
 
 class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
   bool _isLiked = false;
+  bool _isAddingToCart = false;
+
+  Future<void> _addToCart() async {
+    if (_isAddingToCart) return;
+    setState(() => _isAddingToCart = true);
+    try {
+      await CartRepository.addToCart(productId: widget.product.id);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Dodano do koszyka: ${widget.product.name}')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Nie udało się dodać do koszyka: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _isAddingToCart = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -142,7 +163,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {},
+                onPressed: _isAddingToCart ? null : _addToCart,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   foregroundColor: AppColors.white,

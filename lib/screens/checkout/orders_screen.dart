@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:lokalny_koszyk/core/supabase/cart_repository.dart';
 import 'package:lokalny_koszyk/widgets/home/section_header.dart';
 
 import '../../core/themes/app_theme.dart';
 
-class OrdersScreen extends StatelessWidget {
+class OrdersScreen extends StatefulWidget {
   const OrdersScreen({
     super.key,
     this.onOpenCheckout,
@@ -13,6 +14,16 @@ class OrdersScreen extends StatelessWidget {
 
   final VoidCallback? onOpenCheckout;
   final ValueChanged<String>? onOpenOrderDetails;
+
+  @override
+  State<OrdersScreen> createState() => _OrdersScreenState();
+}
+
+class _OrdersScreenState extends State<OrdersScreen> {
+  bool _isLoadingCart = true;
+  bool _isRemovingItem = false;
+  String? _cartError;
+  List<CartItemData> _cartItems = const <CartItemData>[];
 
   static const List<_OrderItem> _orders = <_OrderItem>[
     _OrderItem(
@@ -54,6 +65,55 @@ class OrdersScreen extends StatelessWidget {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _loadCart();
+  }
+
+  Future<void> _loadCart() async {
+    setState(() {
+      _isLoadingCart = true;
+      _cartError = null;
+    });
+    try {
+      final items = await CartRepository.getCartItemsForCurrentUser();
+      if (!mounted) return;
+      setState(() {
+        _cartItems = items;
+        _isLoadingCart = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _cartError = 'Nie udało się pobrać koszyka: $e';
+        _isLoadingCart = false;
+      });
+    }
+  }
+
+  Future<void> _removeItem(CartItemData item) async {
+    if (_isRemovingItem) return;
+    setState(() => _isRemovingItem = true);
+    try {
+      await CartRepository.removeCartItem(cartItemId: item.id);
+      if (!mounted) return;
+      setState(() {
+        _cartItems = _cartItems.where((x) => x.id != item.id).toList();
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Usunięto z koszyka: ${item.name}')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Nie udało się usunąć produktu: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _isRemovingItem = false);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -68,7 +128,13 @@ class OrdersScreen extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         _CartSummaryCard(
-          onOpenCheckout: onOpenCheckout,
+          isLoading: _isLoadingCart,
+          errorText: _cartError,
+          cartItems: _cartItems,
+          isRemovingItem: _isRemovingItem,
+          onRemoveItem: _removeItem,
+          onRetry: _loadCart,
+          onOpenCheckout: widget.onOpenCheckout,
         ),
         const SizedBox(height: 32),
         const SectionHeader(
@@ -82,8 +148,8 @@ class OrdersScreen extends StatelessWidget {
           return _OrderHistoryTile(
             order: order,
             withBottomSpacing: index < _orders.length - 1,
-            onTap: onOpenOrderDetails != null
-                ? () => onOpenOrderDetails!(order.id)
+            onTap: widget.onOpenOrderDetails != null
+                ? () => widget.onOpenOrderDetails!(order.id)
                 : null,
           );
         }),
@@ -94,9 +160,21 @@ class OrdersScreen extends StatelessWidget {
 
 class _CartSummaryCard extends StatelessWidget {
   const _CartSummaryCard({
+    required this.isLoading,
+    required this.errorText,
+    required this.cartItems,
+    required this.isRemovingItem,
+    required this.onRemoveItem,
+    required this.onRetry,
     this.onOpenCheckout,
   });
 
+  final bool isLoading;
+  final String? errorText;
+  final List<CartItemData> cartItems;
+  final bool isRemovingItem;
+  final ValueChanged<CartItemData> onRemoveItem;
+  final VoidCallback onRetry;
   final VoidCallback? onOpenCheckout;
 
   @override
@@ -113,9 +191,9 @@ class _CartSummaryCard extends StatelessWidget {
       ),
       child: Column(
         children: <Widget>[
-          const Row(
+          Row(
             children: <Widget>[
-              Expanded(
+              const Expanded(
                 child: Text(
                   'Koszyk',
                   style: TextStyle(
@@ -126,8 +204,8 @@ class _CartSummaryCard extends StatelessWidget {
                 ),
               ),
               Text(
-                '2 produkty',
-                style: TextStyle(
+                '${cartItems.length} produkty',
+                style: const TextStyle(
                   color: AppColors.textOnDark,
                   fontSize: 12,
                 ),
@@ -135,55 +213,92 @@ class _CartSummaryCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          const _CartLineItem(
-            emoji: '🍅',
-            name: 'Pomidory Malinowe',
-            qty: '1 kg',
-            price: '12,00 zł',
-          ),
-          const SizedBox(height: 8),
-          const _CartLineItem(
-            emoji: '🍯',
-            name: 'Miód Lipowy',
-            qty: '1 szt',
-            price: '38,00 zł',
-          ),
-          const SizedBox(height: 16),
-          Container(
-            padding: const EdgeInsets.only(top: 8),
-            margin: const EdgeInsets.only(top: 0),
-            decoration: const BoxDecoration(
-              border: Border(
-                top: BorderSide(color: Color(0x40FFFFFF)),
-              ),
-            ),
-            child: const Row(
+          if (isLoading)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 8),
+              child: CircularProgressIndicator(color: AppColors.white),
+            )
+          else if (errorText != null)
+            Row(
               children: <Widget>[
                 Expanded(
                   child: Text(
-                    'Razem',
-                    style: TextStyle(
-                      color: AppColors.textOnDark,
-                      fontSize: 14,
+                    errorText!,
+                    style: const TextStyle(
+                      color: AppColors.white,
+                      fontSize: 12,
                     ),
                   ),
                 ),
-                Text(
-                  '50,00 zł',
-                  style: TextStyle(
-                    color: AppColors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                  ),
+                TextButton(
+                  onPressed: onRetry,
+                  child: const Text('Ponów'),
                 ),
               ],
+            )
+          else if (cartItems.isEmpty)
+            const Text(
+              'Koszyk jest pusty.',
+              style: TextStyle(
+                color: AppColors.white,
+                fontSize: 13,
+              ),
+            )
+          else ...<Widget>[
+            ...cartItems.map((item) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: _CartLineItem(
+                  emoji: '🧺',
+                  name: item.name,
+                  qty: '${item.quantity} ${item.unit}',
+                  price: _formatMoney(item.lineTotal, item.currency),
+                  onRemove: isRemovingItem ? null : () => onRemoveItem(item),
+                ),
+              );
+            }),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.only(top: 8),
+              decoration: const BoxDecoration(
+                border: Border(
+                  top: BorderSide(color: Color(0x40FFFFFF)),
+                ),
+              ),
+              child: Row(
+                children: <Widget>[
+                  const Expanded(
+                    child: Text(
+                      'Razem',
+                      style: TextStyle(
+                        color: AppColors.textOnDark,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    _formatMoney(
+                      cartItems.fold<double>(
+                        0,
+                        (sum, item) => sum + item.lineTotal,
+                      ),
+                      cartItems.first.currency,
+                    ),
+                    style: const TextStyle(
+                      color: AppColors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
+          ],
           const SizedBox(height: 8),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: onOpenCheckout,
+              onPressed: cartItems.isEmpty ? null : onOpenCheckout,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.accent,
                 foregroundColor: Colors.white,
@@ -214,12 +329,14 @@ class _CartLineItem extends StatelessWidget {
     required this.name,
     required this.qty,
     required this.price,
+    this.onRemove,
   });
 
   final String emoji;
   final String name;
   final String qty;
   final String price;
+  final VoidCallback? onRemove;
 
   @override
   Widget build(BuildContext context) {
@@ -261,10 +378,24 @@ class _CartLineItem extends StatelessWidget {
               fontSize: 14,
             ),
           ),
+          const SizedBox(width: 8),
+          InkWell(
+            onTap: onRemove,
+            child: const Icon(
+              Icons.delete_outline,
+              color: AppColors.white,
+              size: 20,
+            ),
+          ),
         ],
       ),
     );
   }
+}
+
+String _formatMoney(double value, String currency) {
+  final formatted = value.toStringAsFixed(2).replaceAll('.', ',');
+  return '$formatted $currency';
 }
 
 class _OrderHistoryTile extends StatelessWidget {
