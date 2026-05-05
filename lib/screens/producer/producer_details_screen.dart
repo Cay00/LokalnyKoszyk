@@ -459,7 +459,7 @@ class _ProducerDetailsScreenState extends State<ProducerDetailsScreen> {
                         ),
                         Container(height: 1, color: AppColors.border),
                         SizedBox(
-                          height: 150,
+                          height: 120,
                           width: double.infinity,
                           child: Padding(
                             padding: const EdgeInsets.symmetric(
@@ -653,8 +653,8 @@ enum _InfoSection {
             '${seller.postalCode.trim()} ${seller.city.trim()}'.trim(),
           if (seller != null && seller.country.trim().isNotEmpty)
             seller.country.trim(),
-          if (seller?.latitude != null && seller?.longitude != null)
-            'GPS: ${seller!.latitude!.toStringAsFixed(6)}, ${seller.longitude!.toStringAsFixed(6)}',
+          // if (seller?.latitude != null && seller?.longitude != null)
+          //   'GPS: ${seller!.latitude!.toStringAsFixed(6)}, ${seller.longitude!.toStringAsFixed(6)}',
         ];
         if (chunks.isEmpty) {
           return 'Adres odbioru nie został jeszcze uzupełniony.';

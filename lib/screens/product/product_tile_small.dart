@@ -98,32 +98,32 @@ class ProductTileSmall extends StatelessWidget {
                                   color: AppColors.textPrimary,
                                 ),
                               ),
-                              Row(
-                                children: <Widget>[
-                                  SvgPicture.asset(
-                                    'assets/icons/map-pin-area.svg',
-                                    width: 12,
-                                    height: 12,
-                                    colorFilter: const ColorFilter.mode(
-                                      AppColors.primaryLight,
-                                      BlendMode.srcIn,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    distance,
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      color: AppColors.textSecondary,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 8),
+                              // Row(
+                              //   children: <Widget>[
+                              //     SvgPicture.asset(
+                              //       'assets/icons/map-pin-area.svg',
+                              //       width: 12,
+                              //       height: 12,
+                              //       colorFilter: const ColorFilter.mode(
+                              //         AppColors.primaryLight,
+                              //         BlendMode.srcIn,
+                              //       ),
+                              //     ),
+                              //     const SizedBox(width: 4),
+                              //     Text(
+                              //       distance,
+                              //       style: const TextStyle(
+                              //         fontSize: 12,
+                              //         color: AppColors.textSecondary,
+                              //       ),
+                              //     ),
+                              //   ],
+                              // ),
+                              const SizedBox(height: 18),
                               Text(
                                 '$price zł / $unit',
                                 style: const TextStyle(
-                                  fontSize: 16,
+                                  fontSize: 18,
                                   fontWeight: FontWeight.w700,
                                   color: AppColors.primary,
                                 ),

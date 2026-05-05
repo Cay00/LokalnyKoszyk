@@ -293,63 +293,63 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                 color: AppColors.textSecondary,
               ),
             ),
-            const SizedBox(height: 16),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                SvgPicture.asset(
-                  'assets/icons/seal-percent.svg',
-                  width: 22,
-                  height: 22,
-                  colorFilter: const ColorFilter.mode(
-                    AppColors.primaryLight,
-                    BlendMode.srcIn,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                const Expanded(
-                  child: Text(
-                    'Promocja',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                SvgPicture.asset(
-                  'assets/icons/certificate.svg',
-                  width: 22,
-                  height: 22,
-                  colorFilter: const ColorFilter.mode(
-                    AppColors.primaryLight,
-                    BlendMode.srcIn,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                const Expanded(
-                  child: Text(
-                    'Chronione Oznaczenie Geograficzne',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            // const SizedBox(height: 16),
+            // Row(
+            //   crossAxisAlignment: CrossAxisAlignment.start,
+            //   children: <Widget>[
+            //     SvgPicture.asset(
+            //       'assets/icons/seal-percent.svg',
+            //       width: 22,
+            //       height: 22,
+            //       colorFilter: const ColorFilter.mode(
+            //         AppColors.primaryLight,
+            //         BlendMode.srcIn,
+            //       ),
+            //     ),
+            //     const SizedBox(width: 8),
+            //     const Expanded(
+            //       child: Text(
+            //         'Promocja',
+            //         style: TextStyle(
+            //           fontSize: 14,
+            //           fontWeight: FontWeight.w500,
+            //           color: AppColors.textPrimary,
+            //         ),
+            //       ),
+            //     ),
+            //   ],
+            // ),
+            // const SizedBox(height: 8),
+            // Row(
+            //   crossAxisAlignment: CrossAxisAlignment.start,
+            //   children: <Widget>[
+            //     SvgPicture.asset(
+            //       'assets/icons/certificate.svg',
+            //       width: 22,
+            //       height: 22,
+            //       colorFilter: const ColorFilter.mode(
+            //         AppColors.primaryLight,
+            //         BlendMode.srcIn,
+            //       ),
+            //     ),
+            //     const SizedBox(width: 8),
+            //     const Expanded(
+            //       child: Text(
+            //         'Chronione Oznaczenie Geograficzne',
+            //         style: TextStyle(
+            //           fontSize: 14,
+            //           fontWeight: FontWeight.w500,
+            //           color: AppColors.textPrimary,
+            //         ),
+            //       ),
+            //     ),
+            //   ],
+            // ),
             const SizedBox(height: 24),
-            const SectionHeader(title: 'Dostępność'),
-            const SizedBox(height: 12),
-            _MonthAvailabilityGrid(monthsAvailable: details.availableMonthIndices),
-            const SizedBox(height: 24),
+            // const SectionHeader(title: 'Dostępność'),
+            // const SizedBox(height: 12),
+            // _MonthAvailabilityGrid(monthsAvailable: details.availableMonthIndices),
+            // const SizedBox(height: 24),
             const SectionHeader(title: 'Składniki'),
             const SizedBox(height: 8),
             ...details.ingredients.map(
@@ -616,7 +616,7 @@ const _LocalProductDetails _fallbackDetails = _LocalProductDetails(
     'Wysoka jakość potwierdzona opiniami kupujących',
   ],
   ingredients: <String>[
-    'Składniki zostaną uzupełnione wkrótce.',
+    'Brak dodatkowych składników.',
   ],
   requiresColdStorage: false,
   availableMonthIndices: <int>{5, 6, 7, 8, 9},
