@@ -86,6 +86,87 @@ class CartRepository {
     await supabase.from(_cartItemsTable).delete().eq('id', cartItemId);
   }
 
+  static Future<PlaceOrderResult> placeOrderFromCurrentCart({
+    required String status,
+  }) async {
+    final userId = supabase.auth.currentUser?.id;
+    if (userId == null || userId.isEmpty) {
+      throw StateError('Brak zalogowanego użytkownika.');
+    }
+    final existingCart = await supabase
+        .from(_cartsTable)
+        .select('id')
+        .eq('user_id', userId)
+        .maybeSingle();
+    final cartId = existingCart?['id']?.toString();
+    if (cartId == null || cartId.isEmpty) {
+      throw StateError('Brak koszyka do opłacenia.');
+    }
+    final rows = await supabase
+        .from(_cartItemsTable)
+        .select(
+          'id, quantity, product_id, '
+          'products(price, currency, seller_id)',
+        )
+        .eq('cart_id', cartId);
+    final cartItems = (rows as List<dynamic>)
+        .map((row) => Map<String, dynamic>.from(row as Map))
+        .toList();
+    if (cartItems.isEmpty) {
+      throw StateError('Koszyk jest pusty.');
+    }
+
+    final firstProductMap = Map<String, dynamic>.from(
+      (cartItems.first['products'] as Map?) ?? <String, dynamic>{},
+    );
+    final currency = (firstProductMap['currency'] ?? 'PLN').toString();
+
+    final totalAmount = cartItems.fold<double>(0, (sum, row) {
+      final productMap = Map<String, dynamic>.from(
+        (row['products'] as Map?) ?? <String, dynamic>{},
+      );
+      final qty = (row['quantity'] as num?)?.toDouble() ?? 0;
+      final price = (productMap['price'] as num?)?.toDouble() ?? 0;
+      return sum + (qty * price);
+    });
+
+    final order = await supabase.from('orders').insert(<String, dynamic>{
+      'user_id': userId,
+      'status': status,
+      'total_amount': totalAmount,
+      'currency': currency,
+    }).select('id, order_number').single();
+    final orderId = (order['id'] ?? '').toString();
+    if (orderId.isEmpty) {
+      throw StateError('Nie udało się utworzyć zamówienia.');
+    }
+    final orderNumber = (order['order_number'] ?? '').toString();
+
+    final orderItemsPayload = cartItems.map((row) {
+      final productMap = Map<String, dynamic>.from(
+        (row['products'] as Map?) ?? <String, dynamic>{},
+      );
+      return <String, dynamic>{
+        'order_id': orderId,
+        'product_id': (row['product_id'] ?? '').toString(),
+        'seller_id': (productMap['seller_id'] ?? '').toString(),
+        'quantity': (row['quantity'] as num?)?.toDouble() ?? 0,
+        'price': (productMap['price'] as num?)?.toDouble() ?? 0,
+      };
+    }).toList();
+    await supabase.from('order_items').insert(orderItemsPayload);
+
+    await supabase.from(_cartItemsTable).delete().eq('cart_id', cartId);
+    await supabase.from(_cartsTable).delete().eq('id', cartId);
+
+    return PlaceOrderResult(
+      orderId: orderId,
+      orderNumber: orderNumber,
+      totalAmount: totalAmount,
+      currency: currency,
+    );
+  }
+
   static Future<String> _getOrCreateCartIdForUser(String userId) async {
     final existingCart = await supabase
         .from(_cartsTable)
@@ -156,4 +237,18 @@ class CartItemData {
   final double price;
 
   double get lineTotal => quantity * price;
+}
+
+class PlaceOrderResult {
+  const PlaceOrderResult({
+    required this.orderId,
+    required this.orderNumber,
+    required this.totalAmount,
+    required this.currency,
+  });
+
+  final String orderId;
+  final String orderNumber;
+  final double totalAmount;
+  final String currency;
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:lokalny_koszyk/core/supabase/cart_repository.dart';
+import 'package:lokalny_koszyk/core/supabase/supabase_client.dart';
 import 'package:lokalny_koszyk/widgets/home/section_header.dart';
 
 import '../../core/themes/app_theme.dart';
@@ -22,52 +23,17 @@ class OrdersScreen extends StatefulWidget {
 class _OrdersScreenState extends State<OrdersScreen> {
   bool _isLoadingCart = true;
   bool _isRemovingItem = false;
+  bool _isLoadingOrders = true;
   String? _cartError;
+  String? _ordersError;
   List<CartItemData> _cartItems = const <CartItemData>[];
-
-  static const List<_OrderItem> _orders = <_OrderItem>[
-    _OrderItem(
-      id: '#8821',
-      status: 'W realizacji',
-      date: '18 kwi',
-      items: <String>['Pomidory 2kg', 'miód lipowy'],
-      total: '62,00 zł',
-      color: AppColors.accent,
-      iconAsset: 'assets/icons/clock-countdown.svg',
-    ),
-    _OrderItem(
-      id: '#8817',
-      status: 'Złożone',
-      date: '16 kwi',
-      items: <String>['Marchew 1kg', 'Mleko 2l'],
-      total: '28,00 zł',
-      color: AppColors.primary,
-      iconAsset: 'assets/icons/receipt.svg',
-    ),
-    _OrderItem(
-      id: '#8810',
-      status: 'Zrealizowane',
-      date: '12 kwi',
-      items: <String>['Ser owczy', 'Jaja wiejskie'],
-      total: '38,00 zł',
-      color: AppColors.primaryLight,
-      iconAsset: 'assets/icons/package.svg',
-    ),
-    _OrderItem(
-      id: '#8795',
-      status: 'Odebrane',
-      date: '5 kwi',
-      items: <String>['Chleb razowy', 'Masło'],
-      total: '24,00 zł',
-      color: AppColors.textLight,
-      iconAsset: 'assets/icons/check-circle.svg',
-    ),
-  ];
+  List<_OrderItem> _orders = const <_OrderItem>[];
 
   @override
   void initState() {
     super.initState();
     _loadCart();
+    _loadOrders();
   }
 
   Future<void> _loadCart() async {
@@ -87,6 +53,57 @@ class _OrdersScreenState extends State<OrdersScreen> {
       setState(() {
         _cartError = 'Nie udało się pobrać koszyka: $e';
         _isLoadingCart = false;
+      });
+    }
+  }
+
+  Future<void> _loadOrders() async {
+    setState(() {
+      _isLoadingOrders = true;
+      _ordersError = null;
+    });
+    try {
+      final userId = supabase.auth.currentUser?.id;
+      if (userId == null || userId.isEmpty) {
+        throw StateError('Brak zalogowanego użytkownika.');
+      }
+      final rows = await supabase
+          .from('orders')
+          .select('id, order_number, status, total_amount, currency, created_at')
+          .eq('user_id', userId)
+          .order('created_at', ascending: false);
+
+      final mapped = (rows as List<dynamic>).map<_OrderItem>((dynamic row) {
+        final map = Map<String, dynamic>.from(row as Map);
+        final id = (map['id'] ?? '').toString();
+        final orderNumber = (map['order_number'] ?? '').toString();
+        final rawStatus = (map['status'] ?? '').toString();
+        final statusLabel = _statusLabel(rawStatus);
+        final statusColor = _statusColor(rawStatus);
+        final amount = (map['total_amount'] as num?)?.toDouble() ?? 0;
+        final currency = (map['currency'] ?? 'PLN').toString();
+        final createdAt = DateTime.tryParse((map['created_at'] ?? '').toString());
+        return _OrderItem(
+          id: id,
+          orderNumber: orderNumber,
+          status: statusLabel,
+          date: _formatDate(createdAt),
+          total: _formatMoney(amount, currency),
+          color: statusColor,
+          iconAsset: _statusIcon(rawStatus),
+        );
+      }).toList();
+
+      if (!mounted) return;
+      setState(() {
+        _orders = mapped;
+        _isLoadingOrders = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _ordersError = 'Nie udało się pobrać historii zamówień: $e';
+        _isLoadingOrders = false;
       });
     }
   }
@@ -142,17 +159,46 @@ class _OrdersScreenState extends State<OrdersScreen> {
           actionLabel: 'Wszystkie',
         ),
         const SizedBox(height: 16),
-        ..._orders.asMap().entries.map((entry) {
-          final int index = entry.key;
-          final _OrderItem order = entry.value;
-          return _OrderHistoryTile(
-            order: order,
-            withBottomSpacing: index < _orders.length - 1,
-            onTap: widget.onOpenOrderDetails != null
-                ? () => widget.onOpenOrderDetails!(order.id)
-                : null,
-          );
-        }),
+        if (_isLoadingOrders)
+          const Center(child: CircularProgressIndicator())
+        else if (_ordersError != null)
+          Row(
+            children: <Widget>[
+              Expanded(
+                child: Text(
+                  _ordersError!,
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+              TextButton(
+                onPressed: _loadOrders,
+                child: const Text('Ponów'),
+              ),
+            ],
+          )
+        else if (_orders.isEmpty)
+          const Text(
+            'Brak złożonych zamówień dla tego konta.',
+            style: TextStyle(
+              color: AppColors.textLight,
+              fontSize: 13,
+            ),
+          )
+        else
+          ..._orders.asMap().entries.map((entry) {
+            final int index = entry.key;
+            final _OrderItem order = entry.value;
+            return _OrderHistoryTile(
+              order: order,
+              withBottomSpacing: index < _orders.length - 1,
+              onTap: widget.onOpenOrderDetails != null
+                  ? () => widget.onOpenOrderDetails!(order.id)
+                  : null,
+            );
+          }),
       ],
     );
   }
@@ -442,7 +488,7 @@ class _OrderHistoryTile extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     Text(
-                      'Zamówienie ${order.id}',
+                      'Zamówienie ${order.orderNumber}',
                       style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -478,17 +524,6 @@ class _OrderHistoryTile extends StatelessWidget {
             ],
             ),
             const SizedBox(height: 8),
-            Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              order.items.join(', '),
-              style: const TextStyle(
-                fontSize: 12,
-                  color: AppColors.textSecondary,
-              ),
-            ),
-            ),
-            const SizedBox(height: 8),
             Row(
             children: <Widget>[
               const Expanded(
@@ -520,19 +555,84 @@ class _OrderHistoryTile extends StatelessWidget {
 class _OrderItem {
   const _OrderItem({
     required this.id,
+    required this.orderNumber,
     required this.status,
     required this.date,
-    required this.items,
     required this.total,
     required this.color,
     required this.iconAsset,
   });
 
   final String id;
+  final String orderNumber;
   final String status;
   final String date;
-  final List<String> items;
   final String total;
   final Color color;
   final String iconAsset;
+}
+
+String _statusLabel(String rawStatus) {
+  switch (rawStatus) {
+    case 'placed':
+      return 'Złożone';
+    case 'in_progress':
+      return 'W realizacji';
+    case 'rejected':
+      return 'Odrzucone';
+    case 'sent':
+      return 'Wysłane';
+    case 'delivered':
+      return 'Dostarczone';
+    case 'received':
+      return 'Odebrane';
+    default:
+      return rawStatus.isEmpty ? 'Nieznany' : rawStatus;
+  }
+}
+
+Color _statusColor(String rawStatus) {
+  switch (rawStatus) {
+    case 'placed':
+      return AppColors.primary;
+    case 'in_progress':
+      return AppColors.accent;
+    case 'rejected':
+      return Colors.redAccent;
+    case 'sent':
+      return AppColors.primaryLight;
+    case 'delivered':
+      return AppColors.primary;
+    case 'received':
+      return AppColors.textLight;
+    default:
+      return AppColors.textLight;
+  }
+}
+
+String _statusIcon(String rawStatus) {
+  switch (rawStatus) {
+    case 'placed':
+      return 'assets/icons/receipt.svg';
+    case 'in_progress':
+      return 'assets/icons/clock-countdown.svg';
+    case 'rejected':
+      return 'assets/icons/question.svg';
+    case 'sent':
+      return 'assets/icons/package.svg';
+    case 'delivered':
+      return 'assets/icons/check-circle.svg';
+    case 'received':
+      return 'assets/icons/check-circle.svg';
+    default:
+      return 'assets/icons/receipt.svg';
+  }
+}
+
+String _formatDate(DateTime? date) {
+  if (date == null) return '—';
+  final d = date.toLocal();
+  final dd = d.day.toString().padLeft(2, '0');
+  final mm = d.month.toString().padLeft(2, '0');
+  return '$dd.$mm';
 }

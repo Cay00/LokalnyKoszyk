@@ -19,8 +19,10 @@ class OrderCheckoutScreen extends StatefulWidget {
 class _OrderCheckoutScreenState extends State<OrderCheckoutScreen> {
   bool _isLoading = true;
   bool _isRemovingItem = false;
+  bool _isPaying = false;
   String? _errorText;
   List<CartItemData> _items = const <CartItemData>[];
+  DeliveryOption _deliveryOption = DeliveryOption.courier;
 
   @override
   void initState() {
@@ -68,6 +70,34 @@ class _OrderCheckoutScreenState extends State<OrderCheckoutScreen> {
       );
     } finally {
       if (mounted) setState(() => _isRemovingItem = false);
+    }
+  }
+
+  Future<void> _pay() async {
+    if (_isPaying || _items.isEmpty) return;
+    setState(() => _isPaying = true);
+    try {
+      final result = await CartRepository.placeOrderFromCurrentCart(
+        status: 'placed',
+      );
+      if (!mounted) return;
+      setState(() {
+        _items = const <CartItemData>[];
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Płatność zakończona. Utworzono zamówienie ${result.orderNumber}.',
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Nie udało się opłacić zamówienia: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _isPaying = false);
     }
   }
 
@@ -180,6 +210,35 @@ class _OrderCheckoutScreenState extends State<OrderCheckoutScreen> {
                         ),
                       );
                     }),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Opcja dostawy',
+                      style: TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    ...DeliveryOption.values.map((option) {
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        decoration: BoxDecoration(
+                          color: AppColors.white,
+                          borderRadius: BorderRadius.circular(AppRadius.normal),
+                          border: Border.all(color: AppColors.border),
+                        ),
+                        child: RadioListTile<DeliveryOption>(
+                          value: option,
+                          groupValue: _deliveryOption,
+                          onChanged: (value) {
+                            if (value == null) return;
+                            setState(() => _deliveryOption = value);
+                          },
+                          title: Text(option.label),
+                        ),
+                      );
+                    }),
                     const SizedBox(height: 8),
                     Row(
                       children: <Widget>[
@@ -206,12 +265,35 @@ class _OrderCheckoutScreenState extends State<OrderCheckoutScreen> {
                         ),
                       ],
                     ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: FilledButton(
+                        onPressed: _isPaying ? null : _pay,
+                        child: _isPaying
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : const Text('Zapłać'),
+                      ),
+                    ),
                   ],
                 ),
         ),
       ],
     );
   }
+}
+
+enum DeliveryOption {
+  courier('Kurier'),
+  pickupPoint('Paczkomat / punkt odbioru'),
+  personalPickup('Odbiór osobisty');
+
+  const DeliveryOption(this.label);
+  final String label;
 }
 
 String _formatMoney(double value, String currency) {
