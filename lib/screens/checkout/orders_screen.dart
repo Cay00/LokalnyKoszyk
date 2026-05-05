@@ -130,76 +130,87 @@ class _OrdersScreenState extends State<OrdersScreen> {
     }
   }
 
+  Future<void> _refreshAll() async {
+    await Future.wait(<Future<void>>[
+      _loadCart(),
+      _loadOrders(),
+    ]);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: <Widget>[
-        const Text(
-          'Zamówienia',
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
+    return RefreshIndicator(
+      onRefresh: _refreshAll,
+      child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(16),
+        children: <Widget>[
+          const Text(
+            'Zamówienia',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textPrimary,
+            ),
           ),
-        ),
-        const SizedBox(height: 16),
-        _CartSummaryCard(
-          isLoading: _isLoadingCart,
-          errorText: _cartError,
-          cartItems: _cartItems,
-          isRemovingItem: _isRemovingItem,
-          onRemoveItem: _removeItem,
-          onRetry: _loadCart,
-          onOpenCheckout: widget.onOpenCheckout,
-        ),
-        const SizedBox(height: 32),
-        const SectionHeader(
-          title: 'Historia zamówień',
-          actionLabel: 'Wszystkie',
-        ),
-        const SizedBox(height: 16),
-        if (_isLoadingOrders)
-          const Center(child: CircularProgressIndicator())
-        else if (_ordersError != null)
-          Row(
-            children: <Widget>[
-              Expanded(
-                child: Text(
-                  _ordersError!,
-                  style: const TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 12,
+          const SizedBox(height: 16),
+          _CartSummaryCard(
+            isLoading: _isLoadingCart,
+            errorText: _cartError,
+            cartItems: _cartItems,
+            isRemovingItem: _isRemovingItem,
+            onRemoveItem: _removeItem,
+            onRetry: _loadCart,
+            onOpenCheckout: widget.onOpenCheckout,
+          ),
+          const SizedBox(height: 32),
+          const SectionHeader(
+            title: 'Historia zamówień',
+            actionLabel: 'Wszystkie',
+          ),
+          const SizedBox(height: 16),
+          if (_isLoadingOrders)
+            const Center(child: CircularProgressIndicator())
+          else if (_ordersError != null)
+            Row(
+              children: <Widget>[
+                Expanded(
+                  child: Text(
+                    _ordersError!,
+                    style: const TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 12,
+                    ),
                   ),
                 ),
+                TextButton(
+                  onPressed: _loadOrders,
+                  child: const Text('Ponów'),
+                ),
+              ],
+            )
+          else if (_orders.isEmpty)
+            const Text(
+              'Brak złożonych zamówień dla tego konta.',
+              style: TextStyle(
+                color: AppColors.textLight,
+                fontSize: 13,
               ),
-              TextButton(
-                onPressed: _loadOrders,
-                child: const Text('Ponów'),
-              ),
-            ],
-          )
-        else if (_orders.isEmpty)
-          const Text(
-            'Brak złożonych zamówień dla tego konta.',
-            style: TextStyle(
-              color: AppColors.textLight,
-              fontSize: 13,
-            ),
-          )
-        else
-          ..._orders.asMap().entries.map((entry) {
-            final int index = entry.key;
-            final _OrderItem order = entry.value;
-            return _OrderHistoryTile(
-              order: order,
-              withBottomSpacing: index < _orders.length - 1,
-              onTap: widget.onOpenOrderDetails != null
-                  ? () => widget.onOpenOrderDetails!(order.id)
-                  : null,
-            );
-          }),
-      ],
+            )
+          else
+            ..._orders.asMap().entries.map((entry) {
+              final int index = entry.key;
+              final _OrderItem order = entry.value;
+              return _OrderHistoryTile(
+                order: order,
+                withBottomSpacing: index < _orders.length - 1,
+                onTap: widget.onOpenOrderDetails != null
+                    ? () => widget.onOpenOrderDetails!(order.id)
+                    : null,
+              );
+            }),
+        ],
+      ),
     );
   }
 }

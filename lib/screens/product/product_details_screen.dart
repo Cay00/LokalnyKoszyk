@@ -27,15 +27,23 @@ class ProductDetailsScreen extends StatefulWidget {
 class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
   bool _isLiked = false;
   bool _isAddingToCart = false;
+  int _selectedQuantity = 1;
 
   Future<void> _addToCart() async {
     if (_isAddingToCart) return;
     setState(() => _isAddingToCart = true);
     try {
-      await CartRepository.addToCart(productId: widget.product.id);
+      await CartRepository.addToCart(
+        productId: widget.product.id,
+        quantityToAdd: _selectedQuantity,
+      );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Dodano do koszyka: ${widget.product.name}')),
+        SnackBar(
+          content: Text(
+            'Dodano do koszyka: ${widget.product.name} x$_selectedQuantity',
+          ),
+        ),
       );
     } catch (e) {
       if (!mounted) return;
@@ -157,6 +165,81 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
               style: const TextStyle(
                 fontSize: 12,
                 color: AppColors.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: AppColors.white,
+                borderRadius: BorderRadius.circular(AppRadius.normal),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: Row(
+                children: <Widget>[
+                  Container(
+                    decoration: BoxDecoration(
+                      color: _selectedQuantity > 1
+                          ? AppColors.primaryLight
+                          : AppColors.border,
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(AppRadius.normal),
+                        bottomLeft: Radius.circular(AppRadius.normal),
+                      ),
+                    ),
+                    child: IconButton(
+                      onPressed: _selectedQuantity > 1
+                          ? () => setState(() => _selectedQuantity--)
+                          : null,
+                      icon: Icon(
+                        Icons.remove,
+                        size: 16,
+                        color: _selectedQuantity > 1
+                            ? AppColors.white
+                            : AppColors.textLight,
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      constraints: const BoxConstraints(),
+                    ),
+                  ),
+                  Expanded(
+                    child: Center(
+                      child: Text(
+                        '$_selectedQuantity',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                    ),
+                  ),
+                  Container(
+                    decoration: const BoxDecoration(
+                      color: AppColors.primaryLight,
+                      borderRadius: BorderRadius.only(
+                        topRight: Radius.circular(AppRadius.normal),
+                        bottomRight: Radius.circular(AppRadius.normal),
+                      ),
+                    ),
+                    child: IconButton(
+                      onPressed: () => setState(() => _selectedQuantity++),
+                      icon: const Icon(
+                        Icons.add,
+                        size: 16,
+                        color: AppColors.white,
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      constraints: const BoxConstraints(),
+                    ),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 8),
