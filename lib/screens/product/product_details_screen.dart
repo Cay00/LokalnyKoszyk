@@ -14,11 +14,13 @@ class ProductDetailsScreen extends StatefulWidget {
     required this.product,
     this.onBack,
     this.onOpenProducerDetails,
+    this.openedFromSeller = false,
   });
 
   final ProductData product;
   final VoidCallback? onBack;
   final VoidCallback? onOpenProducerDetails;
+  final bool openedFromSeller;
 
   @override
   State<ProductDetailsScreen> createState() => _ProductDetailsScreenState();
@@ -53,6 +55,14 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
     } finally {
       if (mounted) setState(() => _isAddingToCart = false);
     }
+  }
+
+  void _handleOpenProducer() {
+    if (widget.openedFromSeller) {
+      Navigator.of(context).pop();
+      return;
+    }
+    widget.onOpenProducerDetails?.call();
   }
 
   @override
@@ -121,7 +131,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
               rating: widget.product.rating,
               reviews: '16',
               verified: true,
-              onTap: widget.onOpenProducerDetails,
+              onTap: _handleOpenProducer,
             ),
             const SizedBox(height: 8),
             Row(

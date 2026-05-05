@@ -582,6 +582,7 @@ class _ProducerDetailsScreenState extends State<ProducerDetailsScreen> {
                               pageBuilder: (_, __, ___) => ProductDetailsScreen(
                                 product: product,
                                 onBack: () => Navigator.of(context).pop(),
+                                openedFromSeller: true,
                               ),
                               transitionDuration: Duration.zero,
                               reverseTransitionDuration: Duration.zero,
