@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:lokalny_koszyk/core/supabase/supabase_client.dart';
 
 import '../../core/themes/app_theme.dart';
@@ -26,6 +27,7 @@ class _ProducerDetailsScreenState extends State<ProducerDetailsScreen> {
   bool _isLiked = false;
   bool _isLoading = true;
   String? _errorText;
+  String _distanceLabel = 'brak danych';
   _SellerDetails? _seller;
   List<ProductData> _products = const <ProductData>[];
   _InfoSection _selectedInfoSection = _InfoSection.address;
@@ -171,12 +173,12 @@ class _ProducerDetailsScreenState extends State<ProducerDetailsScreen> {
         );
       }).where((product) => product.id.isNotEmpty).toList();
 
-      if (!mounted) return;
       setState(() {
         _seller = seller;
         _products = products;
         _isLoading = false;
       });
+      _loadDistanceLabelInBackground(seller);
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -184,6 +186,51 @@ class _ProducerDetailsScreenState extends State<ProducerDetailsScreen> {
         _errorText = 'Nie udało się pobrać danych sprzedawcy: $e';
       });
     }
+  }
+
+  Future<void> _loadDistanceLabelInBackground(_SellerDetails seller) async {
+    final distanceLabel = await _buildDistanceLabelForSeller(seller);
+    if (!mounted) return;
+    setState(() {
+      _distanceLabel = distanceLabel;
+    });
+  }
+
+  Future<String> _buildDistanceLabelForSeller(_SellerDetails seller) async {
+    final sellerLat = seller.latitude;
+    final sellerLon = seller.longitude;
+    if (sellerLat == null || sellerLon == null) return 'brak danych';
+
+    final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) return 'brak danych';
+
+    var permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+    }
+    if (permission == LocationPermission.denied ||
+        permission == LocationPermission.deniedForever) {
+      return 'brak danych';
+    }
+
+    Position? userPosition = await Geolocator.getLastKnownPosition();
+    userPosition ??= await Geolocator.getCurrentPosition(
+      locationSettings: const LocationSettings(
+        accuracy: LocationAccuracy.low,
+      ),
+    ).timeout(
+      const Duration(seconds: 4),
+      onTimeout: () => throw Exception('Timeout lokalizacji'),
+    );
+    final distanceMeters = Geolocator.distanceBetween(
+      userPosition.latitude,
+      userPosition.longitude,
+      sellerLat,
+      sellerLon,
+    );
+    final distanceKm = distanceMeters / 1000.0;
+    final roundedToFiveKm = (distanceKm / 5).round() * 5;
+    return '$roundedToFiveKm km';
   }
 
   @override
@@ -346,9 +393,9 @@ class _ProducerDetailsScreenState extends State<ProducerDetailsScreen> {
                               ],
                             ),
                             const SizedBox(height: 8),
-                            const Text(
-                              'Odległość: brak danych',
-                              style: TextStyle(
+                            Text(
+                              'Odległość: $_distanceLabel',
+                              style: const TextStyle(
                                 fontSize: 14,
                                 color: AppColors.textSecondary,
                               ),
@@ -412,7 +459,7 @@ class _ProducerDetailsScreenState extends State<ProducerDetailsScreen> {
                         ),
                         Container(height: 1, color: AppColors.border),
                         SizedBox(
-                          height: 140,
+                          height: 150,
                           width: double.infinity,
                           child: Padding(
                             padding: const EdgeInsets.symmetric(
