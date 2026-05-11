@@ -92,11 +92,16 @@ class ProductTile extends StatelessWidget {
             width: double.infinity,
             color: product.bgColor,
             child: Stack(
+              fit: StackFit.expand,
               children: <Widget>[
-                Center(
-                  child: Text(
-                    product.emoji,
-                    style: const TextStyle(fontSize: 64),
+                Positioned.fill(
+                  child: Image.asset(
+                    'assets/images/food_default.png',
+                    fit: BoxFit.cover,
+                    alignment: Alignment.center,
+                    errorBuilder:
+                        (BuildContext context, Object error, StackTrace? stackTrace) =>
+                            const SizedBox.shrink(),
                   ),
                 ),
                 Positioned(

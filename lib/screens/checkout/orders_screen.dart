@@ -306,7 +306,6 @@ class _CartSummaryCard extends StatelessWidget {
               return Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: _CartLineItem(
-                  emoji: '🧺',
                   name: item.name,
                   qty: '${item.quantity} ${item.unit}',
                   price: _formatMoney(item.lineTotal, item.currency),
@@ -382,14 +381,12 @@ class _CartSummaryCard extends StatelessWidget {
 
 class _CartLineItem extends StatelessWidget {
   const _CartLineItem({
-    required this.emoji,
     required this.name,
     required this.qty,
     required this.price,
     this.onRemove,
   });
 
-  final String emoji;
   final String name;
   final String qty;
   final String price;
@@ -405,7 +402,20 @@ class _CartLineItem extends StatelessWidget {
       ),
       child: Row(
         children: <Widget>[
-          Text(emoji, style: const TextStyle(fontSize: 24)),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(AppRadius.sm),
+            child: SizedBox(
+              width: 40,
+              height: 40,
+              child: Image.asset(
+                'assets/images/food_default.png',
+                fit: BoxFit.cover,
+                errorBuilder:
+                    (BuildContext context, Object error, StackTrace? stackTrace) =>
+                        const ColoredBox(color: Color(0x33FFFFFF)),
+              ),
+            ),
+          ),
           const SizedBox(width: 16),
           Expanded(
             child: Column(

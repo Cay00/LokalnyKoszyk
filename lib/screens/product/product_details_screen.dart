@@ -80,17 +80,23 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
             Container(
               width: double.infinity,
               height: 220,
+              clipBehavior: Clip.antiAlias,
               decoration: BoxDecoration(
                 color: widget.product.bgColor,
                 borderRadius: BorderRadius.circular(AppRadius.normal),
                 border: Border.all(color: AppColors.border),
               ),
               child: Stack(
+                fit: StackFit.expand,
                 children: <Widget>[
-                  Center(
-                    child: Text(
-                      widget.product.emoji,
-                      style: const TextStyle(fontSize: 92),
+                  Positioned.fill(
+                    child: Image.asset(
+                      'assets/images/food_default.png',
+                      fit: BoxFit.cover,
+                      alignment: Alignment.center,
+                      errorBuilder:
+                          (BuildContext context, Object error, StackTrace? stackTrace) =>
+                              ColoredBox(color: widget.product.bgColor),
                     ),
                   ),
                   Positioned(

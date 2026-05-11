@@ -238,14 +238,13 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                     final ProductData product = _visibleProducts[index];
 
                     return ProductCard(
-                      image: ColoredBox(
-                        color: product.bgColor,
-                        child: Center(
-                          child: Text(
-                            product.emoji,
-                            style: const TextStyle(fontSize: 48),
-                          ),
-                        ),
+                      image: Image.asset(
+                        'assets/images/food_default.png',
+                        fit: BoxFit.cover,
+                        alignment: Alignment.center,
+                        errorBuilder:
+                            (BuildContext context, Object error, StackTrace? stackTrace) =>
+                                ColoredBox(color: product.bgColor),
                       ),
                       name: product.name,
                       price: product.pricePerOfferLabel,

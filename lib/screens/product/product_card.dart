@@ -12,19 +12,27 @@ class ProductCardGrid extends StatelessWidget {
   final int itemCount;
   final IndexedWidgetBuilder itemBuilder;
 
+  static const double _gap = 16;
+
   @override
   Widget build(BuildContext context) {
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        mainAxisSpacing: 12,
-        crossAxisSpacing: 12,
-        childAspectRatio: 0.75,
-      ),
-      itemCount: itemCount,
-      itemBuilder: itemBuilder,
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        final double maxW = constraints.maxWidth;
+        final double tileW = (maxW - _gap) / 2;
+        return Wrap(
+          spacing: _gap,
+          runSpacing: _gap,
+          crossAxisAlignment: WrapCrossAlignment.start,
+          children: List<Widget>.generate(
+            itemCount,
+            (int index) => SizedBox(
+              width: tileW,
+              child: itemBuilder(context, index),
+            ),
+          ),
+        );
+      },
     );
   }
 }
@@ -53,8 +61,10 @@ class ProductCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(AppRadius.normal),
+          border: Border.all(color: AppColors.border, width: 1),
         ),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ClipRRect(
@@ -71,6 +81,7 @@ class ProductCard extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.all(12),
               child: Column(
+                mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
@@ -80,7 +91,7 @@ class ProductCard extends StatelessWidget {
                       fontWeight: FontWeight.w600,
                       color: AppColors.textPrimary,
                     ),
-                    maxLines: 2,
+                    maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 16),
@@ -91,9 +102,9 @@ class ProductCard extends StatelessWidget {
                         child: Text(
                           price,
                           style: const TextStyle(
-                            fontSize: 14,
+                            fontSize: 16,
                             fontWeight: FontWeight.w600,
-                            color: AppColors.primary, // dostosuj
+                            color: AppColors.primary,
                           ),
                         ),
                       ),
@@ -101,15 +112,15 @@ class ProductCard extends StatelessWidget {
                         onTap: onAddToCart,
                         child: Container(
                           decoration: BoxDecoration(
-                            color: AppColors.primary, // dostosuj
+                            color: AppColors.primary,
                             shape: BoxShape.circle,
                           ),
                           child: const Padding(
-                            padding: EdgeInsets.all(4),
+                            padding: EdgeInsets.all(8),
                             child: Icon(
                               Icons.add,
                               color: Colors.white,
-                              size: 20,
+                              size: 16,
                             ),
                           ),
                         ),
