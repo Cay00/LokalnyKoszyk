@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:lokalny_koszyk/core/supabase/cart_repository.dart';
+import 'package:lokalny_koszyk/core/supabase/supabase_client.dart';
 import 'package:lokalny_koszyk/widgets/discover/discover_filters.dart';
 import 'package:lokalny_koszyk/widgets/discover/discover_map_preview.dart';
+import 'package:lokalny_koszyk/screens/product/product_card.dart';
 import 'package:lokalny_koszyk/widgets/common/search_bar.dart';
+import 'package:lokalny_koszyk/widgets/common/section_header.dart';
 import 'package:lokalny_koszyk/screens/product/product_tile.dart';
 
 import '../core/themes/app_theme.dart';
 
 class DiscoverScreen extends StatefulWidget {
-  const DiscoverScreen({
-    super.key,
-    this.onOpenProductDetails,
-  });
+  const DiscoverScreen({super.key, this.onOpenProductDetails});
 
   final ValueChanged<ProductData>? onOpenProductDetails;
 
@@ -22,8 +22,10 @@ class DiscoverScreen extends StatefulWidget {
 class _DiscoverScreenState extends State<DiscoverScreen> {
   int _cartCount = 0;
   String _activeFilter = 'Wszystkie';
-  final Set<String> _liked = <String>{};
   bool _isAddingToCart = false;
+  bool _isLoadingProducts = true;
+  String? _productsError;
+  List<ProductData> _products = const <ProductData>[];
   static const List<String> _filters = <String>[
     'Wszystkie',
     'BIO',
@@ -31,38 +33,110 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
     'Sezonowe',
   ];
 
-  static const List<ProductData> _products = <ProductData>[
-    ProductData(
-      id: 'p1',
-      name: 'Pomidory malinowe',
-      producer: 'Gospodarstwo Kwiatowe',
-      price: '12,99',
-      unit: '/ kg',
-      distance: '4 km',
-      season: 'Wiosna',
-      rating: '4.9',
-      reviews: '124',
-      emoji: '🍅',
-      tag: 'SWIEŻE',
-      bgColor: Color(0xFFF8E7DE),
-      tagColor: Color(0xFF4A7C59),
-    ),
-    ProductData(
-      id: 'p2',
-      name: 'Ser koryciński',
-      producer: 'Mleczarnia Podlaska',
-      price: '15,00',
-      unit: '/ 200 g',
-      distance: '7 km',
-      season: 'Caly rok',
-      rating: '4.8',
-      reviews: '89',
-      emoji: '🧀',
-      tag: 'LOKALNE',
-      bgColor: Color(0xFFF7F2D9),
-      tagColor: Color(0xFF9C6B30),
-    ),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _loadProducts();
+  }
+
+  Future<void> _loadProducts() async {
+    setState(() {
+      _isLoadingProducts = true;
+      _productsError = null;
+    });
+    try {
+      final productRows = await supabase
+          .from('products')
+          .select(
+            'product_id, seller_id, name, price, unit, quantity, average_rating, reviews_count, tags, is_active',
+          )
+          .eq('is_active', true)
+          .order('created_at', ascending: false);
+
+      final rows = (productRows as List<dynamic>)
+          .map((dynamic row) => Map<String, dynamic>.from(row as Map))
+          .toList();
+
+      final sellerIds = <String>{};
+      for (final map in rows) {
+        final sid = (map['seller_id'] ?? '').toString().trim();
+        if (sid.isNotEmpty) sellerIds.add(sid);
+      }
+
+      final Map<String, String> sellerNameById = <String, String>{};
+      if (sellerIds.isNotEmpty) {
+        final sellerRows = await supabase
+            .from('sellers')
+            .select('id, name')
+            .inFilter('id', sellerIds.toList());
+        for (final dynamic r in sellerRows as List<dynamic>) {
+          final sm = Map<String, dynamic>.from(r as Map);
+          final id = (sm['id'] ?? '').toString();
+          if (id.isEmpty) continue;
+          sellerNameById[id] = (sm['name'] ?? 'Sprzedawca').toString();
+        }
+      }
+
+      final products = rows
+          .map<ProductData>((Map<String, dynamic> map) {
+            final sellerId = (map['seller_id'] ?? '').toString();
+            final sellerName = sellerNameById[sellerId] ?? 'Sprzedawca';
+            final priceNum = (map['price'] as num?)?.toDouble() ?? 0;
+            final ratingNum = (map['average_rating'] as num?)?.toDouble() ?? 0;
+            final reviewsCount = (map['reviews_count'] as num?)?.toInt() ?? 0;
+            final rawUnit = (map['unit'] ?? '').toString();
+            final unitKey = rawUnit.trim().toLowerCase();
+            final qty = (map['quantity'] as num?)?.toDouble();
+            final tags = (map['tags'] as List<dynamic>? ?? <dynamic>[]);
+
+            return ProductData(
+              id: (map['product_id'] ?? '').toString(),
+              name: (map['name'] ?? 'Produkt').toString(),
+              producer: sellerName,
+              price: priceNum.toStringAsFixed(2).replaceAll('.', ','),
+              unit: '/ ${rawUnit.replaceAll('_', ' ')}',
+              distance: '',
+              season: 'Cały rok',
+              rating: ratingNum.toStringAsFixed(1),
+              reviews: reviewsCount.toString(),
+              emoji: '🧺',
+              tag: tags.isNotEmpty
+                  ? tags.first.toString().toUpperCase()
+                  : 'LOKALNE',
+              bgColor: AppColors.background,
+              tagColor: AppColors.primaryLight,
+              unitKey: unitKey.isEmpty ? null : unitKey,
+              packageQuantity: qty,
+            );
+          })
+          .where((ProductData p) => p.id.isNotEmpty)
+          .toList();
+
+      if (!mounted) return;
+      setState(() {
+        _products = products;
+        _isLoadingProducts = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isLoadingProducts = false;
+        _productsError = 'Nie udało się pobrać produktów: $e';
+        _products = const <ProductData>[];
+      });
+    }
+  }
+
+  List<ProductData> get _visibleProducts {
+    if (_activeFilter == 'Wszystkie') return _products;
+    final needle = _activeFilter.toUpperCase();
+    return _products
+        .where(
+          (ProductData p) =>
+              p.tag.contains(needle) || p.name.toUpperCase().contains(needle),
+        )
+        .toList();
+  }
 
   Future<void> _addToCart(ProductData product) async {
     if (_isAddingToCart) return;
@@ -74,7 +148,9 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           duration: const Duration(milliseconds: 900),
-          content: Text('Dodano do koszyka: ${product.name} (razem: $_cartCount)'),
+          content: Text(
+            'Dodano do koszyka: ${product.name} (razem: $_cartCount)',
+          ),
         ),
       );
     } catch (e) {
@@ -129,26 +205,59 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
             ],
           ),
         ),
-        ..._products.map((ProductData product) {
-          return Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
-            child: ProductTile(
-              product: product,
-              isLiked: _liked.contains(product.id),
-              onOpenDetails: () => widget.onOpenProductDetails?.call(product),
-              onToggleLike: () {
-                setState(() {
-                  if (_liked.contains(product.id)) {
-                    _liked.remove(product.id);
-                  } else {
-                    _liked.add(product.id);
-                  }
-                });
-              },
-              onAddToCart: () => _addToCart(product),
-            ),
-          );
-        }),
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              SectionHeader(
+                title: 'Wyniki',
+                titleCount: _isLoadingProducts ? null : _visibleProducts.length,
+              ),
+              const SizedBox(height: 16),
+
+              if (_isLoadingProducts)
+                const Center(child: CircularProgressIndicator())
+              else if (_productsError != null)
+                Text(
+                  _productsError!,
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 14,
+                  ),
+                )
+              else if (_visibleProducts.isEmpty)
+                const Text(
+                  'Brak produktów do wyświetlenia.',
+                  style: TextStyle(color: AppColors.textLight, fontSize: 14),
+                )
+              else
+                ProductCardGrid(
+                  itemCount: _visibleProducts.length,
+                  itemBuilder: (BuildContext context, int index) {
+                    final ProductData product = _visibleProducts[index];
+
+                    return ProductCard(
+                      image: ColoredBox(
+                        color: product.bgColor,
+                        child: Center(
+                          child: Text(
+                            product.emoji,
+                            style: const TextStyle(fontSize: 48),
+                          ),
+                        ),
+                      ),
+                      name: product.name,
+                      price: product.pricePerOfferLabel,
+                      onTap: () =>
+                          widget.onOpenProductDetails?.call(product),
+                      onAddToCart: () => _addToCart(product),
+                    );
+                  },
+                ),
+            ],
+          ),
+        ),
       ],
     );
   }

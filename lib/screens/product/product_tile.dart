@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../../core/formatting/product_price_per_label.dart';
 import '../../core/themes/app_theme.dart';
 import '../../widgets/common/product_info_chip.dart';
 
@@ -19,6 +20,8 @@ class ProductData {
     required this.tag,
     required this.bgColor,
     required this.tagColor,
+    this.unitKey,
+    this.packageQuantity,
   });
 
   final String id;
@@ -34,6 +37,20 @@ class ProductData {
   final String tag;
   final Color bgColor;
   final Color tagColor;
+
+  /// Z bazy: `piece`, `kilogram`, `gram`, `liter`, `milliliter` (null = tylko [unit]).
+  final String? unitKey;
+  final double? packageQuantity;
+
+  /// Np. `12,99 zł/szt.`, `5,00 zł/litr`, `9,99 zł/100 mg`.
+  String get pricePerOfferLabel => buildProductPricePerLabel(
+        priceFormatted: price,
+        unitKey: unitKey ?? inferProductUnitKeyFromSlashUnit(unit),
+        quantity: packageQuantity,
+      );
+
+  bool get hasKnownDbUnit =>
+      unitKey != null || inferProductUnitKeyFromSlashUnit(unit) != null;
 }
 
 class ProductTile extends StatelessWidget {
@@ -168,20 +185,25 @@ class ProductTile extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: <Widget>[
                         Text(
-                          '${product.price} zł',
+                          product.pricePerOfferLabel,
+                          textAlign: TextAlign.right,
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
                             color: AppColors.primaryLight,
                           ),
                         ),
-                        Text(
-                          product.unit,
-                          style: const TextStyle(
-                            color: AppColors.textLight,
-                            fontSize: 12,
+                        if (!product.hasKnownDbUnit &&
+                            product.unit.trim().isNotEmpty) ...<Widget>[
+                          const SizedBox(height: 2),
+                          Text(
+                            product.unit,
+                            style: const TextStyle(
+                              color: AppColors.textLight,
+                              fontSize: 12,
+                            ),
                           ),
-                        ),
+                        ],
                       ],
                     ),
                   ],

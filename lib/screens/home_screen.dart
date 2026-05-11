@@ -6,7 +6,7 @@ import 'package:lokalny_koszyk/core/themes/app_theme.dart';
 import 'package:lokalny_koszyk/widgets/common/search_bar.dart';
 import 'package:lokalny_koszyk/widgets/home/category_tile.dart';
 import 'package:lokalny_koszyk/screens/producer/producer_tile.dart';
-import 'package:lokalny_koszyk/widgets/home/section_header.dart';
+import 'package:lokalny_koszyk/widgets/common/section_header.dart';
 import 'package:lokalny_koszyk/screens/product/product_tile.dart';
 
 class HomeScreen extends StatefulWidget {

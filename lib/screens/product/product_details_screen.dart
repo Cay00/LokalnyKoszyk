@@ -6,7 +6,7 @@ import 'package:lokalny_koszyk/screens/producer/producer_tile.dart';
 
 import '../../core/themes/app_theme.dart';
 import '../../widgets/common/default_screen.dart';
-import '../../widgets/home/section_header.dart';
+import '../../widgets/common/section_header.dart';
 
 class ProductDetailsScreen extends StatefulWidget {
   const ProductDetailsScreen({
@@ -151,27 +151,32 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: <Widget>[
                     Text(
-                      '${widget.product.price} zł',
+                      widget.product.pricePerOfferLabel,
+                      textAlign: TextAlign.right,
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w700,
                         color: AppColors.primaryLight,
                       ),
                     ),
-                    Text(
-                      widget.product.unit,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: AppColors.textLight,
+                    if (!widget.product.hasKnownDbUnit &&
+                        widget.product.unit.trim().isNotEmpty) ...<Widget>[
+                      const SizedBox(height: 2),
+                      Text(
+                        widget.product.unit,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textLight,
+                        ),
                       ),
-                    ),
+                    ],
                   ],
                 ),
               ],
             ),
             const SizedBox(height: 8),
             Text(
-              '*Najniższa cena z ostatnich 30 dni: ${widget.product.price} zł',
+              '*Najniższa cena z ostatnich 30 dni: ${widget.product.pricePerOfferLabel}',
               style: const TextStyle(
                 fontSize: 12,
                 color: AppColors.textSecondary,

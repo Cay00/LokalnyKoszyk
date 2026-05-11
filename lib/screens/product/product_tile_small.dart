@@ -8,16 +8,15 @@ class ProductTileSmall extends StatelessWidget {
     super.key,
     required this.name,
     required this.distance,
-    required this.price,
-    required this.unit,
+    required this.priceWithUnitLabel,
     required this.verified,
     this.onTap,
   });
 
   final String name;
   final String distance;
-  final String price;
-  final String unit;
+  /// Np. `12,99 zł/kg` — zgodnie z jednostką i ilością z bazy.
+  final String priceWithUnitLabel;
   final bool verified;
   final VoidCallback? onTap;
 
@@ -73,7 +72,9 @@ class ProductTileSmall extends StatelessWidget {
                           'assets/images/food_default.png',
                           fit: BoxFit.cover,
                           alignment: Alignment.center,
-                          errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                          errorBuilder:
+                              (BuildContext context, Object error, StackTrace? stackTrace) =>
+                                  const SizedBox.shrink(),
                         ),
                       ],
                     ),
@@ -121,7 +122,9 @@ class ProductTileSmall extends StatelessWidget {
                               // ),
                               const SizedBox(height: 18),
                               Text(
-                                '$price zł / $unit',
+                                priceWithUnitLabel,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.w700,

@@ -142,7 +142,7 @@ class _ProducerDetailsScreenState extends State<ProducerDetailsScreen> {
       final productRows = await supabase
           .from('products')
           .select(
-            'product_id, name, price, unit, average_rating, reviews_count, tags, is_active',
+            'product_id, name, price, unit, quantity, average_rating, reviews_count, tags, is_active',
           )
           .eq('seller_id', sellerId)
           .eq('is_active', true)
@@ -154,6 +154,8 @@ class _ProducerDetailsScreenState extends State<ProducerDetailsScreen> {
         final ratingNum = (map['average_rating'] as num?)?.toDouble() ?? 0;
         final reviewsCount = (map['reviews_count'] as num?)?.toInt() ?? 0;
         final rawUnit = (map['unit'] ?? '').toString();
+        final unitKey = rawUnit.trim().toLowerCase();
+        final qty = (map['quantity'] as num?)?.toDouble();
         final tags = (map['tags'] as List<dynamic>? ?? <dynamic>[]);
 
         return ProductData(
@@ -170,6 +172,8 @@ class _ProducerDetailsScreenState extends State<ProducerDetailsScreen> {
           tag: tags.isNotEmpty ? tags.first.toString().toUpperCase() : 'LOKALNE',
           bgColor: AppColors.background,
           tagColor: AppColors.primaryLight,
+          unitKey: unitKey.isEmpty ? null : unitKey,
+          packageQuantity: qty,
         );
       }).where((product) => product.id.isNotEmpty).toList();
 
@@ -573,8 +577,7 @@ class _ProducerDetailsScreenState extends State<ProducerDetailsScreen> {
                       (ProductData product) => ProductTileSmall(
                         name: product.name,
                         distance: product.distance,
-                        price: product.price,
-                        unit: product.unit.replaceFirst('/ ', ''),
+                        priceWithUnitLabel: product.pricePerOfferLabel,
                         verified: seller?.isVerified == true,
                         onTap: () {
                           Navigator.of(context).push(

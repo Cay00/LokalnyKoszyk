@@ -7,10 +7,13 @@ class SectionHeader extends StatelessWidget {
   const SectionHeader({
     super.key,
     required this.title,
+    this.titleCount,
     this.actionLabel,
   });
 
   final String title;
+  /// Liczba w nawiasie obok tytułu, kolorem [AppColors.textLight] (null = ukryj).
+  final int? titleCount;
   final String? actionLabel;
 
   @override
@@ -18,13 +21,28 @@ class SectionHeader extends StatelessWidget {
     return Row(
       children: <Widget>[
         Expanded(
-          child: Text(
-            title,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
-            ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: <Widget>[
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              if (titleCount != null)
+                Text(
+                  ' ($titleCount)',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.textLight,
+                  ),
+                ),
+            ],
           ),
         ),
         if (actionLabel != null)
