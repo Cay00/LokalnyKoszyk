@@ -10,6 +10,7 @@ import 'package:lokalny_koszyk/screens/discover_screen.dart';
 import 'package:lokalny_koszyk/screens/home_screen.dart';
 import 'package:lokalny_koszyk/screens/producer/producer_details_screen.dart';
 import 'package:lokalny_koszyk/screens/product/product_details_screen.dart';
+import 'package:lokalny_koszyk/screens/product/product_tile.dart';
 import 'package:lokalny_koszyk/screens/profile/addresses_screen.dart';
 import 'package:lokalny_koszyk/screens/profile/seller/become_seller_screen.dart';
 import 'package:lokalny_koszyk/screens/profile/favorites_screen.dart';
@@ -132,6 +133,25 @@ class _NoAnimationPageRoute<T> extends PageRouteBuilder<T> {
   );
 }
 
+// Pomocnicze: czy produkt ma niepusty sellerId.
+bool _hasSellerId(ProductData product) {
+  final String? sellerId = product.sellerId;
+  return sellerId != null && sellerId.isNotEmpty;
+}
+
+// Pomocnicze: push ekranu producenta w aktualnym stacku (taba).
+void _pushProducerDetails(BuildContext context, String sellerId) {
+  Navigator.push(
+    context,
+    _NoAnimationPageRoute<void>(
+      builder: (_) => ProducerDetailsScreen(
+        sellerId: sellerId,
+        onBack: () => Navigator.pop(context),
+      ),
+    ),
+  );
+}
+
 // ------------------ HOME TAB ------------------
 // wrapper dla Navigatora w tabie Home
 class HomeTab extends StatelessWidget {
@@ -165,20 +185,15 @@ class _HomeNavigator extends StatelessWidget {
             builder: (_) => ProductDetailsScreen(
               product: product,
               onBack: () => Navigator.pop(context),
+              onOpenProducerDetails: _hasSellerId(product)
+                  ? () => _pushProducerDetails(context, product.sellerId!)
+                  : null,
             ),
           ),
         );
       },
       onOpenProducerDetails: (sellerId) {
-        Navigator.push(
-          context,
-          _NoAnimationPageRoute<void>(
-            builder: (_) => ProducerDetailsScreen(
-              sellerId: sellerId,
-              onBack: () => Navigator.pop(context),
-            ),
-          ),
-        );
+        _pushProducerDetails(context, sellerId);
       },
     );
   }
@@ -215,6 +230,9 @@ class _DiscoverNavigator extends StatelessWidget {
             builder: (_) => ProductDetailsScreen(
               product: product,
               onBack: () => Navigator.pop(context),
+              onOpenProducerDetails: _hasSellerId(product)
+                  ? () => _pushProducerDetails(context, product.sellerId!)
+                  : null,
             ),
           ),
         );

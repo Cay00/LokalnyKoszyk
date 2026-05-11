@@ -20,6 +20,7 @@ class ProductData {
     required this.tag,
     required this.bgColor,
     required this.tagColor,
+    this.sellerId,
     this.unitKey,
     this.packageQuantity,
   });
@@ -37,6 +38,10 @@ class ProductData {
   final String tag;
   final Color bgColor;
   final Color tagColor;
+
+  /// Identyfikator sprzedawcy (z `products.seller_id`). Może być `null` dla
+  /// statycznych danych mockowych — wtedy nawigacja do producenta jest pomijana.
+  final String? sellerId;
 
   /// Z bazy: `piece`, `kilogram`, `gram`, `liter`, `milliliter` (null = tylko [unit]).
   final String? unitKey;

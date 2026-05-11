@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../core/themes/app_theme.dart';
 
@@ -43,6 +44,8 @@ class ProductCard extends StatelessWidget {
   final String price;
   final VoidCallback? onTap;
   final VoidCallback? onAddToCart;
+  final bool isLiked;
+  final VoidCallback? onToggleLike;
 
   const ProductCard({
     super.key,
@@ -51,6 +54,8 @@ class ProductCard extends StatelessWidget {
     required this.price,
     this.onTap,
     this.onAddToCart,
+    this.isLiked = false,
+    this.onToggleLike,
   });
 
   @override
@@ -75,7 +80,40 @@ class ProductCard extends StatelessWidget {
               child: SizedBox(
                 height: 128,
                 width: double.infinity,
-                child: image,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: <Widget>[
+                    image,
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: InkWell(
+                        onTap: onToggleLike,
+                        borderRadius: BorderRadius.circular(AppRadius.normal),
+                        child: Container(
+                          width: 32,
+                          height: 32,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.85),
+                            shape: BoxShape.circle,
+                          ),
+                          alignment: Alignment.center,
+                          child: SvgPicture.asset(
+                            isLiked
+                                ? 'assets/icons/heart-fill.svg'
+                                : 'assets/icons/heart.svg',
+                            width: 16,
+                            height: 16,
+                            colorFilter: ColorFilter.mode(
+                              isLiked ? Colors.redAccent : AppColors.primary,
+                              BlendMode.srcIn,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
             Padding(

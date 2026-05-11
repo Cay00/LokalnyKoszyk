@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lokalny_koszyk/core/supabase/cart_repository.dart';
 import 'package:lokalny_koszyk/core/supabase/supabase_client.dart';
 import 'package:lokalny_koszyk/widgets/discover/discover_filters.dart';
-import 'package:lokalny_koszyk/widgets/discover/discover_map_preview.dart';
+import 'package:lokalny_koszyk/widgets/home/category_tile.dart';
 import 'package:lokalny_koszyk/screens/product/product_card.dart';
 import 'package:lokalny_koszyk/widgets/common/search_bar.dart';
 import 'package:lokalny_koszyk/widgets/common/section_header.dart';
@@ -22,6 +22,8 @@ class DiscoverScreen extends StatefulWidget {
 class _DiscoverScreenState extends State<DiscoverScreen> {
   int _cartCount = 0;
   String _activeFilter = 'Wszystkie';
+  String? _activeCategoryId;
+  final Set<String> _liked = <String>{};
   bool _isAddingToCart = false;
   bool _isLoadingProducts = true;
   String? _productsError;
@@ -31,6 +33,13 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
     'BIO',
     'Regionalne',
     'Sezonowe',
+  ];
+  static const List<_CategoryItem> _categories = <_CategoryItem>[
+    _CategoryItem(id: 'warzywa', icon: '🥕', name: 'Warzywa', count: 18),
+    _CategoryItem(id: 'nabiał', icon: '🥛', name: 'Nabiał', count: 12),
+    _CategoryItem(id: 'pieczywo', icon: '🍞', name: 'Pieczywo', count: 9),
+    _CategoryItem(id: 'miód', icon: '🍯', name: 'Miody', count: 7),
+    _CategoryItem(id: 'przetwory', icon: '🥫', name: 'Przetwory', count: 14),
   ];
 
   @override
@@ -105,6 +114,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                   : 'LOKALNE',
               bgColor: AppColors.background,
               tagColor: AppColors.primaryLight,
+              sellerId: sellerId.isEmpty ? null : sellerId,
               unitKey: unitKey.isEmpty ? null : unitKey,
               packageQuantity: qty,
             );
@@ -183,9 +193,18 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
               ),
               SizedBox(height: 16),
               DiscoverSearchBar(),
-              SizedBox(height: 16),
             ],
           ),
+        ),
+        _CategoriesSection(
+          categories: _categories,
+          activeCategoryId: _activeCategoryId,
+          onSelect: (String categoryId) {
+            setState(() {
+              _activeCategoryId =
+                  _activeCategoryId == categoryId ? null : categoryId;
+            });
+          },
         ),
         DiscoverFilters(
           filters: _filters,
@@ -195,15 +214,6 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
               _activeFilter = filter;
             });
           },
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-          child: Column(
-            children: const <Widget>[
-              DiscoverMapPreview(),
-              SizedBox(height: 16),
-            ],
-          ),
         ),
         Padding(
           padding: const EdgeInsets.all(16),
@@ -248,6 +258,16 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                       ),
                       name: product.name,
                       price: product.pricePerOfferLabel,
+                      isLiked: _liked.contains(product.id),
+                      onToggleLike: () {
+                        setState(() {
+                          if (_liked.contains(product.id)) {
+                            _liked.remove(product.id);
+                          } else {
+                            _liked.add(product.id);
+                          }
+                        });
+                      },
                       onTap: () =>
                           widget.onOpenProductDetails?.call(product),
                       onAddToCart: () => _addToCart(product),
@@ -260,4 +280,70 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
       ],
     );
   }
+}
+
+class _CategoriesSection extends StatelessWidget {
+  const _CategoriesSection({
+    required this.categories,
+    required this.activeCategoryId,
+    required this.onSelect,
+  });
+
+  final List<_CategoryItem> categories;
+  final String? activeCategoryId;
+  final ValueChanged<String> onSelect;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: <Widget>[
+        const SizedBox(height: 16),
+        const Padding(
+          padding: EdgeInsets.fromLTRB(16, 0, 16, 0),
+          child: SectionHeader(
+            title: 'Kategorie',
+            actionLabel: 'Zobacz wszystkie',
+          ),
+        ),
+        const SizedBox(height: 16),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: <Widget>[
+              const SizedBox(width: 16),
+              ...categories.map((category) {
+                final bool active = activeCategoryId == category.id;
+                return Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: CategoryTile(
+                    icon: category.icon,
+                    name: category.name,
+                    count: category.count,
+                    active: active,
+                    onTap: () => onSelect(category.id),
+                  ),
+                );
+              }),
+              const SizedBox(width: 16),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+      ],
+    );
+  }
+}
+
+class _CategoryItem {
+  const _CategoryItem({
+    required this.id,
+    required this.icon,
+    required this.name,
+    required this.count,
+  });
+
+  final String id;
+  final String icon;
+  final String name;
+  final int count;
 }
