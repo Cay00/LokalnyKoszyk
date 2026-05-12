@@ -74,10 +74,7 @@ class ProfileScreen extends StatelessWidget {
               const SizedBox(height: 8),
               const Text(
                 'Wrocław · Członek od 2026',
-                style: TextStyle(
-                  color: AppColors.textOnDark,
-                  fontSize: 12,
-                ),
+                style: AppTypography.captionOnDark,
               ),
               const SizedBox(height: 16),
               const _ProfileStats(),
@@ -198,10 +195,7 @@ class _ProfileStat extends StatelessWidget {
         ),
         Text(
           label,
-          style: const TextStyle(
-            color: AppColors.textOnDark,
-            fontSize: 12,
-          ),
+          style: AppTypography.captionOnDark,
         ),
       ],
     );

@@ -6,6 +6,7 @@ import 'package:lokalny_koszyk/screens/producer/producer_tile.dart';
 
 import '../../core/themes/app_theme.dart';
 import '../../widgets/common/default_screen.dart';
+import '../../widgets/common/primary_action_button.dart';
 import '../../widgets/common/section_header.dart';
 
 class ProductDetailsScreen extends StatefulWidget {
@@ -146,11 +147,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                 Expanded(
                   child: Text(
                     widget.product.name,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
-                    ),
+                    style: AppTypography.productNameNormal,
                   ),
                 ),
                 Column(
@@ -159,21 +156,14 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                     Text(
                       widget.product.pricePerOfferLabel,
                       textAlign: TextAlign.right,
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.primaryLight,
-                      ),
+                      style: AppTypography.price,
                     ),
                     if (!widget.product.hasKnownDbUnit &&
                         widget.product.unit.trim().isNotEmpty) ...<Widget>[
                       const SizedBox(height: 2),
                       Text(
                         widget.product.unit,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: AppColors.textLight,
-                        ),
+                        style: AppTypography.caption,
                       ),
                     ],
                   ],
@@ -183,10 +173,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
             const SizedBox(height: 8),
             Text(
               '*Najniższa cena z ostatnich 30 dni: ${widget.product.pricePerOfferLabel}',
-              style: const TextStyle(
-                fontSize: 12,
-                color: AppColors.textSecondary,
-              ),
+              style: AppTypography.caption,
             ),
             const SizedBox(height: 8),
             Container(
@@ -264,45 +251,16 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
               ),
             ),
             const SizedBox(height: 8),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _isAddingToCart ? null : _addToCart,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: AppColors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppRadius.normal),
-                  ),
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  elevation: 0,
-                ),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    Text('+'),
-                    SizedBox(width: 8),
-                    Text(
-                      'Dodaj do koszyka',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+            PrimaryActionButton(
+              label: 'Dodaj do koszyka',
+              onPressed: _isAddingToCart ? null : _addToCart,
             ),
             const SizedBox(height: 24),
             const SectionHeader(title: 'Opis'),
             const SizedBox(height: 16),
             Text(
               details.description,
-              style: const TextStyle(
-                fontSize: 14,
-                height: 1.5,
-                color: AppColors.textSecondary,
-              ),
+              style: AppTypography.body.copyWith(height: 1.5),
             ),
             // const SizedBox(height: 16),
             // Row(
@@ -371,18 +329,12 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                   children: <Widget>[
                     const Text(
                       '• ',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: AppColors.textSecondary,
-                      ),
+                      style: AppTypography.body,
                     ),
                     Expanded(
                       child: Text(
                         item,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: AppColors.textSecondary,
-                        ),
+                        style: AppTypography.body,
                       ),
                     ),
                   ],
@@ -409,11 +361,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                   const Expanded(
                     child: Text(
                       'Wymaga przechowywania w warunkach chłodzonych',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
-                      ),
+                      style: AppTypography.body,
                     ),
                   ),
                 ] else ...<Widget>[
@@ -430,24 +378,16 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                   const Expanded(
                     child: Text(
                       'Nie wymaga przechowywania w warunkach chłodzonych',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
-                      ),
+                      style: AppTypography.body,
                     ),
                   ),
                 ],
               ],
             ),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               _sharedStorageDetailsText,
-              style: TextStyle(
-                fontSize: 14,
-                height: 1.5,
-                color: AppColors.textSecondary,
-              ),
+              style: AppTypography.body.copyWith(height: 1.5),
             ),
           ],
         ),

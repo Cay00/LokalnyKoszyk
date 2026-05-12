@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lokalny_koszyk/core/supabase/cart_repository.dart';
 import 'package:lokalny_koszyk/core/supabase/supabase_client.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' show PostgrestException;
 import 'package:lokalny_koszyk/widgets/discover/discover_filters.dart';
 import 'package:lokalny_koszyk/widgets/home/category_tile.dart';
 import 'package:lokalny_koszyk/screens/product/product_card.dart';
@@ -34,13 +35,129 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
     'Regionalne',
     'Sezonowe',
   ];
-  static const List<_CategoryItem> _categories = <_CategoryItem>[
-    _CategoryItem(id: 'warzywa', icon: '🥕', name: 'Warzywa', count: 18),
-    _CategoryItem(id: 'nabiał', icon: '🥛', name: 'Nabiał', count: 12),
-    _CategoryItem(id: 'pieczywo', icon: '🍞', name: 'Pieczywo', count: 9),
-    _CategoryItem(id: 'miód', icon: '🍯', name: 'Miody', count: 7),
-    _CategoryItem(id: 'przetwory', icon: '🥫', name: 'Przetwory', count: 14),
-  ];
+
+  /// Etykiety PL; UUID jak w `public.categories`. Kolejność = wyświetlanie na Odkrywaj.
+  static const List<_CategoryCatalogEntry> _categoryCatalog =
+      <_CategoryCatalogEntry>[
+        _CategoryCatalogEntry(
+          id: 'b15939e0-21af-4a14-86fa-d8ee547a07cb',
+          icon: '🥕',
+          name: 'Warzywa',
+        ),
+        _CategoryCatalogEntry(
+          id: '5a4aaa6c-4e4e-4ac3-9a4a-250f9ce56ebb',
+          icon: '🍎',
+          name: 'Owoce',
+        ),
+        _CategoryCatalogEntry(
+          id: '411e440c-c826-427b-b6dc-78088aae9da4',
+          icon: '🥚',
+          name: 'Jaja',
+        ),
+        _CategoryCatalogEntry(
+          id: '0b354b99-6e49-442d-8feb-4f00084f4b7a',
+          icon: '🥛',
+          name: 'Nabiał',
+        ),
+        _CategoryCatalogEntry(
+          id: '8a2dfe1b-c628-4d26-99fa-94e9db6c90f7',
+          icon: '🧀',
+          name: 'Sery',
+        ),
+        _CategoryCatalogEntry(
+          id: '8d60ba57-27d0-4311-858f-2bebf56bf3b1',
+          icon: '🥩',
+          name: 'Mięso',
+        ),
+        _CategoryCatalogEntry(
+          id: '23a2267c-a836-4e6e-b6fa-204583df71c2',
+          icon: '🥓',
+          name: 'Wędliny',
+        ),
+        _CategoryCatalogEntry(
+          id: '138d5676-9db7-4008-b960-ef69c9d782ac',
+          icon: '🍞',
+          name: 'Pieczywo',
+        ),
+        _CategoryCatalogEntry(
+          id: 'f3d9f5d1-95c8-4cd3-bcd4-698b4298a22c',
+          icon: '🥐',
+          name: 'Wypieki',
+        ),
+        _CategoryCatalogEntry(
+          id: '8b65af09-63a9-457f-853b-aa6d523b3085',
+          icon: '🌿',
+          name: 'Zioła',
+        ),
+        _CategoryCatalogEntry(
+          id: '54c9b906-4298-413f-8feb-1ef722c86f08',
+          icon: '🐟',
+          name: 'Ryby',
+        ),
+        _CategoryCatalogEntry(
+          id: '1ed9ab83-ba5f-4c34-b553-88f4616c5994',
+          icon: '🌾',
+          name: 'Mąki i kasze',
+        ),
+        _CategoryCatalogEntry(
+          id: 'd0e76040-0704-43e6-ac87-593e4d3ffa61',
+          icon: '🍯',
+          name: 'Miody',
+        ),
+        _CategoryCatalogEntry(
+          id: '749b3717-19aa-4deb-baec-624060817ee8',
+          icon: '🫒',
+          name: 'Oleje i octy',
+        ),
+        _CategoryCatalogEntry(
+          id: 'c0d151a7-c635-4a30-ac02-c2eec2a905a4',
+          icon: '🥫',
+          name: 'Przetwory',
+        ),
+        _CategoryCatalogEntry(
+          id: 'db3be1cb-1a43-4481-b253-9a0e9ccc3bfb',
+          icon: '🥒',
+          name: 'Kiszonki',
+        ),
+        _CategoryCatalogEntry(
+          id: '5d538dbd-0d63-4142-b540-6097953d9078',
+          icon: '🧃',
+          name: 'Soki i napoje',
+        ),
+        _CategoryCatalogEntry(
+          id: 'c39b5581-4ef2-4be9-b42b-6acb6b63ae79',
+          icon: '🌶️',
+          name: 'Przyprawy',
+        ),
+        _CategoryCatalogEntry(
+          id: 'd4aaac87-9c19-45f7-ac9e-2ba568ca208f',
+          icon: '🍱',
+          name: 'Dania gotowe',
+        ),
+        _CategoryCatalogEntry(
+          id: '0af8b69d-b4ed-4b3c-8d40-28687e474793',
+          icon: '🧺',
+          name: 'Rękodzieło',
+        ),
+        _CategoryCatalogEntry(
+          id: 'bb86fb2d-7b8e-4dc4-b22d-0c7dd011a7e4',
+          icon: '🪴',
+          name: 'Rośliny i ogród',
+        ),
+      ];
+
+  List<_CategoryItem> get _discoverCategoryItems => _categoryCatalog
+      .map(
+        (_CategoryCatalogEntry e) => _CategoryItem(
+          id: e.id,
+          icon: e.icon,
+          name: e.name,
+          count: _products
+              .where((ProductData p) => p.categoryId == e.id)
+              .length,
+        ),
+      )
+      .toList();
 
   @override
   void initState() {
@@ -57,7 +174,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
       final productRows = await supabase
           .from('products')
           .select(
-            'product_id, seller_id, name, price, unit, quantity, average_rating, reviews_count, tags, is_active',
+            'product_id, seller_id, category_id, name, price, unit, quantity, average_rating, reviews_count, tags, is_active',
           )
           .eq('is_active', true)
           .order('created_at', ascending: false);
@@ -97,6 +214,10 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
             final unitKey = rawUnit.trim().toLowerCase();
             final qty = (map['quantity'] as num?)?.toDouble();
             final tags = (map['tags'] as List<dynamic>? ?? <dynamic>[]);
+            final rawCategoryId = map['category_id']?.toString().trim();
+            final categoryId = rawCategoryId == null || rawCategoryId.isEmpty
+                ? null
+                : rawCategoryId;
 
             return ProductData(
               id: (map['product_id'] ?? '').toString(),
@@ -117,6 +238,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
               sellerId: sellerId.isEmpty ? null : sellerId,
               unitKey: unitKey.isEmpty ? null : unitKey,
               packageQuantity: qty,
+              categoryId: categoryId,
             );
           })
           .where((ProductData p) => p.id.isNotEmpty)
@@ -127,25 +249,43 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
         _products = products;
         _isLoadingProducts = false;
       });
-    } catch (e) {
+    } on PostgrestException {
       if (!mounted) return;
       setState(() {
         _isLoadingProducts = false;
-        _productsError = 'Nie udało się pobrać produktów: $e';
+        _productsError = null;
+        _products = const <ProductData>[];
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _isLoadingProducts = false;
+        _productsError =
+            'Nie udało się wczytać produktów. Sprawdź połączenie i spróbuj ponownie.';
         _products = const <ProductData>[];
       });
     }
   }
 
   List<ProductData> get _visibleProducts {
-    if (_activeFilter == 'Wszystkie') return _products;
-    final needle = _activeFilter.toUpperCase();
-    return _products
-        .where(
-          (ProductData p) =>
-              p.tag.contains(needle) || p.name.toUpperCase().contains(needle),
-        )
-        .toList();
+    List<ProductData> list;
+    if (_activeFilter == 'Wszystkie') {
+      list = _products;
+    } else {
+      final needle = _activeFilter.toUpperCase();
+      list = _products
+          .where(
+            (ProductData p) =>
+                p.tag.contains(needle) || p.name.toUpperCase().contains(needle),
+          )
+          .toList();
+    }
+    if (_activeCategoryId != null) {
+      list = list
+          .where((ProductData p) => p.categoryId == _activeCategoryId)
+          .toList();
+    }
+    return list;
   }
 
   Future<void> _addToCart(ProductData product) async {
@@ -183,26 +323,20 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: const <Widget>[
-              Text(
-                'Odkrywaj',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textPrimary,
-                ),
-              ),
+              Text('Odkrywaj', style: AppTypography.header),
               SizedBox(height: 16),
               DiscoverSearchBar(),
             ],
           ),
         ),
         _CategoriesSection(
-          categories: _categories,
+          categories: _discoverCategoryItems,
           activeCategoryId: _activeCategoryId,
           onSelect: (String categoryId) {
             setState(() {
-              _activeCategoryId =
-                  _activeCategoryId == categoryId ? null : categoryId;
+              _activeCategoryId = _activeCategoryId == categoryId
+                  ? null
+                  : categoryId;
             });
           },
         ),
@@ -229,17 +363,11 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
               if (_isLoadingProducts)
                 const Center(child: CircularProgressIndicator())
               else if (_productsError != null)
-                Text(
-                  _productsError!,
-                  style: const TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 14,
-                  ),
-                )
+                Text(_productsError!, style: AppTypography.body)
               else if (_visibleProducts.isEmpty)
                 const Text(
                   'Brak produktów do wyświetlenia.',
-                  style: TextStyle(color: AppColors.textLight, fontSize: 14),
+                  style: AppTypography.body,
                 )
               else
                 ProductCardGrid(
@@ -253,8 +381,11 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                         fit: BoxFit.cover,
                         alignment: Alignment.center,
                         errorBuilder:
-                            (BuildContext context, Object error, StackTrace? stackTrace) =>
-                                ColoredBox(color: product.bgColor),
+                            (
+                              BuildContext context,
+                              Object error,
+                              StackTrace? stackTrace,
+                            ) => ColoredBox(color: product.bgColor),
                       ),
                       name: product.name,
                       price: product.pricePerOfferLabel,
@@ -268,8 +399,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                           }
                         });
                       },
-                      onTap: () =>
-                          widget.onOpenProductDetails?.call(product),
+                      onTap: () => widget.onOpenProductDetails?.call(product),
                       onAddToCart: () => _addToCart(product),
                     );
                   },
@@ -306,26 +436,27 @@ class _CategoriesSection extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: <Widget>[
-              const SizedBox(width: 16),
-              ...categories.map((category) {
-                final bool active = activeCategoryId == category.id;
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: CategoryTile(
-                    icon: category.icon,
-                    name: category.name,
-                    count: category.count,
-                    active: active,
-                    onTap: () => onSelect(category.id),
-                  ),
-                );
-              }),
-              const SizedBox(width: 16),
-            ],
+        SizedBox(
+          height: 92,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            physics: const BouncingScrollPhysics(
+              parent: AlwaysScrollableScrollPhysics(),
+            ),
+            itemCount: categories.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 8),
+            itemBuilder: (BuildContext context, int index) {
+              final _CategoryItem category = categories[index];
+              final bool active = activeCategoryId == category.id;
+              return CategoryTile(
+                icon: category.icon,
+                name: category.name,
+                count: category.count,
+                active: active,
+                onTap: () => onSelect(category.id),
+              );
+            },
           ),
         ),
         const SizedBox(height: 16),
@@ -346,4 +477,16 @@ class _CategoryItem {
   final String icon;
   final String name;
   final int count;
+}
+
+class _CategoryCatalogEntry {
+  const _CategoryCatalogEntry({
+    required this.id,
+    required this.icon,
+    required this.name,
+  });
+
+  final String id;
+  final String icon;
+  final String name;
 }

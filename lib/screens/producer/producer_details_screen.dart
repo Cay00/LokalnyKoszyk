@@ -142,7 +142,7 @@ class _ProducerDetailsScreenState extends State<ProducerDetailsScreen> {
       final productRows = await supabase
           .from('products')
           .select(
-            'product_id, name, price, unit, quantity, average_rating, reviews_count, tags, is_active',
+            'product_id, category_id, name, price, unit, quantity, average_rating, reviews_count, tags, is_active',
           )
           .eq('seller_id', sellerId)
           .eq('is_active', true)
@@ -157,6 +157,11 @@ class _ProducerDetailsScreenState extends State<ProducerDetailsScreen> {
         final unitKey = rawUnit.trim().toLowerCase();
         final qty = (map['quantity'] as num?)?.toDouble();
         final tags = (map['tags'] as List<dynamic>? ?? <dynamic>[]);
+        final rawCategoryId = map['category_id']?.toString().trim();
+        final categoryId =
+            rawCategoryId == null || rawCategoryId.isEmpty
+                ? null
+                : rawCategoryId;
 
         return ProductData(
           id: (map['product_id'] ?? '').toString(),
@@ -174,6 +179,7 @@ class _ProducerDetailsScreenState extends State<ProducerDetailsScreen> {
           tagColor: AppColors.primaryLight,
           unitKey: unitKey.isEmpty ? null : unitKey,
           packageQuantity: qty,
+          categoryId: categoryId,
         );
       }).where((product) => product.id.isNotEmpty).toList();
 

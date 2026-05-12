@@ -24,7 +24,6 @@ class _OrdersScreenState extends State<OrdersScreen> {
   bool _isLoadingCart = true;
   bool _isRemovingItem = false;
   bool _isLoadingOrders = true;
-  String? _cartError;
   String? _ordersError;
   List<CartItemData> _cartItems = const <CartItemData>[];
   List<_OrderItem> _orders = const <_OrderItem>[];
@@ -39,7 +38,6 @@ class _OrdersScreenState extends State<OrdersScreen> {
   Future<void> _loadCart() async {
     setState(() {
       _isLoadingCart = true;
-      _cartError = null;
     });
     try {
       final items = await CartRepository.getCartItemsForCurrentUser();
@@ -48,10 +46,10 @@ class _OrdersScreenState extends State<OrdersScreen> {
         _cartItems = items;
         _isLoadingCart = false;
       });
-    } catch (e) {
+    } catch (_) {
       if (!mounted) return;
       setState(() {
-        _cartError = 'Nie udało się pobrać koszyka: $e';
+        _cartItems = const <CartItemData>[];
         _isLoadingCart = false;
       });
     }
@@ -147,20 +145,14 @@ class _OrdersScreenState extends State<OrdersScreen> {
         children: <Widget>[
           const Text(
             'Zamówienia',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textPrimary,
-            ),
+            style: AppTypography.header,
           ),
           const SizedBox(height: 16),
           _CartSummaryCard(
             isLoading: _isLoadingCart,
-            errorText: _cartError,
             cartItems: _cartItems,
             isRemovingItem: _isRemovingItem,
             onRemoveItem: _removeItem,
-            onRetry: _loadCart,
             onOpenCheckout: widget.onOpenCheckout,
           ),
           const SizedBox(height: 32),
@@ -177,10 +169,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                 Expanded(
                   child: Text(
                     _ordersError!,
-                    style: const TextStyle(
-                      color: AppColors.textSecondary,
-                      fontSize: 12,
-                    ),
+                    style: AppTypography.body,
                   ),
                 ),
                 TextButton(
@@ -192,10 +181,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
           else if (_orders.isEmpty)
             const Text(
               'Brak złożonych zamówień dla tego konta.',
-              style: TextStyle(
-                color: AppColors.textLight,
-                fontSize: 13,
-              ),
+              style: AppTypography.body,
             )
           else
             ..._orders.asMap().entries.map((entry) {
@@ -218,20 +204,16 @@ class _OrdersScreenState extends State<OrdersScreen> {
 class _CartSummaryCard extends StatelessWidget {
   const _CartSummaryCard({
     required this.isLoading,
-    required this.errorText,
     required this.cartItems,
     required this.isRemovingItem,
     required this.onRemoveItem,
-    required this.onRetry,
     this.onOpenCheckout,
   });
 
   final bool isLoading;
-  final String? errorText;
   final List<CartItemData> cartItems;
   final bool isRemovingItem;
   final ValueChanged<CartItemData> onRemoveItem;
-  final VoidCallback onRetry;
   final VoidCallback? onOpenCheckout;
 
   @override
@@ -275,27 +257,9 @@ class _CartSummaryCard extends StatelessWidget {
               padding: EdgeInsets.symmetric(vertical: 8),
               child: CircularProgressIndicator(color: AppColors.white),
             )
-          else if (errorText != null)
-            Row(
-              children: <Widget>[
-                Expanded(
-                  child: Text(
-                    errorText!,
-                    style: const TextStyle(
-                      color: AppColors.white,
-                      fontSize: 12,
-                    ),
-                  ),
-                ),
-                TextButton(
-                  onPressed: onRetry,
-                  child: const Text('Ponów'),
-                ),
-              ],
-            )
           else if (cartItems.isEmpty)
             const Text(
-              'Koszyk jest pusty.',
+              'Brak produktów w koszyku.',
               style: TextStyle(
                 color: AppColors.white,
                 fontSize: 13,

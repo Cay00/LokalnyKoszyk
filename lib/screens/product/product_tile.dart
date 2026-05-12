@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../../core/formatting/product_price_per_label.dart';
 import '../../core/themes/app_theme.dart';
 import '../../widgets/common/product_info_chip.dart';
+import '../../widgets/common/primary_action_button.dart';
 
 class ProductData {
   const ProductData({
@@ -23,6 +24,7 @@ class ProductData {
     this.sellerId,
     this.unitKey,
     this.packageQuantity,
+    this.categoryId,
   });
 
   final String id;
@@ -46,6 +48,9 @@ class ProductData {
   /// Z bazy: `piece`, `kilogram`, `gram`, `liter`, `milliliter` (null = tylko [unit]).
   final String? unitKey;
   final double? packageQuantity;
+
+  /// `products.category_id` (UUID z `public.categories`), opcjonalnie.
+  final String? categoryId;
 
   /// Np. `12,99 zł/szt.`, `5,00 zł/litr`, `9,99 zł/100 mg`.
   String get pricePerOfferLabel => buildProductPricePerLabel(
@@ -137,26 +142,6 @@ class ProductTile extends StatelessWidget {
                     ),
                   ),
                 ),
-                Positioned(
-                  top: 16,
-                  left: 16,
-                  child: Container(
-                    padding:
-                        const EdgeInsets.only(left: 8, right: 8, top: 64, bottom: 16),
-                    decoration: BoxDecoration(
-                      color: product.tagColor,
-                      borderRadius: BorderRadius.circular(AppRadius.sm),
-                    ),
-                    child: Text(
-                      product.tag,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
               ],
             ),
           ),
@@ -173,20 +158,12 @@ class ProductTile extends StatelessWidget {
                         children: <Widget>[
                           Text(
                             product.name,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.textPrimary,
-
-                            ),
+                            style: AppTypography.productNameSmall,
                           ),
                           const SizedBox(height: 2),
                           Text(
                             product.producer,
-                            style: const TextStyle(
-                              color: AppColors.textLight,
-                              fontSize: 12,
-                            ),
+                            style: AppTypography.caption,
                           ),
                         ],
                       ),
@@ -197,21 +174,14 @@ class ProductTile extends StatelessWidget {
                         Text(
                           product.pricePerOfferLabel,
                           textAlign: TextAlign.right,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.primaryLight,
-                          ),
+                          style: AppTypography.price,
                         ),
                         if (!product.hasKnownDbUnit &&
                             product.unit.trim().isNotEmpty) ...<Widget>[
                           const SizedBox(height: 2),
                           Text(
                             product.unit,
-                            style: const TextStyle(
-                              color: AppColors.textLight,
-                              fontSize: 12,
-                            ),
+                            style: AppTypography.caption,
                           ),
                         ],
                       ],
@@ -258,34 +228,9 @@ class ProductTile extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: onAddToCart,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: AppColors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(AppRadius.normal),
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      elevation: 0,
-                    ),
-                    child: const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        Text('+'),
-                        SizedBox(width: 8),
-                        Text(
-                          'Dodaj do koszyka',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                PrimaryActionButton(
+                  label: 'Dodaj do koszyka',
+                  onPressed: onAddToCart,
                 ),
               ],
             ),
