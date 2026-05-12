@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lokalny_koszyk/core/formatting/pennies.dart';
 import 'package:lokalny_koszyk/core/supabase/supabase_client.dart';
 
 import '../../core/themes/app_theme.dart';
@@ -58,13 +59,13 @@ class _OrderHistoryDetailScreenState extends State<OrderHistoryDetailScreen> {
             ? const <String, dynamic>{}
             : Map<String, dynamic>.from(map['products'] as Map);
         final qty = (map['quantity'] as num?)?.toDouble() ?? 0;
-        final unitPrice = (map['price'] as num?)?.toDouble() ?? 0;
+        final unitPriceGrosze = parsePennies(map['price']);
         final unit = (productMap['unit'] ?? '').toString();
         return _OrderProductItem(
           name: (productMap['name'] ?? 'Produkt').toString(),
           quantityLabel: '$qty $unit',
           lineTotal: _formatMoney(
-            qty * unitPrice,
+            plnFromPennies(unitPriceGrosze) * qty,
             (orderMap['currency'] ?? 'PLN').toString(),
           ),
         );
@@ -75,7 +76,7 @@ class _OrderHistoryDetailScreenState extends State<OrderHistoryDetailScreen> {
         _orderNumber = (orderMap['order_number'] ?? widget.orderId).toString();
         _orderStatus = _statusLabel((orderMap['status'] ?? '').toString());
         _orderTotal = _formatMoney(
-          (orderMap['total_amount'] as num?)?.toDouble() ?? 0,
+          plnFromPennies(parsePennies(orderMap['total_amount'])),
           (orderMap['currency'] ?? 'PLN').toString(),
         );
         _items = items;

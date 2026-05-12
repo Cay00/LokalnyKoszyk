@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'package:lokalny_koszyk/core/supabase/profile_bootstrap.dart';
 import 'package:lokalny_koszyk/core/supabase/supabase_client.dart';
 import 'package:lokalny_koszyk/screens/auth/auth_screen.dart';
 
@@ -26,6 +27,7 @@ class _AuthGateState extends State<AuthGate> {
   void initState() {
     super.initState();
     _user = supabase.auth.currentUser;
+    _scheduleProfileBootstrap(_user);
     _sub = supabase.auth.onAuthStateChange.listen((data) {
       final event = data.event;
       final session = data.session;
@@ -34,12 +36,21 @@ class _AuthGateState extends State<AuthGate> {
           event == AuthChangeEvent.tokenRefreshed ||
           event == AuthChangeEvent.userUpdated) {
         setState(() => _user = session?.user);
+        if (event == AuthChangeEvent.signedIn ||
+            event == AuthChangeEvent.userUpdated) {
+          _scheduleProfileBootstrap(session?.user);
+        }
       }
 
       if (event == AuthChangeEvent.signedOut) {
         setState(() => _user = null);
       }
     });
+  }
+
+  void _scheduleProfileBootstrap(User? user) {
+    if (user == null) return;
+    unawaited(ProfileBootstrap.ensureRowForAuthUser(user));
   }
 
   @override

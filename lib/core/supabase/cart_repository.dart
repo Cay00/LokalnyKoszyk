@@ -1,3 +1,5 @@
+import 'package:lokalny_koszyk/core/formatting/pennies.dart';
+import 'package:lokalny_koszyk/core/supabase/profile_bootstrap.dart';
 import 'package:lokalny_koszyk/core/supabase/supabase_client.dart';
 
 class CartRepository {
@@ -18,12 +20,13 @@ class CartRepository {
       );
     }
 
-    final userId = supabase.auth.currentUser?.id;
-    if (userId == null || userId.isEmpty) {
+    final user = supabase.auth.currentUser;
+    if (user == null || user.id.isEmpty) {
       throw StateError('Brak zalogowanego użytkownika.');
     }
+    await ProfileBootstrap.ensureRowForAuthUser(user);
 
-    final cartId = await _getOrCreateCartIdForUser(userId);
+    final cartId = await _getOrCreateCartIdForUser(user.id);
     await _addOrIncreaseCartItem(
       cartId: cartId,
       productId: productId,
@@ -50,8 +53,8 @@ class CartRepository {
     final rows = await supabase
         .from(_cartItemsTable)
         .select(
-          'id, quantity, product_id, '
-          'products(name, price, unit, currency)',
+          'id, quantity, product_id, unit_price_gross, '
+          'products(name, unit, currency)',
         )
         .eq('cart_id', cartId)
         .order('id', ascending: true);
@@ -62,7 +65,8 @@ class CartRepository {
           ? const <String, dynamic>{}
           : Map<String, dynamic>.from(map['products'] as Map);
       final quantity = (map['quantity'] as num?)?.toDouble() ?? 0;
-      final price = (productMap['price'] as num?)?.toDouble() ?? 0;
+      final unitGrosze = parsePennies(map['unit_price_gross']);
+      final price = plnFromPennies(unitGrosze);
       final unit = (productMap['unit'] ?? '').toString();
       final currency = (productMap['currency'] ?? 'PLN').toString();
       return CartItemData(
@@ -89,80 +93,32 @@ class CartRepository {
   static Future<PlaceOrderResult> placeOrderFromCurrentCart({
     required String status,
   }) async {
-    final userId = supabase.auth.currentUser?.id;
-    if (userId == null || userId.isEmpty) {
+    final user = supabase.auth.currentUser;
+    if (user == null || user.id.isEmpty) {
       throw StateError('Brak zalogowanego użytkownika.');
     }
-    final existingCart = await supabase
-        .from(_cartsTable)
-        .select('id')
-        .eq('user_id', userId)
-        .maybeSingle();
-    final cartId = existingCart?['id']?.toString();
-    if (cartId == null || cartId.isEmpty) {
-      throw StateError('Brak koszyka do opłacenia.');
-    }
-    final rows = await supabase
-        .from(_cartItemsTable)
-        .select(
-          'id, quantity, product_id, '
-          'products(price, currency, seller_id)',
-        )
-        .eq('cart_id', cartId);
-    final cartItems = (rows as List<dynamic>)
-        .map((row) => Map<String, dynamic>.from(row as Map))
-        .toList();
-    if (cartItems.isEmpty) {
-      throw StateError('Koszyk jest pusty.');
-    }
+    await ProfileBootstrap.ensureRowForAuthUser(user);
 
-    final firstProductMap = Map<String, dynamic>.from(
-      (cartItems.first['products'] as Map?) ?? <String, dynamic>{},
+    final dynamic raw = await supabase.rpc(
+      'place_order_from_cart',
+      params: <String, dynamic>{'p_status': status},
     );
-    final currency = (firstProductMap['currency'] ?? 'PLN').toString();
-
-    final totalAmount = cartItems.fold<double>(0, (sum, row) {
-      final productMap = Map<String, dynamic>.from(
-        (row['products'] as Map?) ?? <String, dynamic>{},
-      );
-      final qty = (row['quantity'] as num?)?.toDouble() ?? 0;
-      final price = (productMap['price'] as num?)?.toDouble() ?? 0;
-      return sum + (qty * price);
-    });
-
-    final order = await supabase.from('orders').insert(<String, dynamic>{
-      'user_id': userId,
-      'status': status,
-      'total_amount': totalAmount,
-      'currency': currency,
-    }).select('id, order_number').single();
-    final orderId = (order['id'] ?? '').toString();
-    if (orderId.isEmpty) {
-      throw StateError('Nie udało się utworzyć zamówienia.');
+    if (raw is! Map) {
+      throw StateError('Nie udało się złożyć zamówienia (brak odpowiedzi).');
     }
-    final orderNumber = (order['order_number'] ?? '').toString();
-
-    final orderItemsPayload = cartItems.map((row) {
-      final productMap = Map<String, dynamic>.from(
-        (row['products'] as Map?) ?? <String, dynamic>{},
-      );
-      return <String, dynamic>{
-        'order_id': orderId,
-        'product_id': (row['product_id'] ?? '').toString(),
-        'seller_id': (productMap['seller_id'] ?? '').toString(),
-        'quantity': (row['quantity'] as num?)?.toDouble() ?? 0,
-        'price': (productMap['price'] as num?)?.toDouble() ?? 0,
-      };
-    }).toList();
-    await supabase.from('order_items').insert(orderItemsPayload);
-
-    await supabase.from(_cartItemsTable).delete().eq('cart_id', cartId);
-    await supabase.from(_cartsTable).delete().eq('id', cartId);
+    final map = Map<String, dynamic>.from(raw);
+    final orderId = (map['order_id'] ?? '').toString();
+    if (orderId.isEmpty) {
+      throw StateError('Nie udało się złożyć zamówienia.');
+    }
+    final orderNumber = (map['order_number'] ?? '').toString();
+    final totalGrosze = (map['total_amount'] as num?)?.toInt() ?? 0;
+    final currency = (map['currency'] ?? 'PLN').toString();
 
     return PlaceOrderResult(
       orderId: orderId,
       orderNumber: orderNumber,
-      totalAmount: totalAmount,
+      totalAmount: plnFromPennies(totalGrosze),
       currency: currency,
     );
   }
@@ -201,10 +157,17 @@ class CartRepository {
         .maybeSingle();
 
     if (existingRow == null) {
+      final productRow = await supabase
+          .from('products')
+          .select('price_gross_amount')
+          .eq('product_id', productId)
+          .maybeSingle();
+      final unitGrosze = parsePennies(productRow?['price_gross_amount']);
       await supabase.from(_cartItemsTable).insert(<String, dynamic>{
         'cart_id': cartId,
         'product_id': productId,
         'quantity': quantityToAdd,
+        'unit_price_gross': unitGrosze,
       });
       return;
     }

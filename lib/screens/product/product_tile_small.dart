@@ -93,11 +93,7 @@ class ProductTileSmall extends StatelessWidget {
                                 name,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                  color: AppColors.textPrimary,
-                                ),
+                                style: AppTypography.productNameTiny,
                               ),
                               // Row(
                               //   children: <Widget>[
@@ -125,11 +121,7 @@ class ProductTileSmall extends StatelessWidget {
                                 priceWithUnitLabel,
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.primary,
-                                ),
+                                style: AppTypography.price,
                               ),
                             ],
                           ),

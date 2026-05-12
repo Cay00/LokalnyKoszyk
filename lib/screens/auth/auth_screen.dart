@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'package:lokalny_koszyk/core/supabase/profile_bootstrap.dart';
 import 'package:lokalny_koszyk/core/supabase/supabase_client.dart';
 import 'package:lokalny_koszyk/core/themes/app_theme.dart';
 
@@ -66,6 +67,8 @@ class _AuthScreenState extends State<AuthScreen> {
         if (!mounted) return;
         if (res.user == null || res.session == null) {
           _showSnack('Nie udało się zalogować (brak sesji).');
+        } else {
+          await ProfileBootstrap.ensureRowForAuthUser(res.user!);
         }
       } else {
         final res = await supabase.auth.signUp(
@@ -76,10 +79,16 @@ class _AuthScreenState extends State<AuthScreen> {
         if (!mounted) return;
         if (res.user == null) {
           _showSnack('Nie udało się zarejestrować.');
-        } else if (res.session == null) {
-          _showSnack(
-            'Konto utworzone. Sprawdź email (potwierdzenie może być wymagane).',
-          );
+        } else {
+          if (res.session != null) {
+            await ProfileBootstrap.ensureRowForAuthUser(res.user!);
+          }
+          if (!mounted) return;
+          if (res.session == null) {
+            _showSnack(
+              'Konto utworzone. Sprawdź email (potwierdzenie może być wymagane).',
+            );
+          }
         }
       }
     } on AuthException catch (e) {

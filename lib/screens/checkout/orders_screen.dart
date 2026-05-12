@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:lokalny_koszyk/core/formatting/pennies.dart';
 import 'package:lokalny_koszyk/core/supabase/cart_repository.dart';
 import 'package:lokalny_koszyk/core/supabase/supabase_client.dart';
 import 'package:lokalny_koszyk/widgets/common/section_header.dart';
@@ -78,7 +79,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
         final rawStatus = (map['status'] ?? '').toString();
         final statusLabel = _statusLabel(rawStatus);
         final statusColor = _statusColor(rawStatus);
-        final amount = (map['total_amount'] as num?)?.toDouble() ?? 0;
+        final amountGrosze = parsePennies(map['total_amount']);
         final currency = (map['currency'] ?? 'PLN').toString();
         final createdAt = DateTime.tryParse((map['created_at'] ?? '').toString());
         return _OrderItem(
@@ -86,7 +87,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
           orderNumber: orderNumber,
           status: statusLabel,
           date: _formatDate(createdAt),
-          total: _formatMoney(amount, currency),
+          total: _formatMoney(plnFromPennies(amountGrosze), currency),
           color: statusColor,
           iconAsset: _statusIcon(rawStatus),
         );

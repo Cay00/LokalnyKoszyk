@@ -7,6 +7,7 @@ class ProducerTile extends StatelessWidget {
   const ProducerTile({
     super.key,
     required this.name,
+    this.subtitle,
     required this.distance,
     required this.rating,
     required this.reviews,
@@ -15,6 +16,8 @@ class ProducerTile extends StatelessWidget {
   });
 
   final String name;
+  /// Druga linia pod nazwą (np. UUID lub krótka wskazówka), opcjonalnie.
+  final String? subtitle;
   final String distance;
   final String rating;
   final String reviews;
@@ -107,6 +110,19 @@ class ProducerTile extends StatelessWidget {
                         ],
                       ],
                     ),
+                    if (subtitle != null && subtitle!.trim().isNotEmpty) ...<Widget>[
+                      const SizedBox(height: 4),
+                      Text(
+                        subtitle!,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: AppColors.textLight,
+                          height: 1.25,
+                        ),
+                      ),
+                    ],
                     Row(
                       children: <Widget>[
                         SvgPicture.asset(

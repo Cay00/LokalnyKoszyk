@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:lokalny_koszyk/core/formatting/entity_keys.dart';
 import 'package:lokalny_koszyk/core/supabase/cart_repository.dart';
+import 'package:lokalny_koszyk/core/supabase/seller_public_lookup.dart';
+import 'package:lokalny_koszyk/core/supabase/supabase_client.dart';
 import 'package:lokalny_koszyk/screens/product/product_tile.dart';
 import 'package:lokalny_koszyk/screens/producer/producer_tile.dart';
 
@@ -31,6 +34,52 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
   bool _isLiked = false;
   bool _isAddingToCart = false;
   int _selectedQuantity = 1;
+  String? _sellerNameFromDb;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSellerNameIfNeeded();
+  }
+
+  Future<void> _loadSellerNameIfNeeded() async {
+    final label = widget.product.producer.trim();
+    if (label.isNotEmpty &&
+        label != 'Sprzedawca' &&
+        !label.startsWith('Sprzedawca ·')) {
+      return;
+    }
+
+    var rawSid = widget.product.sellerId?.trim() ?? '';
+    if (rawSid.isEmpty) {
+      final productId = widget.product.id.trim();
+      if (productId.isEmpty) return;
+      try {
+        final row = await supabase
+            .from('products')
+            .select('seller_id')
+            .eq('product_id', productId)
+            .maybeSingle();
+        rawSid = (row?['seller_id'] ?? '').toString().trim();
+      } catch (_) {
+        return;
+      }
+    }
+    if (rawSid.isEmpty) return;
+
+    final byNorm = await fetchSellerPublicByIds({rawSid});
+    final info = byNorm[normalizeUuidKey(rawSid)];
+    final n = info?.name.trim() ?? '';
+    if (n.isNotEmpty && mounted) setState(() => _sellerNameFromDb = n);
+  }
+
+  String get _producerDisplayName {
+    final fromDb = _sellerNameFromDb?.trim();
+    if (fromDb != null && fromDb.isNotEmpty) return fromDb;
+    final fromProduct = widget.product.producer.trim();
+    if (fromProduct.isNotEmpty) return fromProduct;
+    return 'Sprzedawca';
+  }
 
   Future<void> _addToCart() async {
     if (_isAddingToCart) return;
@@ -133,7 +182,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
             ),
             const SizedBox(height: 16),
             ProducerTile(
-              name: widget.product.producer,
+              name: _producerDisplayName,
               distance: widget.product.distance,
               rating: widget.product.rating,
               reviews: '16',

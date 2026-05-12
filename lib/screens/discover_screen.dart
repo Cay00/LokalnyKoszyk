@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:lokalny_koszyk/core/formatting/entity_keys.dart';
+import 'package:lokalny_koszyk/core/formatting/pennies.dart';
+import 'package:lokalny_koszyk/core/supabase/seller_public_lookup.dart';
 import 'package:lokalny_koszyk/core/supabase/cart_repository.dart';
 import 'package:lokalny_koszyk/core/supabase/supabase_client.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' show PostgrestException;
@@ -174,46 +177,38 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
       final productRows = await supabase
           .from('products')
           .select(
-            'product_id, seller_id, category_id, name, price, unit, quantity, average_rating, reviews_count, tags, is_active',
+            'product_id, seller_id, category_id, name, price_gross_amount, unit, '
+            'package_size, stock_quantity, average_rating, reviews_count, is_active',
           )
           .eq('is_active', true)
+          .isFilter('deleted_at', null)
           .order('created_at', ascending: false);
 
       final rows = (productRows as List<dynamic>)
           .map((dynamic row) => Map<String, dynamic>.from(row as Map))
           .toList();
 
-      final sellerIds = <String>{};
+      final sellerRawIds = <String>{};
       for (final map in rows) {
-        final sid = (map['seller_id'] ?? '').toString().trim();
-        if (sid.isNotEmpty) sellerIds.add(sid);
+        final raw = (map['seller_id'] ?? '').toString().trim();
+        if (raw.isNotEmpty) sellerRawIds.add(raw);
       }
-
-      final Map<String, String> sellerNameById = <String, String>{};
-      if (sellerIds.isNotEmpty) {
-        final sellerRows = await supabase
-            .from('sellers')
-            .select('id, name')
-            .inFilter('id', sellerIds.toList());
-        for (final dynamic r in sellerRows as List<dynamic>) {
-          final sm = Map<String, dynamic>.from(r as Map);
-          final id = (sm['id'] ?? '').toString();
-          if (id.isEmpty) continue;
-          sellerNameById[id] = (sm['name'] ?? 'Sprzedawca').toString();
-        }
-      }
+      final sellerByNorm = await fetchSellerPublicByIds(sellerRawIds);
 
       final products = rows
           .map<ProductData>((Map<String, dynamic> map) {
-            final sellerId = (map['seller_id'] ?? '').toString();
-            final sellerName = sellerNameById[sellerId] ?? 'Sprzedawca';
-            final priceNum = (map['price'] as num?)?.toDouble() ?? 0;
+            final sellerIdRaw = (map['seller_id'] ?? '').toString().trim();
+            final sellerKey = normalizeUuidKey(sellerIdRaw);
+            final pick = sellerByNorm[sellerKey];
+            final sellerName = (pick?.name.trim().isNotEmpty ?? false)
+                ? pick!.name
+                : 'Sprzedawca';
+            final priceGrosze = parsePennies(map['price_gross_amount']);
             final ratingNum = (map['average_rating'] as num?)?.toDouble() ?? 0;
             final reviewsCount = (map['reviews_count'] as num?)?.toInt() ?? 0;
             final rawUnit = (map['unit'] ?? '').toString();
             final unitKey = rawUnit.trim().toLowerCase();
-            final qty = (map['quantity'] as num?)?.toDouble();
-            final tags = (map['tags'] as List<dynamic>? ?? <dynamic>[]);
+            final qty = (map['package_size'] as num?)?.toDouble();
             final rawCategoryId = map['category_id']?.toString().trim();
             final categoryId = rawCategoryId == null || rawCategoryId.isEmpty
                 ? null
@@ -223,19 +218,17 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
               id: (map['product_id'] ?? '').toString(),
               name: (map['name'] ?? 'Produkt').toString(),
               producer: sellerName,
-              price: priceNum.toStringAsFixed(2).replaceAll('.', ','),
+              price: plnCommaStringFromPennies(priceGrosze),
               unit: '/ ${rawUnit.replaceAll('_', ' ')}',
               distance: '',
               season: 'Cały rok',
               rating: ratingNum.toStringAsFixed(1),
               reviews: reviewsCount.toString(),
               emoji: '🧺',
-              tag: tags.isNotEmpty
-                  ? tags.first.toString().toUpperCase()
-                  : 'LOKALNE',
+              tag: 'LOKALNE',
               bgColor: AppColors.background,
               tagColor: AppColors.primaryLight,
-              sellerId: sellerId.isEmpty ? null : sellerId,
+              sellerId: sellerIdRaw.isEmpty ? null : sellerIdRaw,
               unitKey: unitKey.isEmpty ? null : unitKey,
               packageQuantity: qty,
               categoryId: categoryId,
@@ -249,11 +242,11 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
         _products = products;
         _isLoadingProducts = false;
       });
-    } on PostgrestException {
+    } on PostgrestException catch (e) {
       if (!mounted) return;
       setState(() {
         _isLoadingProducts = false;
-        _productsError = null;
+        _productsError = 'Nie udało się wczytać produktów: ${e.message}';
         _products = const <ProductData>[];
       });
     } catch (_) {

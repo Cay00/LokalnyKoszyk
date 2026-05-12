@@ -62,6 +62,13 @@ class AppTypography {
     //color: AppColors.textPrimary,
   );
 
+  static const TextStyle productNameTiny = TextStyle(
+    fontSize: 14,
+    fontWeight: FontWeight.w600,
+    color: Colors.red,
+    //color: AppColors.textPrimary,
+  );
+
   static const TextStyle price = TextStyle(
     fontSize: 18,
     fontWeight: FontWeight.w600,
@@ -70,7 +77,7 @@ class AppTypography {
   );
 
   static const TextStyle priceSmall = TextStyle(
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: FontWeight.w600,
     color: Colors.red,
     //color: AppColors.primary,

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:lokalny_koszyk/core/formatting/entity_keys.dart';
 import 'package:lokalny_koszyk/core/supabase/cart_repository.dart';
+import 'package:lokalny_koszyk/core/supabase/seller_public_lookup.dart';
 import 'package:lokalny_koszyk/core/supabase/supabase_client.dart';
 import 'package:lokalny_koszyk/core/themes/app_theme.dart';
 import 'package:lokalny_koszyk/widgets/common/search_bar.dart';
@@ -29,6 +31,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isAddingToCart = false;
   bool _isLoadingSellers = true;
   String? _sellersError;
+  String? _sellersAccessHint;
   List<_ProducerItem> _nearbySellers = const <_ProducerItem>[];
 
   static const List<ProductData> _products = <ProductData>[
@@ -74,29 +77,70 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       _isLoadingSellers = true;
       _sellersError = null;
+      _sellersAccessHint = null;
     });
     try {
-      final rows = await supabase
-          .from('sellers')
-          .select('id, name, is_verified')
+      final idRows = await supabase
+          .from('products')
+          .select('seller_id')
+          .eq('is_active', true)
+          .isFilter('deleted_at', null)
           .order('created_at', ascending: false)
-          .limit(20);
+          .limit(120);
 
-      final mapped = rows.map<_ProducerItem>((dynamic row) {
+      final orderedSellerIds = <String>[];
+      final seenKeys = <String>{};
+      for (final dynamic row in idRows as List<dynamic>) {
         final map = Map<String, dynamic>.from(row as Map);
+        final raw = (map['seller_id'] ?? '').toString().trim();
+        final key = normalizeUuidKey(raw);
+        if (key.isEmpty || seenKeys.contains(key)) continue;
+        seenKeys.add(key);
+        orderedSellerIds.add(raw);
+        if (orderedSellerIds.length >= 20) break;
+      }
+
+      if (orderedSellerIds.isEmpty) {
+        if (!mounted) return;
+        setState(() {
+          _nearbySellers = const <_ProducerItem>[];
+          _isLoadingSellers = false;
+        });
+        return;
+      }
+
+      final sellerByNorm = await fetchSellerPublicByIds(orderedSellerIds.toSet());
+
+      var unresolved = 0;
+      final mapped = orderedSellerIds.map((String raw) {
+        final key = normalizeUuidKey(raw);
+        final pick = sellerByNorm[key];
+        final hasName = pick?.name.trim().isNotEmpty ?? false;
+        if (!hasName) unresolved++;
+        final name = hasName ? pick!.name : 'Sprzedawca';
+        final subtitle =
+            hasName ? null : (key.isNotEmpty ? 'UUID sprzedawcy: $key' : null);
         return _ProducerItem(
-          id: (map['id'] ?? '').toString(),
-          name: (map['name'] ?? 'Sprzedawca').toString(),
+          id: raw,
+          name: name,
+          subtitle: subtitle,
           dist: '',
           rating: '0.0',
           reviews: '0',
-          verified: map['is_verified'] == true,
+          verified: pick?.isVerified ?? false,
         );
-      }).where((seller) => seller.id.isNotEmpty).toList();
+      }).toList();
+
+      final String? accessHint = unresolved > 0
+          ? 'Brak nazw sprzedawców — baza zwraca tylko identyfikatory. '
+                'Włącz odczyt tabeli `sellers` (oraz opcjonalnie `seller_locations`) w Supabase RLS. '
+                'Gotowy skrypt: sql/supabase_sellers_public_read.sql'
+          : null;
 
       if (!mounted) return;
       setState(() {
         _nearbySellers = mapped;
+        _sellersAccessHint = accessHint;
         _isLoadingSellers = false;
       });
     } catch (e) {
@@ -147,6 +191,7 @@ class _HomeScreenState extends State<HomeScreen> {
           producers: _nearbySellers,
           isLoading: _isLoadingSellers,
           errorText: _sellersError,
+          accessHint: _sellersAccessHint,
           onRetry: _loadNearbySellers,
           onOpenProducerDetails: widget.onOpenProducerDetails,
         ),
@@ -430,6 +475,7 @@ class _NearbyProducersList extends StatelessWidget {
     required this.producers,
     required this.isLoading,
     required this.errorText,
+    required this.accessHint,
     required this.onRetry,
     this.onOpenProducerDetails,
   });
@@ -437,6 +483,7 @@ class _NearbyProducersList extends StatelessWidget {
   final List<_ProducerItem> producers;
   final bool isLoading;
   final String? errorText;
+  final String? accessHint;
   final VoidCallback onRetry;
   final ValueChanged<String>? onOpenProducerDetails;
 
@@ -478,10 +525,11 @@ class _NearbyProducersList extends StatelessWidget {
                 style: AppTypography.body,
               ),
             )
-          else
+          else ...<Widget>[
             ...producers.map((prod) {
               return ProducerTile(
                 name: prod.name,
+                subtitle: prod.subtitle,
                 distance: prod.dist,
                 rating: prod.rating,
                 reviews: prod.reviews,
@@ -489,6 +537,19 @@ class _NearbyProducersList extends StatelessWidget {
                 onTap: () => onOpenProducerDetails?.call(prod.id),
               );
             }),
+            if (accessHint != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 8, bottom: 4),
+                child: Text(
+                  accessHint!,
+                  style: AppTypography.body.copyWith(
+                    fontSize: 12,
+                    color: AppColors.textLight,
+                    height: 1.35,
+                  ),
+                ),
+              ),
+          ],
         ],
       ),
     );
@@ -499,6 +560,7 @@ class _ProducerItem {
   const _ProducerItem({
     required this.id,
     required this.name,
+    this.subtitle,
     required this.dist,
     required this.rating,
     required this.reviews,
@@ -507,6 +569,7 @@ class _ProducerItem {
 
   final String id;
   final String name;
+  final String? subtitle;
   final String dist;
   final String rating;
   final String reviews;

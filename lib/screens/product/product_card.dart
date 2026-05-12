@@ -124,11 +124,7 @@ class ProductCard extends StatelessWidget {
                 children: [
                   Text(
                     name,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
-                    ),
+                    style: AppTypography.productNameTiny,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -139,11 +135,7 @@ class ProductCard extends StatelessWidget {
                       Expanded(
                         child: Text(
                           price,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.primary,
-                          ),
+                          style: AppTypography.priceSmall,
                         ),
                       ),
                       GestureDetector(

@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:lokalny_koszyk/core/formatting/entity_keys.dart';
+import 'package:lokalny_koszyk/core/supabase/nested_row.dart';
+import 'package:lokalny_koszyk/core/supabase/seller_public_lookup.dart';
+import 'package:lokalny_koszyk/core/formatting/pennies.dart';
 import 'package:lokalny_koszyk/core/supabase/supabase_client.dart';
 
 import '../../core/themes/app_theme.dart';
@@ -47,19 +51,38 @@ class _ProducerDetailsScreenState extends State<ProducerDetailsScreen> {
       });
       return;
     }
+    final normalizedSellerId = normalizeUuidKey(sellerId);
     setState(() {
       _isLoading = true;
       _errorText = null;
     });
     try {
-      final sellerWithLocationRow = await supabase
+      dynamic sellerWithLocationRow = await supabase
           .from('sellers')
           .select(
             'id, name, description, email, phone, is_verified, quality_description, '
             'seller_locations(address, city, postal_code, country, latitude, longitude)',
           )
-          .eq('id', sellerId)
+          .eq('id', normalizedSellerId)
+          .isFilter('deleted_at', null)
           .maybeSingle();
+
+      if (sellerWithLocationRow == null) {
+        final byNorm = await fetchSellerPublicByIds({sellerId.trim()});
+        final pick = byNorm[normalizedSellerId];
+        if (pick != null) {
+          sellerWithLocationRow = <String, dynamic>{
+            'id': sellerId.trim(),
+            'name': pick.name,
+            'description': '',
+            'email': '',
+            'phone': '',
+            'is_verified': pick.isVerified,
+            'quality_description': '',
+            'seller_locations': null,
+          };
+        }
+      }
 
       if (sellerWithLocationRow == null) {
         if (!mounted) return;
@@ -72,7 +95,7 @@ class _ProducerDetailsScreenState extends State<ProducerDetailsScreen> {
 
       final sellerMap = Map<String, dynamic>.from(sellerWithLocationRow as Map);
       final relatedLocations =
-          (sellerMap['seller_locations'] as List<dynamic>? ?? <dynamic>[]);
+          supabaseEmbeddedMaps(sellerMap['seller_locations']);
 
       // Fallback: jeżeli relacja nie zwróciła danych (np. przez konfigurację),
       // pobierz lokalizacje klasycznym zapytaniem po seller_id.
@@ -82,7 +105,7 @@ class _ProducerDetailsScreenState extends State<ProducerDetailsScreen> {
               .select(
                 'address, city, postal_code, country, latitude, longitude',
               )
-              .eq('seller_id', sellerId)
+              .eq('seller_id', normalizedSellerId)
               .limit(20)
           : <dynamic>[];
       // Dodatkowy fallback: jeśli nadal pusto, pobierz szerszy zestaw i dopasuj seller_id po stronie aplikacji.
@@ -97,11 +120,15 @@ class _ProducerDetailsScreenState extends State<ProducerDetailsScreen> {
           : <dynamic>[];
 
       final parsedLocations = <Map<String, dynamic>>[
-        ...relatedLocations.map((row) => Map<String, dynamic>.from(row as Map)),
+        ...relatedLocations,
         ...fallbackRows.map((row) => Map<String, dynamic>.from(row as Map)),
         ...broadFallbackRows
             .map((row) => Map<String, dynamic>.from(row as Map))
-            .where((row) => (row['seller_id'] ?? '').toString().trim() == sellerId),
+            .where(
+              (row) =>
+                  normalizeUuidKey((row['seller_id'] ?? '').toString()) ==
+                  normalizedSellerId,
+            ),
       ];
       final locationMap =
           parsedLocations.firstWhere(
@@ -142,21 +169,22 @@ class _ProducerDetailsScreenState extends State<ProducerDetailsScreen> {
       final productRows = await supabase
           .from('products')
           .select(
-            'product_id, category_id, name, price, unit, quantity, average_rating, reviews_count, tags, is_active',
+            'product_id, category_id, name, price_gross_amount, unit, package_size, '
+            'stock_quantity, average_rating, reviews_count, is_active',
           )
-          .eq('seller_id', sellerId)
+          .eq('seller_id', normalizedSellerId)
           .eq('is_active', true)
+          .isFilter('deleted_at', null)
           .order('created_at', ascending: false);
 
-      final products = productRows.map<ProductData>((dynamic row) {
+      final products = (productRows as List<dynamic>).map<ProductData>((dynamic row) {
         final map = Map<String, dynamic>.from(row as Map);
-        final priceNum = (map['price'] as num?)?.toDouble() ?? 0;
+        final priceGrosze = parsePennies(map['price_gross_amount']);
         final ratingNum = (map['average_rating'] as num?)?.toDouble() ?? 0;
         final reviewsCount = (map['reviews_count'] as num?)?.toInt() ?? 0;
         final rawUnit = (map['unit'] ?? '').toString();
         final unitKey = rawUnit.trim().toLowerCase();
-        final qty = (map['quantity'] as num?)?.toDouble();
-        final tags = (map['tags'] as List<dynamic>? ?? <dynamic>[]);
+        final qty = (map['package_size'] as num?)?.toDouble();
         final rawCategoryId = map['category_id']?.toString().trim();
         final categoryId =
             rawCategoryId == null || rawCategoryId.isEmpty
@@ -167,14 +195,14 @@ class _ProducerDetailsScreenState extends State<ProducerDetailsScreen> {
           id: (map['product_id'] ?? '').toString(),
           name: (map['name'] ?? 'Produkt').toString(),
           producer: seller.name,
-          price: priceNum.toStringAsFixed(2).replaceAll('.', ','),
+          price: plnCommaStringFromPennies(priceGrosze),
           unit: '/ ${rawUnit.replaceAll('_', ' ')}',
           distance: '',
           season: 'Cały rok',
           rating: ratingNum.toStringAsFixed(1),
           reviews: reviewsCount.toString(),
           emoji: '🧺',
-          tag: tags.isNotEmpty ? tags.first.toString().toUpperCase() : 'LOKALNE',
+          tag: 'LOKALNE',
           bgColor: AppColors.background,
           tagColor: AppColors.primaryLight,
           unitKey: unitKey.isEmpty ? null : unitKey,
@@ -261,6 +289,17 @@ class _ProducerDetailsScreenState extends State<ProducerDetailsScreen> {
                       _errorText!,
                       textAlign: TextAlign.center,
                       style: const TextStyle(color: AppColors.textSecondary),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Przy braku danych sprzedawcy sprawdź polityki RLS w Supabase. '
+                      'W repozytorium: sql/supabase_sellers_public_read.sql',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: AppColors.textLight,
+                        fontSize: 12,
+                        height: 1.35,
+                      ),
                     ),
                     const SizedBox(height: 12),
                     FilledButton(
@@ -481,20 +520,12 @@ class _ProducerDetailsScreenState extends State<ProducerDetailsScreen> {
                               children: <Widget>[
                                 Text(
                                   _selectedInfoSection.title,
-                                  style: const TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.textPrimary,
-                                  ),
+                                  style: AppTypography.sectionHeader,
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
                                   _selectedInfoSection.contentForSeller(seller),
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    height: 1.5,
-                                    color: AppColors.textSecondary,
-                                  ),
+                                  style: AppTypography.body,
                                 ),
                               ],
                             ),
@@ -506,31 +537,19 @@ class _ProducerDetailsScreenState extends State<ProducerDetailsScreen> {
                   const SizedBox(height: 24),
                   const Text(
                     'Opis',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
-                    ),
+                    style: AppTypography.sectionHeader,
                   ),
                   const SizedBox(height: 8),
                   Text(
                     (seller?.description ?? '').isEmpty
                         ? 'Ten sprzedawca nie uzupełnił jeszcze opisu.'
                         : seller!.description,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      height: 1.5,
-                      color: AppColors.textSecondary,
-                    ),
+                    style: AppTypography.body,
                   ),
                   const SizedBox(height: 24),
                   const Text(
                     'Jakość i certyfikaty',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
-                    ),
+                    style: AppTypography.sectionHeader,
                   ),
                   const SizedBox(height: 8),
                   ..._qualityAndCertificatesForSeller(seller).map(
@@ -541,19 +560,12 @@ class _ProducerDetailsScreenState extends State<ProducerDetailsScreen> {
                         children: <Widget>[
                           const Text(
                             '• ',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: AppColors.textSecondary,
-                            ),
+                            style: AppTypography.body,
                           ),
                           Expanded(
                             child: Text(
                               item,
-                              style: const TextStyle(
-                                fontSize: 14,
-                                height: 1.4,
-                                color: AppColors.textSecondary,
-                              ),
+                              style: AppTypography.body,
                             ),
                           ),
                         ],
@@ -563,20 +575,13 @@ class _ProducerDetailsScreenState extends State<ProducerDetailsScreen> {
                   const SizedBox(height: 24),
                   const Text(
                     'Wszystkie produkty',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
-                    ),
+                    style: AppTypography.sectionHeader,
                   ),
                   const SizedBox(height: 12),
                   if (_products.isEmpty)
                     const Text(
                       'Ten sprzedawca nie ma aktywnych produktów.',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: AppColors.textLight,
-                      ),
+                      style: AppTypography.body,
                     )
                   else
                     ..._products.map(
