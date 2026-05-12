@@ -495,7 +495,7 @@ class _OrderHistoryTile extends StatelessWidget {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 decoration: BoxDecoration(
-                  color: order.color.withOpacity(0.13),
+                  color: order.color.withValues(alpha: 0.13),
                   borderRadius: BorderRadius.circular(AppRadius.sm),
                 ),
                 child: Text(

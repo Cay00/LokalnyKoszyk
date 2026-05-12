@@ -341,7 +341,9 @@ class _ProducerDetailsScreenState extends State<ProducerDetailsScreen> {
                         Image.asset(
                           'assets/images/farm_bg.png',
                           fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                          errorBuilder:
+                              (BuildContext context, Object error, StackTrace? stackTrace) =>
+                                  const SizedBox.shrink(),
                         ),
                         Positioned(
                           top: 12,
@@ -353,7 +355,7 @@ class _ProducerDetailsScreenState extends State<ProducerDetailsScreen> {
                               width: 32,
                               height: 32,
                               decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.85),
+                                color: Colors.white.withValues(alpha: 0.85),
                                 shape: BoxShape.circle,
                               ),
                               alignment: Alignment.center,
@@ -404,7 +406,9 @@ class _ProducerDetailsScreenState extends State<ProducerDetailsScreen> {
                             Image.asset(
                               'assets/images/farm_logo.png',
                               fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                              errorBuilder:
+                                  (BuildContext context, Object error, StackTrace? stackTrace) =>
+                                      const SizedBox.shrink(),
                             ),
                           ],
                         ),
@@ -593,7 +597,7 @@ class _ProducerDetailsScreenState extends State<ProducerDetailsScreen> {
                         onTap: () {
                           Navigator.of(context).push(
                             PageRouteBuilder<void>(
-                              pageBuilder: (_, __, ___) => ProductDetailsScreen(
+                              pageBuilder: (_, _, _) => ProductDetailsScreen(
                                 product: product,
                                 onBack: () => Navigator.of(context).pop(),
                                 openedFromSeller: true,

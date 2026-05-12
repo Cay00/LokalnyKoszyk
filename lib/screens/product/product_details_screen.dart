@@ -4,6 +4,7 @@ import 'package:lokalny_koszyk/core/formatting/entity_keys.dart';
 import 'package:lokalny_koszyk/core/supabase/cart_repository.dart';
 import 'package:lokalny_koszyk/core/supabase/seller_public_lookup.dart';
 import 'package:lokalny_koszyk/core/supabase/supabase_client.dart';
+import 'package:lokalny_koszyk/core/supabase/watched_products_repository.dart';
 import 'package:lokalny_koszyk/screens/product/product_tile.dart';
 import 'package:lokalny_koszyk/screens/producer/producer_tile.dart';
 
@@ -31,7 +32,9 @@ class ProductDetailsScreen extends StatefulWidget {
 }
 
 class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
-  bool _isLiked = false;
+  /// `null` — trwa wczytywanie z bazy; `true`/`false` — stan ulubionych.
+  bool? _isFavorite;
+  bool _favoriteBusy = false;
   bool _isAddingToCart = false;
   int _selectedQuantity = 1;
   String? _sellerNameFromDb;
@@ -40,6 +43,53 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
   void initState() {
     super.initState();
     _loadSellerNameIfNeeded();
+    _loadFavoriteState();
+  }
+
+  Future<void> _loadFavoriteState() async {
+    final pid = widget.product.id.trim();
+    if (pid.isEmpty) {
+      if (mounted) setState(() => _isFavorite = false);
+      return;
+    }
+    final liked = await WatchedProductsRepository.isFavoriteForCurrentUser(pid);
+    if (!mounted) return;
+    setState(() => _isFavorite = liked);
+  }
+
+  Future<void> _onFavoriteTap() async {
+    if (_favoriteBusy || _isFavorite == null) return;
+    final user = supabase.auth.currentUser;
+    if (user == null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Zaloguj się, aby dodać produkt do ulubionych.'),
+        ),
+      );
+      return;
+    }
+    final pid = widget.product.id.trim();
+    if (pid.isEmpty) return;
+
+    final bool currentlyFavorite = _isFavorite == true;
+    setState(() => _favoriteBusy = true);
+    try {
+      if (currentlyFavorite) {
+        await WatchedProductsRepository.removeFavoriteForCurrentUser(pid);
+        if (mounted) setState(() => _isFavorite = false);
+      } else {
+        await WatchedProductsRepository.addFavoriteForCurrentUser(pid);
+        if (mounted) setState(() => _isFavorite = true);
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Nie udało się zapisać ulubionych: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _favoriteBusy = false);
+    }
   }
 
   Future<void> _loadSellerNameIfNeeded() async {
@@ -153,25 +203,30 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                     top: 12,
                     right: 12,
                     child: InkWell(
-                      onTap: () => setState(() => _isLiked = !_isLiked),
+                      onTap: _favoriteBusy ? null : _onFavoriteTap,
                       borderRadius: BorderRadius.circular(AppRadius.normal),
                       child: Container(
                         width: 32,
                         height: 32,
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.85),
+                          color: Colors.white.withValues(alpha: 0.85),
                           shape: BoxShape.circle,
                         ),
                         alignment: Alignment.center,
-                        child: SvgPicture.asset(
-                          _isLiked
-                              ? 'assets/icons/heart-fill.svg'
-                              : 'assets/icons/heart.svg',
-                          width: 16,
-                          height: 16,
-                          colorFilter: ColorFilter.mode(
-                            _isLiked ? Colors.redAccent : AppColors.primary,
-                            BlendMode.srcIn,
+                        child: Opacity(
+                          opacity: _isFavorite == null || _favoriteBusy ? 0.55 : 1,
+                          child: SvgPicture.asset(
+                            _isFavorite == true
+                                ? 'assets/icons/heart-fill.svg'
+                                : 'assets/icons/heart.svg',
+                            width: 16,
+                            height: 16,
+                            colorFilter: ColorFilter.mode(
+                              _isFavorite == true
+                                  ? Colors.redAccent
+                                  : AppColors.primary,
+                              BlendMode.srcIn,
+                            ),
                           ),
                         ),
                       ),
@@ -364,10 +419,10 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
             //   ],
             // ),
             const SizedBox(height: 24),
-            // const SectionHeader(title: 'Dostępność'),
-            // const SizedBox(height: 12),
-            // _MonthAvailabilityGrid(monthsAvailable: details.availableMonthIndices),
-            // const SizedBox(height: 24),
+            const SectionHeader(title: 'Dostępność'),
+            const SizedBox(height: 12),
+            _MonthAvailabilityGrid(monthsAvailable: details.availableMonthIndices),
+            const SizedBox(height: 24),
             const SectionHeader(title: 'Składniki'),
             const SizedBox(height: 8),
             ...details.ingredients.map(

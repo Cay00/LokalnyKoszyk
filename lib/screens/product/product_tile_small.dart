@@ -11,6 +11,7 @@ class ProductTileSmall extends StatelessWidget {
     required this.priceWithUnitLabel,
     required this.verified,
     this.onTap,
+    this.margin = const EdgeInsets.only(bottom: 8),
   });
 
   final String name;
@@ -19,6 +20,9 @@ class ProductTileSmall extends StatelessWidget {
   final String priceWithUnitLabel;
   final bool verified;
   final VoidCallback? onTap;
+
+  /// Margines na zewnątrz kafelka (np. odstęp na liście). Domyślnie 8 px na dole.
+  final EdgeInsetsGeometry margin;
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +37,7 @@ class ProductTileSmall extends StatelessWidget {
         hoverColor: Colors.transparent,
         focusColor: Colors.transparent,
         child: Container(
-          margin: const EdgeInsets.only(bottom: 8),
+          margin: margin,
           padding: const EdgeInsets.only(left: 8, top: 8, bottom: 8),
           decoration: BoxDecoration(
             color: AppColors.white,

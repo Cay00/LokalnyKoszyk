@@ -220,25 +220,29 @@ class _OrderCheckoutScreenState extends State<OrderCheckoutScreen> {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    ...DeliveryOption.values.map((option) {
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 8),
-                        decoration: BoxDecoration(
-                          color: AppColors.white,
-                          borderRadius: BorderRadius.circular(AppRadius.normal),
-                          border: Border.all(color: AppColors.border),
-                        ),
-                        child: RadioListTile<DeliveryOption>(
-                          value: option,
-                          groupValue: _deliveryOption,
-                          onChanged: (value) {
-                            if (value == null) return;
-                            setState(() => _deliveryOption = value);
-                          },
-                          title: Text(option.label),
-                        ),
-                      );
-                    }),
+                    RadioGroup<DeliveryOption>(
+                      groupValue: _deliveryOption,
+                      onChanged: (DeliveryOption? value) {
+                        if (value == null) return;
+                        setState(() => _deliveryOption = value);
+                      },
+                      child: Column(
+                        children: DeliveryOption.values.map((DeliveryOption option) {
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 8),
+                            decoration: BoxDecoration(
+                              color: AppColors.white,
+                              borderRadius: BorderRadius.circular(AppRadius.normal),
+                              border: Border.all(color: AppColors.border),
+                            ),
+                            child: RadioListTile<DeliveryOption>(
+                              value: option,
+                              title: Text(option.label),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
                     const SizedBox(height: 8),
                     Row(
                       children: <Widget>[

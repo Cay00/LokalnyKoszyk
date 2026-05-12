@@ -438,7 +438,7 @@ class _CategoriesSection extends StatelessWidget {
               parent: AlwaysScrollableScrollPhysics(),
             ),
             itemCount: categories.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 8),
+            separatorBuilder: (_, _) => const SizedBox(width: 8),
             itemBuilder: (BuildContext context, int index) {
               final _CategoryItem category = categories[index];
               final bool active = activeCategoryId == category.id;
