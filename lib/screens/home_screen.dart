@@ -111,7 +111,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
       final sellerByNorm = await fetchSellerPublicByIds(orderedSellerIds.toSet());
 
-      var unresolved = 0;
+      int unresolved = 0;
       final mapped = orderedSellerIds.map((String raw) {
         final key = normalizeUuidKey(raw);
         final pick = sellerByNorm[key];
@@ -119,7 +119,7 @@ class _HomeScreenState extends State<HomeScreen> {
         if (!hasName) unresolved++;
         final name = hasName ? pick!.name : 'Sprzedawca';
         final subtitle =
-            hasName ? null : (key.isNotEmpty ? 'UUID sprzedawcy: $key' : null);
+        hasName ? null : (key.isNotEmpty ? 'UUID sprzedawcy: $key' : null);
         return _ProducerItem(
           id: raw,
           name: name,
@@ -131,11 +131,7 @@ class _HomeScreenState extends State<HomeScreen> {
         );
       }).toList();
 
-      final String? accessHint = unresolved > 0
-          ? 'Brak nazw sprzedawców — baza zwraca tylko identyfikatory. '
-                'Włącz odczyt tabeli `sellers` (oraz opcjonalnie `seller_locations`) w Supabase RLS. '
-                'Gotowy skrypt: sql/supabase_sellers_public_read.sql'
-          : null;
+      final accessHint = _buildAccessHintMessage(unresolved);
 
       if (!mounted) return;
       setState(() {
@@ -152,12 +148,20 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  String? _buildAccessHintMessage(int unresolved) {
+    if (unresolved == 0) return null;
+    return 'Brak nazw sprzedawców — baza zwraca tylko identyfikatory. '
+        'Włącz odczyt tabeli `sellers` (oraz opcjonalnie `seller_locations`) w Supabase RLS. '
+        'Gotowy skrypt: sql/supabase_sellers_public_read.sql';
+  }
+
   Future<void> _addToCart(ProductData product) async {
     if (_isAddingToCart) return;
     setState(() => _isAddingToCart = true);
     try {
       await CartRepository.addToCart(productId: product.id);
       if (!mounted) return;
+      // W przyszłości warto pobrać rzeczywistą liczbę z CartRepository.getCount()
       setState(() => _cartCount++);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -233,56 +237,52 @@ class _HomeHeader extends StatelessWidget {
           end: Alignment.bottomRight,
         ),
       ),
-      child: Stack(
+      child: Column(
         children: <Widget>[
-          Column(
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: <Widget>[
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Text(
-                          'Znajdź lokalne smaki',
-                          style: TextStyle(
-                            color: AppColors.background,
-                            fontSize: 26,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    width: 32,
-                    height: 32,
-                    decoration: const BoxDecoration(
-                      color: Color(0x1FFFFFFF),
-                      shape: BoxShape.circle,
-                    ),
-                    alignment: Alignment.center,
-                    child: SvgPicture.asset(
-                      'assets/icons/bell.svg',
-                      width: 16,
-                      height: 16,
-                      colorFilter: const ColorFilter.mode(
-                        AppColors.background,
-                        BlendMode.srcIn,
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      'Znajdź lokalne smaki',
+                      style: TextStyle(
+                        color: AppColors.background,
+                        fontSize: 26,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
+                  ],
+                ),
+              ),
+              Container(
+                width: 32,
+                height: 32,
+                decoration: const BoxDecoration(
+                  color: Color(0x1FFFFFFF),
+                  shape: BoxShape.circle,
+                ),
+                alignment: Alignment.center,
+                child: SvgPicture.asset(
+                  'assets/icons/bell.svg',
+                  width: 16,
+                  height: 16,
+                  colorFilter: const ColorFilter.mode(
+                    AppColors.background,
+                    BlendMode.srcIn,
                   ),
-                ],
+                ),
               ),
-              const SizedBox(height: 16),
-              const AppSearchBar(
-                placeholder: 'Szukaj produktów, sprzedawców...',
-              ),
-              const SizedBox(height: 16),
-              const _HeaderLocationRow(),
             ],
           ),
+          const SizedBox(height: 16),
+          const AppSearchBar(
+            placeholder: 'Szukaj produktów, sprzedawców...',
+          ),
+          const SizedBox(height: 16),
+          const _HeaderLocationRow(),
         ],
       ),
     );
@@ -356,52 +356,47 @@ class _SeasonalBanner extends StatelessWidget {
           ),
           borderRadius: BorderRadius.circular(AppRadius.normal),
         ),
-        child: Stack(
+        child: Row(
           children: <Widget>[
-            Row(
-              children: <Widget>[
-                const Text('🌱', style: TextStyle(fontSize: 32)),
-                const SizedBox(width: 16),
-                const Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Text(
-                        'Sezon wiosenny!',
-                        style: TextStyle(
-                          color: AppColors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      SizedBox(height: 2),
-                      Text(
-                        'Świeża bazylia dostepna już teraz',
-                        style: TextStyle(
-                          color: Color(0xD9F5F0E8),
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: const Color(0x40FFFFFF),
-                    borderRadius: BorderRadius.circular(AppRadius.md),
-                  ),
-                  child: const Text(
-                    'Odkryj',
+            const Text('🌱', style: TextStyle(fontSize: 32)),
+            const SizedBox(width: 16),
+            const Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(
+                    'Sezon wiosenny!',
                     style: TextStyle(
                       color: AppColors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
+                  SizedBox(height: 2),
+                  Text(
+                    'Świeża bazylia dostepna już teraz',
+                    style: TextStyle(
+                      color: Color(0xD9F5F0E8),
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: const Color(0x40FFFFFF),
+                borderRadius: BorderRadius.circular(AppRadius.md),
+              ),
+              child: const Text(
+                'Odkryj',
+                style: TextStyle(
+                  color: AppColors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
                 ),
-              ],
+              ),
             ),
           ],
         ),
@@ -518,38 +513,38 @@ class _NearbyProducersList extends StatelessWidget {
               ),
             )
           else if (producers.isEmpty)
-            const Padding(
-              padding: EdgeInsets.only(bottom: 8),
-              child: Text(
-                'Brak sprzedawców do wyświetlenia.',
-                style: AppTypography.body,
-              ),
-            )
-          else ...<Widget>[
-            ...producers.map((prod) {
-              return ProducerTile(
-                name: prod.name,
-                subtitle: prod.subtitle,
-                distance: prod.dist,
-                rating: prod.rating,
-                reviews: prod.reviews,
-                verified: prod.verified,
-                onTap: () => onOpenProducerDetails?.call(prod.id),
-              );
-            }),
-            if (accessHint != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 8, bottom: 4),
+              const Padding(
+                padding: EdgeInsets.only(bottom: 8),
                 child: Text(
-                  accessHint!,
-                  style: AppTypography.body.copyWith(
-                    fontSize: 12,
-                    color: AppColors.textLight,
-                    height: 1.35,
-                  ),
+                  'Brak sprzedawców do wyświetlenia.',
+                  style: AppTypography.body,
                 ),
-              ),
-          ],
+              )
+            else ...<Widget>[
+                ...producers.map((prod) {
+                  return ProducerTile(
+                    name: prod.name,
+                    subtitle: prod.subtitle,
+                    distance: prod.dist,
+                    rating: prod.rating,
+                    reviews: prod.reviews,
+                    verified: prod.verified,
+                    onTap: () => onOpenProducerDetails?.call(prod.id),
+                  );
+                }),
+                if (accessHint != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8, bottom: 4),
+                    child: Text(
+                      accessHint!,
+                      style: AppTypography.body.copyWith(
+                        fontSize: 12,
+                        color: AppColors.textLight,
+                        height: 1.35,
+                      ),
+                    ),
+                  ),
+              ],
         ],
       ),
     );
