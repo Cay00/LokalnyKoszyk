@@ -31,92 +31,79 @@ class AppTypography {
   static const TextStyle header = TextStyle(
     fontSize: 24,
     fontWeight: FontWeight.w600,
-    color: Colors.red,
-    //color: AppColors.textPrimary,
+    color: AppColors.textPrimary,
   );
 
   static const TextStyle sectionHeader = TextStyle(
     fontSize: 18,
     fontWeight: FontWeight.w600,
-    color: Colors.red,
-    //color: AppColors.textPrimary,
+    color: AppColors.textPrimary,
   );
 
   static const TextStyle sectionHeaderAction = TextStyle(
     fontSize: 12,
-    color: Colors.red,
-    //color: AppColors.primaryLight,
+    color: AppColors.primaryLight,
   );
 
   static const TextStyle productNameNormal = TextStyle(
     fontSize: 18,
     fontWeight: FontWeight.w600,
-    color: Colors.red,
-    //color: AppColors.textPrimary,
+    color: AppColors.textPrimary,
   );
 
   static const TextStyle productNameSmall = TextStyle(
     fontSize: 16,
     fontWeight: FontWeight.w600,
-    color: Colors.red,
-    //color: AppColors.textPrimary,
+    color: AppColors.textPrimary,
   );
 
   static const TextStyle productNameTiny = TextStyle(
     fontSize: 14,
     fontWeight: FontWeight.w600,
-    color: Colors.red,
-    //color: AppColors.textPrimary,
+    color: AppColors.textPrimary,
   );
 
   static const TextStyle price = TextStyle(
     fontSize: 18,
     fontWeight: FontWeight.w600,
-    color: Colors.red,
-    //color: AppColors.primary,
+    color: AppColors.primary,
   );
 
   static const TextStyle priceSmall = TextStyle(
     fontSize: 16,
     fontWeight: FontWeight.w600,
-    color: Colors.red,
-    //color: AppColors.primary,
+    color: AppColors.primary,
   );
 
   static const TextStyle body = TextStyle(
     fontSize: 14,
     height: 1.5,
     fontWeight: FontWeight.w400,
-    color: Colors.red,
-    //color: AppColors.textSecondary,
+    color: AppColors.textSecondary,
   );
 
   static const TextStyle caption = TextStyle(
     fontSize: 12,
     fontWeight: FontWeight.w400,
-    color: Colors.red,
-    //color: AppColors.textSecondary,
+    color: AppColors.textSecondary,
   );
 
   static const TextStyle captionOnDark = TextStyle(
     fontSize: 12,
     fontWeight: FontWeight.w400,
-    color: Colors.red,
-    //color: AppColors.textOnDark,
+    color: AppColors.textOnDark,
   );
 
   static const TextStyle smallCaption = TextStyle(
     fontSize: 10,
     fontWeight: FontWeight.w400,
-    color: Colors.red,
-    //color: AppColors.textSecondary,
+    color: AppColors.textSecondary,
   );
 
   static const TextStyle buttonDark = TextStyle(
     fontSize: 16,
     fontWeight: FontWeight.w600,
-    color: Colors.red,
-    //color: AppColors.textSecondary,
+    color: AppColors.textSecondary,
   );
 
 

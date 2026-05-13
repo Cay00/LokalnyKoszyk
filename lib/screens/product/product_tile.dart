@@ -12,16 +12,12 @@ class ProductTile extends StatelessWidget {
   const ProductTile({
     super.key,
     required this.product,
-    required this.isLiked,
     required this.onOpenDetails,
-    required this.onToggleLike,
     required this.onAddToCart,
   });
 
   final ProductData product;
-  final bool isLiked;
   final VoidCallback onOpenDetails;
-  final VoidCallback onToggleLike;
   final VoidCallback onAddToCart;
 
   @override
@@ -60,34 +56,6 @@ class ProductTile extends StatelessWidget {
                             Object error,
                             StackTrace? stackTrace,
                           ) => const SizedBox.shrink(),
-                    ),
-                  ),
-                  Positioned(
-                    top: 16,
-                    right: 16,
-                    child: InkWell(
-                      onTap: onToggleLike,
-                      borderRadius: BorderRadius.circular(AppRadius.normal),
-                      child: Container(
-                        width: 32,
-                        height: 32,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.85),
-                          shape: BoxShape.circle,
-                        ),
-                        alignment: Alignment.center,
-                        child: SvgPicture.asset(
-                          isLiked
-                              ? 'assets/icons/heart-fill.svg'
-                              : 'assets/icons/heart.svg',
-                          width: 16,
-                          height: 16,
-                          colorFilter: ColorFilter.mode(
-                            isLiked ? Colors.redAccent : AppColors.primary,
-                            BlendMode.srcIn,
-                          ),
-                        ),
-                      ),
                     ),
                   ),
                 ],

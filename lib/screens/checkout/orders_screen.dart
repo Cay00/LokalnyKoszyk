@@ -370,18 +370,11 @@ class _OrderHistoryTile extends StatelessWidget {
                     children: <Widget>[
                       Text(
                         'Zamówienie ${order.orderNumber}',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimary,
-                        ),
+                        style: AppTypography.productNameTiny,
                       ),
                       Text(
                         order.date,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: AppColors.textLight,
-                        ),
+                        style: AppTypography.caption,
                       ),
                     ],
                   ),
@@ -409,19 +402,15 @@ class _OrderHistoryTile extends StatelessWidget {
             const SizedBox(height: 8),
             Row(
               children: <Widget>[
-                const Expanded(
+                Expanded(
                   child: Text(
                     'Łącznie',
-                    style: TextStyle(color: AppColors.textLight, fontSize: 12),
+                    style: AppTypography.caption,
                   ),
                 ),
                 Text(
                   order.total,
-                  style: const TextStyle(
-                    color: AppColors.primary,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                  ),
+                  style: AppTypography.priceSmall,
                 ),
               ],
             ),

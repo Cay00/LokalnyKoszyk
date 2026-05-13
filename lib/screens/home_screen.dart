@@ -82,12 +82,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ),
         _FeaturedProductsSection(
           products: state.featuredProducts,
-          liked: state.liked,
           onOpenDetails: (ProductUiModel product) {
             widget.onOpenProductDetails?.call(product);
-          },
-          onToggleLike: (String id) {
-            ref.read(homeViewModelProvider.notifier).toggleLike(id);
           },
           onAddToCart: _addToCart,
         ),
@@ -283,16 +279,12 @@ class _SeasonalBanner extends StatelessWidget {
 class _FeaturedProductsSection extends StatelessWidget {
   const _FeaturedProductsSection({
     required this.products,
-    required this.liked,
     required this.onOpenDetails,
-    required this.onToggleLike,
     required this.onAddToCart,
   });
 
   final List<ProductUiModel> products;
-  final Set<String> liked;
   final ValueChanged<ProductUiModel> onOpenDetails;
-  final ValueChanged<String> onToggleLike;
   final ValueChanged<ProductUiModel> onAddToCart;
 
   @override
@@ -312,9 +304,7 @@ class _FeaturedProductsSection extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: 16),
               child: ProductTile(
                 product: product,
-                isLiked: liked.contains(product.id),
                 onOpenDetails: () => onOpenDetails(product),
-                onToggleLike: () => onToggleLike(product.id),
                 onAddToCart: () => onAddToCart(product),
               ),
             );

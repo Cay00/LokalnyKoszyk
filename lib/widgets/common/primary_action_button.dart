@@ -27,7 +27,10 @@ class PrimaryActionButton extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 12),
           elevation: 0,
         ),
-        child: Text(label, style: AppTypography.buttonDark),
+        child: Text(
+          label,
+          style: AppTypography.buttonDark.copyWith(color: AppColors.white),
+        ),
       ),
     );
   }

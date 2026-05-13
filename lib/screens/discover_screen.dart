@@ -84,8 +84,6 @@ class DiscoverScreen extends ConsumerWidget {
                       ),
                       name: product.name,
                       price: product.pricePerOfferLabel,
-                      isLiked: state.liked.contains(product.id),
-                      onToggleLike: () => vm.toggleLike(product.id),
                       onTap: () => onOpenProductDetails?.call(product),
                       onAddToCart: () async {
                         final error = await vm.addToCart(product);
