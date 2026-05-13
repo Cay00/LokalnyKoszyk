@@ -1,85 +1,152 @@
-/// Odczytuje klucz jednostki z pola [ProductData.unit] w formacie „/ piece”.
-String? inferProductUnitKeyFromSlashUnit(String slashUnit) {
-  final part = slashUnit
-      .replaceFirst(RegExp(r'^/\s*'), '')
-      .trim()
-      .toLowerCase()
-      .replaceAll(' ', '_');
-  const known = <String>{
-    'piece',
-    'kilogram',
-    'gram',
-    'liter',
-    'milliliter',
-  };
-  if (known.contains(part)) return part;
-  return null;
+enum ProductUnit {
+  piece,
+  kilogram,
+  gram,
+  liter,
+  milliliter,
 }
 
-String _formatAmountPl(num value) {
+extension ProductUnitParsing on ProductUnit {
+  static const Map<String, ProductUnit> _aliases = {
+    'piece': ProductUnit.piece,
+    'pieces': ProductUnit.piece,
+
+    'kilogram': ProductUnit.kilogram,
+    'kg': ProductUnit.kilogram,
+
+    'gram': ProductUnit.gram,
+    'g': ProductUnit.gram,
+
+    'liter': ProductUnit.liter,
+    'litre': ProductUnit.liter,
+    'l': ProductUnit.liter,
+
+    'milliliter': ProductUnit.milliliter,
+    'millilitre': ProductUnit.milliliter,
+    'ml': ProductUnit.milliliter,
+  };
+
+  static ProductUnit? fromSlashUnit(String slashUnit) {
+    final normalized = slashUnit
+        .replaceFirst(RegExp(r'^/\s*'), '')
+        .trim()
+        .toLowerCase()
+        .replaceAll(RegExp(r'\s+'), '_');
+
+    return _aliases[normalized];
+  }
+}
+
+extension ProductUnitDisplay on ProductUnit {
+  String get defaultLabel {
+    switch (this) {
+      case ProductUnit.piece:
+        return 'szt.';
+      case ProductUnit.kilogram:
+        return 'kg';
+      case ProductUnit.gram:
+        return 'g';
+      case ProductUnit.liter:
+        return 'l';
+      case ProductUnit.milliliter:
+        return 'ml';
+    }
+  }
+}
+
+String formatAmountPl(num value) {
   final d = value.toDouble();
-  if (d == d.roundToDouble()) {
+
+  if (_isWhole(d)) {
     return d.toInt().toString();
   }
-  var s = d.toStringAsFixed(3).replaceAll('.', ',');
-  while (s.contains(',') && (s.endsWith('0') || s.endsWith(','))) {
-    s = s.substring(0, s.length - 1);
-  }
-  return s;
+
+  return d
+      .toStringAsFixed(3)
+      .replaceAll('.', ',')
+      .replaceFirst(RegExp(r',?0+$'), '');
 }
 
-/// Etykieta ceny zgodna z bazą: `12,99 zł/szt.`, `5,00 zł/litr`, `9,99 zł/100 mg` itd.
+bool _isWhole(double value) {
+  return value == value.roundToDouble();
+}
+
+bool _isOne(double value) {
+  return (value - 1).abs() < 0.000001;
+}
+
+///
+/// Przykłady:
+///
+/// 12,99 zł/szt.
+/// 9,99 zł/2 szt.
+/// 5,00 zł/kg
+/// 3,49 zł/250 g
+/// 7,99 zł/l
+/// 4,99 zł/330 ml
+///
 String buildProductPricePerLabel({
   required String priceFormatted,
-  required String? unitKey,
+  required ProductUnit? unit,
   double? quantity,
 }) {
-  final key = unitKey?.trim().toLowerCase();
-  if (key == null || key.isEmpty) {
+  final q = quantity;
+
+  final hasQuantity = q != null && q > 0 && q.isFinite;
+
+  if (unit == null) {
     return '$priceFormatted zł';
   }
 
-  final double? q = quantity;
-  final bool hasQ = q != null && q > 0 && q.isFinite;
-
-  switch (key) {
-    case 'piece':
-      if (!hasQ || q == 1) {
+  switch (unit) {
+    case ProductUnit.piece:
+      if (!hasQuantity || _isOne(q!)) {
         return '$priceFormatted zł/szt.';
       }
-      return '$priceFormatted zł/${_formatAmountPl(q)} szt.';
 
-    case 'kilogram':
-      if (!hasQ) return '$priceFormatted zł/kg';
+      return '$priceFormatted zł/${formatAmountPl(q)} szt.';
+
+    case ProductUnit.kilogram:
+      if (!hasQuantity || _isOne(q!)) {
+        return '$priceFormatted zł/kg';
+      }
+
       if (q < 1) {
         final grams = (q * 1000).round();
         return '$priceFormatted zł/$grams g';
       }
-      return '$priceFormatted zł/${_formatAmountPl(q)} kg';
 
-    case 'gram':
-      if (!hasQ) return '$priceFormatted zł/g';
+      return '$priceFormatted zł/${formatAmountPl(q)} kg';
+
+    case ProductUnit.gram:
+      if (!hasQuantity || _isOne(q!)) {
+        return '$priceFormatted zł/g';
+      }
+
       if (q < 1) {
         final mg = (q * 1000).round();
         return '$priceFormatted zł/$mg mg';
       }
-      return '$priceFormatted zł/${_formatAmountPl(q)} g';
 
-    case 'liter':
-      if (!hasQ || q == 1) {
-        return '$priceFormatted zł/litr';
+      return '$priceFormatted zł/${formatAmountPl(q)} g';
+
+    case ProductUnit.liter:
+      if (!hasQuantity || _isOne(q!)) {
+        return '$priceFormatted zł/l';
       }
-      return '$priceFormatted zł/${_formatAmountPl(q)} l';
 
-    case 'milliliter':
-      if (!hasQ) return '$priceFormatted zł/ml';
-      final mq = q;
-      if (mq == mq.roundToDouble()) {
-        return '$priceFormatted zł/${mq.round()} ml';
+      if (q < 1) {
+        final ml = (q * 1000).round();
+        return '$priceFormatted zł/$ml ml';
       }
-      return '$priceFormatted zł/${_formatAmountPl(mq)} ml';
 
-    default:
-      return '$priceFormatted zł';
+      return '$priceFormatted zł/${formatAmountPl(q)} l';
+
+    case ProductUnit.milliliter:
+      if (!hasQuantity || _isOne(q!)) {
+        return '$priceFormatted zł/ml';
+      }
+
+      return '$priceFormatted zł/${formatAmountPl(q)} ml';
   }
 }

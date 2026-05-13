@@ -1,2 +1,2 @@
-/// Jednolity klucz dla UUID z PostgREST/Darta — porównania i mapy są wtedy stabilne.
+/// Jednolity klucz dla UUID z PostgREST/Darta
 String normalizeUuidKey(String raw) => raw.trim().toLowerCase();

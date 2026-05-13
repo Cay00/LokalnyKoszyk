@@ -44,7 +44,7 @@ class CategoryTile extends StatelessWidget {
               icon,
               style: const TextStyle(fontSize: 22, height: 1.0),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 16),
             Text(
               name,
               maxLines: 1,
@@ -55,16 +55,6 @@ class CategoryTile extends StatelessWidget {
                 color:
                     active ? AppColors.white : AppColors.textSecondary,
                 fontWeight: FontWeight.w500,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              '$count prod.',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: AppTypography.smallCaption.copyWith(
-                height: 1.0,
-                color: active ? AppColors.textOnDark : AppColors.textLight,
               ),
             ),
           ],

@@ -1,40 +1,31 @@
 import 'package:lokalny_koszyk/core/formatting/entity_keys.dart';
 import 'package:lokalny_koszyk/core/formatting/pennies.dart';
-import 'package:lokalny_koszyk/core/themes/app_theme.dart';
 import 'package:lokalny_koszyk/core/supabase/profile_bootstrap.dart';
 import 'package:lokalny_koszyk/core/supabase/seller_public_lookup.dart';
-import 'package:lokalny_koszyk/core/supabase/supabase_client.dart';
-import 'package:lokalny_koszyk/screens/product/product_tile.dart';
-import 'package:supabase_flutter/supabase_flutter.dart' show User;
+import 'package:lokalny_koszyk/domain/models/watched_product.dart';
+import 'package:lokalny_koszyk/domain/repositories/watched_products_repository.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-/// Ulubione / obserwowane produkty użytkownika.
-///
-/// Tabela `public.user_favorite_products`: `user_id` → `profiles.id`,
-/// `product_id` → `products.product_id`.
-class WatchedProductListItem {
-  const WatchedProductListItem({
-    required this.product,
-    required this.sellerVerified,
-  });
+class SupabaseWatchedProductsRepository implements WatchedProductsRepository {
+  const SupabaseWatchedProductsRepository(this._supabase);
 
-  final ProductData product;
-  final bool sellerVerified;
-}
-
-class WatchedProductsRepository {
-  WatchedProductsRepository._();
-
+  final SupabaseClient _supabase;
   static const String _junctionTable = 'user_favorite_products';
 
-  /// Czy zalogowany użytkownik ma produkt w `user_favorite_products`.
-  /// Bez sesji zwraca `false`.
-  static Future<bool> isFavoriteForCurrentUser(String productId) async {
-    final user = supabase.auth.currentUser;
+  @override
+  bool get isUserSignedIn {
+    final user = _supabase.auth.currentUser;
+    return user != null && user.id.isNotEmpty;
+  }
+
+  @override
+  Future<bool> isFavoriteForCurrentUser(String productId) async {
+    final user = _supabase.auth.currentUser;
     if (user == null || user.id.isEmpty) return false;
     final pid = productId.trim();
     if (pid.isEmpty) return false;
     try {
-      final row = await supabase
+      final row = await _supabase
           .from(_junctionTable)
           .select('id')
           .eq('user_id', user.id)
@@ -46,49 +37,60 @@ class WatchedProductsRepository {
     }
   }
 
-  static Future<void> addFavoriteForCurrentUser(String productId) async {
-    final user = supabase.auth.currentUser;
+  @override
+  Future<void> addFavoriteForCurrentUser(String productId) async {
+    final user = _supabase.auth.currentUser;
     if (user == null || user.id.isEmpty) {
       throw StateError('Brak zalogowanego użytkownika.');
     }
     await ProfileBootstrap.ensureRowForAuthUser(user);
     final pid = productId.trim();
     if (pid.isEmpty) {
-      throw ArgumentError.value(productId, 'productId', 'Pusty identyfikator produktu.');
+      throw ArgumentError.value(
+        productId,
+        'productId',
+        'Pusty identyfikator produktu.',
+      );
     }
-    await supabase.from(_junctionTable).insert(<String, dynamic>{
+    await _supabase.from(_junctionTable).insert(<String, dynamic>{
       'user_id': user.id,
       'product_id': pid,
     });
   }
 
-  static Future<void> removeFavoriteForCurrentUser(String productId) async {
-    final user = supabase.auth.currentUser;
+  @override
+  Future<void> removeFavoriteForCurrentUser(String productId) async {
+    final user = _supabase.auth.currentUser;
     if (user == null || user.id.isEmpty) {
       throw StateError('Brak zalogowanego użytkownika.');
     }
     final pid = productId.trim();
     if (pid.isEmpty) return;
-    await supabase
+    await _supabase
         .from(_junctionTable)
         .delete()
         .eq('user_id', user.id)
         .eq('product_id', pid);
   }
 
-  static Future<List<WatchedProductListItem>> fetchProductsForUser(User user) async {
+  @override
+  Future<List<WatchedProduct>> fetchProductsForCurrentUser() async {
+    final user = _supabase.auth.currentUser;
+    if (user == null || user.id.isEmpty) {
+      return const <WatchedProduct>[];
+    }
+
     await ProfileBootstrap.ensureRowForAuthUser(user);
     final userId = user.id;
-    if (userId.isEmpty) return const <WatchedProductListItem>[];
 
-    final dynamic junction = await supabase
+    final dynamic junction = await _supabase
         .from(_junctionTable)
         .select('product_id, created_at')
         .eq('user_id', userId)
         .order('created_at', ascending: false);
 
     if (junction is! List<dynamic> || junction.isEmpty) {
-      return const <WatchedProductListItem>[];
+      return const <WatchedProduct>[];
     }
 
     final orderedIds = <String>[];
@@ -100,9 +102,9 @@ class WatchedProductsRepository {
       seen.add(id);
       orderedIds.add(id);
     }
-    if (orderedIds.isEmpty) return const <WatchedProductListItem>[];
+    if (orderedIds.isEmpty) return const <WatchedProduct>[];
 
-    final productRows = await supabase
+    final productRows = await _supabase
         .from('products')
         .select(
           'product_id, seller_id, category_id, name, price_gross_amount, unit, '
@@ -123,7 +125,7 @@ class WatchedProductsRepository {
     }
     final sellerByNorm = await fetchSellerPublicByIds(sellerRawIds);
 
-    final byId = <String, WatchedProductListItem>{};
+    final byId = <String, WatchedProduct>{};
     for (final map in rows) {
       final id = (map['product_id'] ?? '').toString().trim();
       if (id.isEmpty) continue;
@@ -142,36 +144,31 @@ class WatchedProductsRepository {
       final unitKey = rawUnit.trim().toLowerCase();
       final qty = (map['package_size'] as num?)?.toDouble();
       final rawCategoryId = map['category_id']?.toString().trim();
-      final categoryId =
-          rawCategoryId == null || rawCategoryId.isEmpty ? null : rawCategoryId;
+      final categoryId = rawCategoryId == null || rawCategoryId.isEmpty
+          ? null
+          : rawCategoryId;
 
-      byId[id] = WatchedProductListItem(
+      byId[id] = WatchedProduct(
+        id: id,
+        name: (map['name'] ?? 'Produkt').toString(),
+        producer: sellerName,
+        price: plnCommaStringFromPennies(priceGrosze),
+        unit: '/ ${rawUnit.replaceAll('_', ' ')}',
+        distance: '',
+        season: 'Cały rok',
+        rating: ratingNum.toStringAsFixed(1),
+        reviews: reviewsCount.toString(),
         sellerVerified: sellerVerified,
-        product: ProductData(
-          id: id,
-          name: (map['name'] ?? 'Produkt').toString(),
-          producer: sellerName,
-          price: plnCommaStringFromPennies(priceGrosze),
-          unit: '/ ${rawUnit.replaceAll('_', ' ')}',
-          distance: '',
-          season: 'Cały rok',
-          rating: ratingNum.toStringAsFixed(1),
-          reviews: reviewsCount.toString(),
-          emoji: '🧺',
-          tag: 'LOKALNE',
-          bgColor: AppColors.background,
-          tagColor: AppColors.primaryLight,
-          sellerId: sellerIdRaw.isEmpty ? null : sellerIdRaw,
-          unitKey: unitKey.isEmpty ? null : unitKey,
-          packageQuantity: qty,
-          categoryId: categoryId,
-        ),
+        sellerId: sellerIdRaw.isEmpty ? null : sellerIdRaw,
+        unitKey: unitKey.isEmpty ? null : unitKey,
+        packageQuantity: qty,
+        categoryId: categoryId,
       );
     }
 
     return orderedIds
         .map((String id) => byId[id])
-        .whereType<WatchedProductListItem>()
+        .whereType<WatchedProduct>()
         .toList();
   }
 }

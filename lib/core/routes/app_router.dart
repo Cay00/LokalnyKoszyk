@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'package:lokalny_koszyk/core/themes/app_theme.dart';
+import 'package:lokalny_koszyk/presentation/models/product_ui_model.dart';
 import 'package:lokalny_koszyk/widgets/app_bottom_navigation_bar.dart';
 import 'package:lokalny_koszyk/screens/checkout/order_checkout_screen.dart';
 import 'package:lokalny_koszyk/screens/checkout/order_history_detail_screen.dart';
@@ -10,7 +11,6 @@ import 'package:lokalny_koszyk/screens/discover_screen.dart';
 import 'package:lokalny_koszyk/screens/home_screen.dart';
 import 'package:lokalny_koszyk/screens/producer/producer_details_screen.dart';
 import 'package:lokalny_koszyk/screens/product/product_details_screen.dart';
-import 'package:lokalny_koszyk/screens/product/product_tile.dart';
 import 'package:lokalny_koszyk/screens/profile/addresses_screen.dart';
 import 'package:lokalny_koszyk/screens/profile/seller/become_seller_screen.dart';
 import 'package:lokalny_koszyk/screens/profile/favorites_screen.dart';
@@ -134,7 +134,7 @@ class _NoAnimationPageRoute<T> extends PageRouteBuilder<T> {
 }
 
 // Pomocnicze: czy produkt ma niepusty sellerId.
-bool _hasSellerId(ProductData product) {
+bool _hasSellerId(ProductUiModel product) {
   final String? sellerId = product.sellerId;
   return sellerId != null && sellerId.isNotEmpty;
 }

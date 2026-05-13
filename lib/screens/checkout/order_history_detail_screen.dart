@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:lokalny_koszyk/core/formatting/pennies.dart';
-import 'package:lokalny_koszyk/core/supabase/supabase_client.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lokalny_koszyk/domain/models/order_details.dart';
+import 'package:lokalny_koszyk/presentation/order_history_detail_view_model.dart';
+import 'package:lokalny_koszyk/presentation/orders_view_model.dart';
 
 import '../../core/themes/app_theme.dart';
 import '../../widgets/common/screen_header.dart';
 
-class OrderHistoryDetailScreen extends StatefulWidget {
+class OrderHistoryDetailScreen extends ConsumerWidget {
   const OrderHistoryDetailScreen({
     super.key,
     required this.orderId,
@@ -16,98 +18,30 @@ class OrderHistoryDetailScreen extends StatefulWidget {
   final VoidCallback? onBack;
 
   @override
-  State<OrderHistoryDetailScreen> createState() => _OrderHistoryDetailScreenState();
-}
-
-class _OrderHistoryDetailScreenState extends State<OrderHistoryDetailScreen> {
-  bool _isLoading = true;
-  String? _errorText;
-  String _orderNumber = '';
-  String _orderStatus = '';
-  String _orderTotal = '';
-  List<_OrderProductItem> _items = const <_OrderProductItem>[];
-
-  @override
-  void initState() {
-    super.initState();
-    _loadOrderDetails();
-  }
-
-  Future<void> _loadOrderDetails() async {
-    setState(() {
-      _isLoading = true;
-      _errorText = null;
-    });
-    try {
-      final orderRow = await supabase
-          .from('orders')
-          .select('id, order_number, status, total_amount, currency')
-          .eq('id', widget.orderId)
-          .maybeSingle();
-      if (orderRow == null) {
-        throw StateError('Nie znaleziono zamówienia.');
-      }
-      final orderMap = Map<String, dynamic>.from(orderRow as Map);
-
-      final itemRows = await supabase
-          .from('order_items')
-          .select('quantity, price, products(name, unit)')
-          .eq('order_id', widget.orderId);
-      final items = (itemRows as List<dynamic>).map<_OrderProductItem>((row) {
-        final map = Map<String, dynamic>.from(row as Map);
-        final productMap = map['products'] == null
-            ? const <String, dynamic>{}
-            : Map<String, dynamic>.from(map['products'] as Map);
-        final qty = (map['quantity'] as num?)?.toDouble() ?? 0;
-        final unitPriceGrosze = parsePennies(map['price']);
-        final unit = (productMap['unit'] ?? '').toString();
-        return _OrderProductItem(
-          name: (productMap['name'] ?? 'Produkt').toString(),
-          quantityLabel: '$qty $unit',
-          lineTotal: _formatMoney(
-            plnFromPennies(unitPriceGrosze) * qty,
-            (orderMap['currency'] ?? 'PLN').toString(),
-          ),
-        );
-      }).toList();
-
-      if (!mounted) return;
-      setState(() {
-        _orderNumber = (orderMap['order_number'] ?? widget.orderId).toString();
-        _orderStatus = _statusLabel((orderMap['status'] ?? '').toString());
-        _orderTotal = _formatMoney(
-          plnFromPennies(parsePennies(orderMap['total_amount'])),
-          (orderMap['currency'] ?? 'PLN').toString(),
-        );
-        _items = items;
-        _isLoading = false;
-      });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _errorText = 'Nie udało się pobrać szczegółów zamówienia: $e';
-        _isLoading = false;
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(orderHistoryDetailViewModelProvider(orderId));
+    final order = state.order;
+    final orderNumber = order?.orderNumber ?? '';
+    final orderStatus = order == null ? '' : orderStatusLabel(order.rawStatus);
+    final orderTotal = order == null
+        ? ''
+        : formatMoney(order.totalAmount, order.currency);
+    final items = order?.items ?? const <OrderDetailsItem>[];
     return Column(
       children: <Widget>[
         ScreenHeader(
-          title: _orderNumber.isEmpty ? 'Zamówienie' : 'Zamówienie $_orderNumber',
-          onBack: widget.onBack,
+          title: orderNumber.isEmpty ? 'Zamówienie' : 'Zamówienie $orderNumber',
+          onBack: onBack,
         ),
         Expanded(
-          child: _isLoading
+          child: state.isLoading
               ? const Center(child: CircularProgressIndicator())
-              : _errorText != null
+              : state.errorText != null
               ? Center(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24),
                     child: Text(
-                      _errorText!,
+                      state.errorText!,
                       textAlign: TextAlign.center,
                       style: const TextStyle(
                         color: AppColors.textLight,
@@ -130,7 +64,7 @@ class _OrderHistoryDetailScreenState extends State<OrderHistoryDetailScreen> {
                         children: <Widget>[
                           Expanded(
                             child: Text(
-                              'Status: $_orderStatus',
+                              'Status: $orderStatus',
                               style: const TextStyle(
                                 color: AppColors.textSecondary,
                                 fontWeight: FontWeight.w600,
@@ -138,7 +72,7 @@ class _OrderHistoryDetailScreenState extends State<OrderHistoryDetailScreen> {
                             ),
                           ),
                           Text(
-                            _orderTotal,
+                            orderTotal,
                             style: const TextStyle(
                               color: AppColors.primary,
                               fontWeight: FontWeight.w700,
@@ -157,13 +91,18 @@ class _OrderHistoryDetailScreenState extends State<OrderHistoryDetailScreen> {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    if (_items.isEmpty)
+                    if (items.isEmpty)
                       const Text(
                         'Brak pozycji w tym zamówieniu.',
                         style: TextStyle(color: AppColors.textLight),
                       )
                     else
-                      ..._items.map((item) => _OrderProductTile(item: item)),
+                      ...items.map(
+                        (item) => _OrderProductTile(
+                          item: item,
+                          currency: order?.currency ?? 'PLN',
+                        ),
+                      ),
                   ],
                 ),
         ),
@@ -173,9 +112,10 @@ class _OrderHistoryDetailScreenState extends State<OrderHistoryDetailScreen> {
 }
 
 class _OrderProductTile extends StatelessWidget {
-  const _OrderProductTile({required this.item});
+  const _OrderProductTile({required this.item, required this.currency});
 
-  final _OrderProductItem item;
+  final OrderDetailsItem item;
+  final String currency;
 
   @override
   Widget build(BuildContext context) {
@@ -203,7 +143,7 @@ class _OrderProductTile extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  item.quantityLabel,
+                  '${item.quantity} ${item.unit}',
                   style: const TextStyle(
                     color: AppColors.textLight,
                     fontSize: 12,
@@ -213,7 +153,7 @@ class _OrderProductTile extends StatelessWidget {
             ),
           ),
           Text(
-            item.lineTotal,
+            _formatMoney(item.lineTotal, currency),
             style: const TextStyle(
               color: AppColors.primary,
               fontWeight: FontWeight.w700,
@@ -222,37 +162,6 @@ class _OrderProductTile extends StatelessWidget {
         ],
       ),
     );
-  }
-}
-
-class _OrderProductItem {
-  const _OrderProductItem({
-    required this.name,
-    required this.quantityLabel,
-    required this.lineTotal,
-  });
-
-  final String name;
-  final String quantityLabel;
-  final String lineTotal;
-}
-
-String _statusLabel(String rawStatus) {
-  switch (rawStatus) {
-    case 'placed':
-      return 'Złożone';
-    case 'in_progress':
-      return 'W realizacji';
-    case 'rejected':
-      return 'Odrzucone';
-    case 'sent':
-      return 'Wysłane';
-    case 'delivered':
-      return 'Dostarczone';
-    case 'received':
-      return 'Odebrane';
-    default:
-      return rawStatus.isEmpty ? 'Nieznany' : rawStatus;
   }
 }
 

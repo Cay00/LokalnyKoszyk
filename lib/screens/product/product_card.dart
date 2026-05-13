@@ -27,10 +27,8 @@ class ProductCardGrid extends StatelessWidget {
           crossAxisAlignment: WrapCrossAlignment.start,
           children: List<Widget>.generate(
             itemCount,
-            (int index) => SizedBox(
-              width: tileW,
-              child: itemBuilder(context, index),
-            ),
+            (int index) =>
+                SizedBox(width: tileW, child: itemBuilder(context, index)),
           ),
         );
       },
@@ -133,10 +131,7 @@ class ProductCard extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Expanded(
-                        child: Text(
-                          price,
-                          style: AppTypography.priceSmall,
-                        ),
+                        child: Text(price, style: AppTypography.priceSmall),
                       ),
                       GestureDetector(
                         onTap: onAddToCart,

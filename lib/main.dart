@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:lokalny_koszyk/core/themes/app_bootstrap.dart';
@@ -13,7 +14,7 @@ Future<void> main() async {
     url: SupabaseConfig.projectUrl,
     anonKey: SupabaseConfig.anonKey,
   );
-  runApp(const MyApp());
+  runApp(const ProviderScope(child: MyApp()));
 }
 
 class MyApp extends StatelessWidget {

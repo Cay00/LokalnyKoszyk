@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:lokalny_koszyk/core/formatting/entity_keys.dart';
-import 'package:lokalny_koszyk/core/supabase/cart_repository.dart';
-import 'package:lokalny_koszyk/core/supabase/seller_public_lookup.dart';
-import 'package:lokalny_koszyk/core/supabase/supabase_client.dart';
-import 'package:lokalny_koszyk/core/supabase/watched_products_repository.dart';
-import 'package:lokalny_koszyk/screens/product/product_tile.dart';
+import 'package:lokalny_koszyk/presentation/models/product_ui_model.dart';
+import 'package:lokalny_koszyk/presentation/product_details_view_model.dart';
 import 'package:lokalny_koszyk/screens/producer/producer_tile.dart';
 
 import '../../core/themes/app_theme.dart';
@@ -13,7 +10,7 @@ import '../../widgets/common/default_screen.dart';
 import '../../widgets/common/primary_action_button.dart';
 import '../../widgets/common/section_header.dart';
 
-class ProductDetailsScreen extends StatefulWidget {
+class ProductDetailsScreen extends ConsumerStatefulWidget {
   const ProductDetailsScreen({
     super.key,
     required this.product,
@@ -22,109 +19,20 @@ class ProductDetailsScreen extends StatefulWidget {
     this.openedFromSeller = false,
   });
 
-  final ProductData product;
+  final ProductUiModel product;
   final VoidCallback? onBack;
   final VoidCallback? onOpenProducerDetails;
   final bool openedFromSeller;
 
   @override
-  State<ProductDetailsScreen> createState() => _ProductDetailsScreenState();
+  ConsumerState<ProductDetailsScreen> createState() => _ProductDetailsScreenState();
 }
 
-class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
-  /// `null` — trwa wczytywanie z bazy; `true`/`false` — stan ulubionych.
-  bool? _isFavorite;
-  bool _favoriteBusy = false;
-  bool _isAddingToCart = false;
-  int _selectedQuantity = 1;
-  String? _sellerNameFromDb;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadSellerNameIfNeeded();
-    _loadFavoriteState();
-  }
-
-  Future<void> _loadFavoriteState() async {
-    final pid = widget.product.id.trim();
-    if (pid.isEmpty) {
-      if (mounted) setState(() => _isFavorite = false);
-      return;
-    }
-    final liked = await WatchedProductsRepository.isFavoriteForCurrentUser(pid);
-    if (!mounted) return;
-    setState(() => _isFavorite = liked);
-  }
-
-  Future<void> _onFavoriteTap() async {
-    if (_favoriteBusy || _isFavorite == null) return;
-    final user = supabase.auth.currentUser;
-    if (user == null) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Zaloguj się, aby dodać produkt do ulubionych.'),
-        ),
-      );
-      return;
-    }
-    final pid = widget.product.id.trim();
-    if (pid.isEmpty) return;
-
-    final bool currentlyFavorite = _isFavorite == true;
-    setState(() => _favoriteBusy = true);
-    try {
-      if (currentlyFavorite) {
-        await WatchedProductsRepository.removeFavoriteForCurrentUser(pid);
-        if (mounted) setState(() => _isFavorite = false);
-      } else {
-        await WatchedProductsRepository.addFavoriteForCurrentUser(pid);
-        if (mounted) setState(() => _isFavorite = true);
-      }
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Nie udało się zapisać ulubionych: $e')),
-      );
-    } finally {
-      if (mounted) setState(() => _favoriteBusy = false);
-    }
-  }
-
-  Future<void> _loadSellerNameIfNeeded() async {
-    final label = widget.product.producer.trim();
-    if (label.isNotEmpty &&
-        label != 'Sprzedawca' &&
-        !label.startsWith('Sprzedawca ·')) {
-      return;
-    }
-
-    var rawSid = widget.product.sellerId?.trim() ?? '';
-    if (rawSid.isEmpty) {
-      final productId = widget.product.id.trim();
-      if (productId.isEmpty) return;
-      try {
-        final row = await supabase
-            .from('products')
-            .select('seller_id')
-            .eq('product_id', productId)
-            .maybeSingle();
-        rawSid = (row?['seller_id'] ?? '').toString().trim();
-      } catch (_) {
-        return;
-      }
-    }
-    if (rawSid.isEmpty) return;
-
-    final byNorm = await fetchSellerPublicByIds({rawSid});
-    final info = byNorm[normalizeUuidKey(rawSid)];
-    final n = info?.name.trim() ?? '';
-    if (n.isNotEmpty && mounted) setState(() => _sellerNameFromDb = n);
-  }
+class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
 
   String get _producerDisplayName {
-    final fromDb = _sellerNameFromDb?.trim();
+    final state = ref.watch(productDetailsViewModelProvider(widget.product));
+    final fromDb = state.sellerNameFromDb?.trim();
     if (fromDb != null && fromDb.isNotEmpty) return fromDb;
     final fromProduct = widget.product.producer.trim();
     if (fromProduct.isNotEmpty) return fromProduct;
@@ -132,29 +40,32 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
   }
 
   Future<void> _addToCart() async {
-    if (_isAddingToCart) return;
-    setState(() => _isAddingToCart = true);
-    try {
-      await CartRepository.addToCart(
-        productId: widget.product.id,
-        quantityToAdd: _selectedQuantity,
-      );
-      if (!mounted) return;
+    final vm = ref.read(productDetailsViewModelProvider(widget.product).notifier);
+    final err = await vm.addToCart();
+    if (!mounted) return;
+    final qty = ref.read(productDetailsViewModelProvider(widget.product)).selectedQuantity;
+    if (err == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Dodano do koszyka: ${widget.product.name} x$_selectedQuantity',
+            'Dodano do koszyka: ${widget.product.name} x$qty',
           ),
         ),
       );
-    } catch (e) {
-      if (!mounted) return;
+    } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Nie udało się dodać do koszyka: $e')),
+        SnackBar(content: Text(err)),
       );
-    } finally {
-      if (mounted) setState(() => _isAddingToCart = false);
     }
+  }
+
+  Future<void> _onFavoriteTap() async {
+    final vm = ref.read(productDetailsViewModelProvider(widget.product).notifier);
+    final message = await vm.toggleFavorite();
+    if (message == null || !mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
   }
 
   void _handleOpenProducer() {
@@ -167,6 +78,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final vmState = ref.watch(productDetailsViewModelProvider(widget.product));
     final _LocalProductDetails details =
         _detailsById[widget.product.id] ?? _fallbackDetails;
 
@@ -203,7 +115,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                     top: 12,
                     right: 12,
                     child: InkWell(
-                      onTap: _favoriteBusy ? null : _onFavoriteTap,
+                      onTap: vmState.favoriteBusy ? null : _onFavoriteTap,
                       borderRadius: BorderRadius.circular(AppRadius.normal),
                       child: Container(
                         width: 32,
@@ -214,15 +126,15 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                         ),
                         alignment: Alignment.center,
                         child: Opacity(
-                          opacity: _isFavorite == null || _favoriteBusy ? 0.55 : 1,
+                          opacity: vmState.isFavorite == null || vmState.favoriteBusy ? 0.55 : 1,
                           child: SvgPicture.asset(
-                            _isFavorite == true
+                            vmState.isFavorite == true
                                 ? 'assets/icons/heart-fill.svg'
                                 : 'assets/icons/heart.svg',
                             width: 16,
                             height: 16,
                             colorFilter: ColorFilter.mode(
-                              _isFavorite == true
+                              vmState.isFavorite == true
                                   ? Colors.redAccent
                                   : AppColors.primary,
                               BlendMode.srcIn,
@@ -291,7 +203,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                 children: <Widget>[
                   Container(
                     decoration: BoxDecoration(
-                      color: _selectedQuantity > 1
+                      color: vmState.selectedQuantity > 1
                           ? AppColors.primaryLight
                           : AppColors.border,
                       borderRadius: const BorderRadius.only(
@@ -300,13 +212,15 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                       ),
                     ),
                     child: IconButton(
-                      onPressed: _selectedQuantity > 1
-                          ? () => setState(() => _selectedQuantity--)
+                      onPressed: vmState.selectedQuantity > 1
+                          ? () => ref
+                                .read(productDetailsViewModelProvider(widget.product).notifier)
+                                .decreaseQuantity()
                           : null,
                       icon: Icon(
                         Icons.remove,
                         size: 16,
-                        color: _selectedQuantity > 1
+                        color: vmState.selectedQuantity > 1
                             ? AppColors.white
                             : AppColors.textLight,
                       ),
@@ -320,7 +234,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                   Expanded(
                     child: Center(
                       child: Text(
-                        '$_selectedQuantity',
+                        '${vmState.selectedQuantity}',
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
@@ -338,7 +252,9 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                       ),
                     ),
                     child: IconButton(
-                      onPressed: () => setState(() => _selectedQuantity++),
+                      onPressed: () => ref
+                          .read(productDetailsViewModelProvider(widget.product).notifier)
+                          .increaseQuantity(),
                       icon: const Icon(
                         Icons.add,
                         size: 16,
@@ -357,7 +273,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
             const SizedBox(height: 8),
             PrimaryActionButton(
               label: 'Dodaj do koszyka',
-              onPressed: _isAddingToCart ? null : _addToCart,
+              onPressed: vmState.isAddingToCart ? null : _addToCart,
             ),
             const SizedBox(height: 24),
             const SectionHeader(title: 'Opis'),

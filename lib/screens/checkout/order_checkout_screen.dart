@@ -1,119 +1,59 @@
 import 'package:flutter/material.dart';
-import 'package:lokalny_koszyk/core/supabase/cart_repository.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lokalny_koszyk/domain/models/cart_item.dart';
+import 'package:lokalny_koszyk/presentation/checkout_view_model.dart';
 
 import '../../core/themes/app_theme.dart';
 import '../../widgets/common/screen_header.dart';
 
-class OrderCheckoutScreen extends StatefulWidget {
-  const OrderCheckoutScreen({
-    super.key,
-    this.onBack,
-  });
+class OrderCheckoutScreen extends ConsumerStatefulWidget {
+  const OrderCheckoutScreen({super.key, this.onBack});
 
   final VoidCallback? onBack;
 
   @override
-  State<OrderCheckoutScreen> createState() => _OrderCheckoutScreenState();
+  ConsumerState<OrderCheckoutScreen> createState() =>
+      _OrderCheckoutScreenState();
 }
 
-class _OrderCheckoutScreenState extends State<OrderCheckoutScreen> {
-  bool _isLoading = true;
-  bool _isRemovingItem = false;
-  bool _isPaying = false;
-  String? _errorText;
-  List<CartItemData> _items = const <CartItemData>[];
-  DeliveryOption _deliveryOption = DeliveryOption.courier;
-
-  @override
-  void initState() {
-    super.initState();
-    _load();
-  }
-
-  Future<void> _load() async {
-    setState(() {
-      _isLoading = true;
-      _errorText = null;
-    });
-    try {
-      final items = await CartRepository.getCartItemsForCurrentUser();
-      if (!mounted) return;
-      setState(() {
-        _items = items;
-        _isLoading = false;
-      });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _errorText = 'Nie udało się pobrać koszyka: $e';
-        _isLoading = false;
-      });
-    }
-  }
-
-  Future<void> _removeItem(CartItemData item) async {
-    if (_isRemovingItem) return;
-    setState(() => _isRemovingItem = true);
-    try {
-      await CartRepository.removeCartItem(cartItemId: item.id);
-      if (!mounted) return;
-      setState(() {
-        _items = _items.where((x) => x.id != item.id).toList();
-      });
+class _OrderCheckoutScreenState extends ConsumerState<OrderCheckoutScreen> {
+  Future<void> _removeItem(CartItem item) async {
+    final err = await ref
+        .read(checkoutViewModelProvider.notifier)
+        .removeItem(item);
+    if (!mounted) return;
+    if (err == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Usunięto z koszyka: ${item.name}')),
       );
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Nie udało się usunąć produktu: $e')),
-      );
-    } finally {
-      if (mounted) setState(() => _isRemovingItem = false);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(err)));
     }
   }
 
   Future<void> _pay() async {
-    if (_isPaying || _items.isEmpty) return;
-    setState(() => _isPaying = true);
-    try {
-      final result = await CartRepository.placeOrderFromCurrentCart(
-        status: 'placed',
-      );
-      if (!mounted) return;
-      setState(() {
-        _items = const <CartItemData>[];
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Płatność zakończona. Utworzono zamówienie ${result.orderNumber}.',
-          ),
-        ),
-      );
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Nie udało się opłacić zamówienia: $e')),
-      );
-    } finally {
-      if (mounted) setState(() => _isPaying = false);
+    final msg = await ref.read(checkoutViewModelProvider.notifier).pay();
+    if (!mounted || msg == null) return;
+    final isError = msg.startsWith('Nie udało się');
+    if (isError) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final total = _items.fold<double>(0, (sum, item) => sum + item.lineTotal);
+    final state = ref.watch(checkoutViewModelProvider);
+    final items = state.items;
+    final total = items.fold<double>(0, (sum, item) => sum + item.lineTotal);
     return Column(
       children: <Widget>[
-        ScreenHeader(
-          title: 'Moje zamówienie',
-          onBack: widget.onBack,
-        ),
+        ScreenHeader(title: 'Moje zamówienie', onBack: widget.onBack),
         Expanded(
-          child: _isLoading
+          child: state.isLoading
               ? const Center(child: CircularProgressIndicator())
-              : _errorText != null
+              : state.errorText != null
               ? Center(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -121,7 +61,7 @@ class _OrderCheckoutScreenState extends State<OrderCheckoutScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: <Widget>[
                         Text(
-                          _errorText!,
+                          state.errorText!,
                           textAlign: TextAlign.center,
                           style: const TextStyle(
                             color: AppColors.textLight,
@@ -130,14 +70,16 @@ class _OrderCheckoutScreenState extends State<OrderCheckoutScreen> {
                         ),
                         const SizedBox(height: 12),
                         FilledButton(
-                          onPressed: _load,
+                          onPressed: () => ref
+                              .read(checkoutViewModelProvider.notifier)
+                              .load(),
                           child: const Text('Ponów'),
                         ),
                       ],
                     ),
                   ),
                 )
-              : _items.isEmpty
+              : items.isEmpty
               ? const Center(
                   child: Padding(
                     padding: EdgeInsets.symmetric(horizontal: 24),
@@ -154,7 +96,7 @@ class _OrderCheckoutScreenState extends State<OrderCheckoutScreen> {
               : ListView(
                   padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
                   children: <Widget>[
-                    ..._items.map((item) {
+                    ...items.map((item) {
                       return Container(
                         margin: const EdgeInsets.only(bottom: 8),
                         padding: const EdgeInsets.all(12),
@@ -197,10 +139,12 @@ class _OrderCheckoutScreenState extends State<OrderCheckoutScreen> {
                             ),
                             const SizedBox(width: 8),
                             InkWell(
-                              onTap: _isRemovingItem ? null : () => _removeItem(item),
+                              onTap: state.isRemovingItem
+                                  ? null
+                                  : () => _removeItem(item),
                               child: Icon(
                                 Icons.delete_outline,
-                                color: _isRemovingItem
+                                color: state.isRemovingItem
                                     ? AppColors.textLight
                                     : AppColors.primary,
                                 size: 20,
@@ -221,18 +165,24 @@ class _OrderCheckoutScreenState extends State<OrderCheckoutScreen> {
                     ),
                     const SizedBox(height: 8),
                     RadioGroup<DeliveryOption>(
-                      groupValue: _deliveryOption,
+                      groupValue: state.deliveryOption,
                       onChanged: (DeliveryOption? value) {
                         if (value == null) return;
-                        setState(() => _deliveryOption = value);
+                        ref
+                            .read(checkoutViewModelProvider.notifier)
+                            .setDeliveryOption(value);
                       },
                       child: Column(
-                        children: DeliveryOption.values.map((DeliveryOption option) {
+                        children: DeliveryOption.values.map((
+                          DeliveryOption option,
+                        ) {
                           return Container(
                             margin: const EdgeInsets.only(bottom: 8),
                             decoration: BoxDecoration(
                               color: AppColors.white,
-                              borderRadius: BorderRadius.circular(AppRadius.normal),
+                              borderRadius: BorderRadius.circular(
+                                AppRadius.normal,
+                              ),
                               border: Border.all(color: AppColors.border),
                             ),
                             child: RadioListTile<DeliveryOption>(
@@ -259,7 +209,7 @@ class _OrderCheckoutScreenState extends State<OrderCheckoutScreen> {
                         Text(
                           _formatMoney(
                             total,
-                            _items.isEmpty ? 'PLN' : _items.first.currency,
+                            items.isEmpty ? 'PLN' : items.first.currency,
                           ),
                           style: const TextStyle(
                             color: AppColors.primary,
@@ -273,12 +223,14 @@ class _OrderCheckoutScreenState extends State<OrderCheckoutScreen> {
                     SizedBox(
                       width: double.infinity,
                       child: FilledButton(
-                        onPressed: _isPaying ? null : _pay,
-                        child: _isPaying
+                        onPressed: state.isPaying ? null : _pay,
+                        child: state.isPaying
                             ? const SizedBox(
                                 width: 18,
                                 height: 18,
-                                child: CircularProgressIndicator(strokeWidth: 2),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
                               )
                             : const Text('Zapłać'),
                       ),
@@ -289,15 +241,6 @@ class _OrderCheckoutScreenState extends State<OrderCheckoutScreen> {
       ],
     );
   }
-}
-
-enum DeliveryOption {
-  courier('Kurier'),
-  pickupPoint('Paczkomat / punkt odbioru'),
-  personalPickup('Odbiór osobisty');
-
-  const DeliveryOption(this.label);
-  final String label;
 }
 
 String _formatMoney(double value, String currency) {

@@ -16,6 +16,7 @@ class ProductTileSmall extends StatelessWidget {
 
   final String name;
   final String distance;
+
   /// Np. `12,99 zł/kg` — zgodnie z jednostką i ilością z bazy.
   final String priceWithUnitLabel;
   final bool verified;
@@ -77,8 +78,11 @@ class ProductTileSmall extends StatelessWidget {
                           fit: BoxFit.cover,
                           alignment: Alignment.center,
                           errorBuilder:
-                              (BuildContext context, Object error, StackTrace? stackTrace) =>
-                                  const SizedBox.shrink(),
+                              (
+                                BuildContext context,
+                                Object error,
+                                StackTrace? stackTrace,
+                              ) => const SizedBox.shrink(),
                         ),
                       ],
                     ),
@@ -99,27 +103,6 @@ class ProductTileSmall extends StatelessWidget {
                                 overflow: TextOverflow.ellipsis,
                                 style: AppTypography.productNameTiny,
                               ),
-                              // Row(
-                              //   children: <Widget>[
-                              //     SvgPicture.asset(
-                              //       'assets/icons/map-pin-area.svg',
-                              //       width: 12,
-                              //       height: 12,
-                              //       colorFilter: const ColorFilter.mode(
-                              //         AppColors.primaryLight,
-                              //         BlendMode.srcIn,
-                              //       ),
-                              //     ),
-                              //     const SizedBox(width: 4),
-                              //     Text(
-                              //       distance,
-                              //       style: const TextStyle(
-                              //         fontSize: 12,
-                              //         color: AppColors.textSecondary,
-                              //       ),
-                              //     ),
-                              //   ],
-                              // ),
                               const SizedBox(height: 18),
                               Text(
                                 priceWithUnitLabel,

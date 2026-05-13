@@ -1,152 +1,31 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:lokalny_koszyk/core/formatting/entity_keys.dart';
-import 'package:lokalny_koszyk/core/supabase/cart_repository.dart';
-import 'package:lokalny_koszyk/core/supabase/seller_public_lookup.dart';
-import 'package:lokalny_koszyk/core/supabase/supabase_client.dart';
 import 'package:lokalny_koszyk/core/themes/app_theme.dart';
+import 'package:lokalny_koszyk/domain/models/seller.dart';
+import 'package:lokalny_koszyk/presentation/home_view_model.dart';
+import 'package:lokalny_koszyk/presentation/models/product_ui_model.dart';
 import 'package:lokalny_koszyk/widgets/common/search_bar.dart';
 import 'package:lokalny_koszyk/widgets/discover/discover_map_preview.dart';
 import 'package:lokalny_koszyk/screens/producer/producer_tile.dart';
 import 'package:lokalny_koszyk/widgets/common/section_header.dart';
 import 'package:lokalny_koszyk/screens/product/product_tile.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({
     super.key,
     this.onOpenProductDetails,
     this.onOpenProducerDetails,
   });
 
-  final ValueChanged<ProductData>? onOpenProductDetails;
+  final ValueChanged<ProductUiModel>? onOpenProductDetails;
   final ValueChanged<String>? onOpenProducerDetails;
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
-  int _cartCount = 0;
-  final Set<String> _liked = <String>{};
-  bool _isAddingToCart = false;
-  bool _isLoadingSellers = true;
-  String? _sellersError;
-  String? _sellersAccessHint;
-  List<_ProducerItem> _nearbySellers = const <_ProducerItem>[];
-
-  static const List<ProductData> _products = <ProductData>[
-    ProductData(
-      id: 'hp1',
-      name: 'Rzodkiewka BIO',
-      producer: 'Gospodarstwo Zielone Pole',
-      price: '7,90',
-      unit: '/ pęczek',
-      distance: '3 km',
-      season: 'Wiosna',
-      rating: '4.9',
-      reviews: '64',
-      emoji: '🌱',
-      tag: 'BIO',
-      bgColor: AppColors.lightSage,
-      tagColor: AppColors.leafGreen,
-    ),
-    ProductData(
-      id: 'hp2',
-      name: 'Jajka od szczęśliwych kur',
-      producer: 'Farma Pod Lipą',
-      price: '13,50',
-      unit: '/ 10 szt.',
-      distance: '6 km',
-      season: 'Cały rok',
-      rating: '4.8',
-      reviews: '102',
-      emoji: '🥚',
-      tag: 'REGIONALNE',
-      bgColor: AppColors.background,
-      tagColor: AppColors.warmBrown,
-    ),
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    _loadNearbySellers();
-  }
-
-  Future<void> _loadNearbySellers() async {
-    setState(() {
-      _isLoadingSellers = true;
-      _sellersError = null;
-      _sellersAccessHint = null;
-    });
-    try {
-      final idRows = await supabase
-          .from('products')
-          .select('seller_id')
-          .eq('is_active', true)
-          .isFilter('deleted_at', null)
-          .order('created_at', ascending: false)
-          .limit(120);
-
-      final orderedSellerIds = <String>[];
-      final seenKeys = <String>{};
-      for (final dynamic row in idRows as List<dynamic>) {
-        final map = Map<String, dynamic>.from(row as Map);
-        final raw = (map['seller_id'] ?? '').toString().trim();
-        final key = normalizeUuidKey(raw);
-        if (key.isEmpty || seenKeys.contains(key)) continue;
-        seenKeys.add(key);
-        orderedSellerIds.add(raw);
-        if (orderedSellerIds.length >= 20) break;
-      }
-
-      if (orderedSellerIds.isEmpty) {
-        if (!mounted) return;
-        setState(() {
-          _nearbySellers = const <_ProducerItem>[];
-          _isLoadingSellers = false;
-        });
-        return;
-      }
-
-      final sellerByNorm = await fetchSellerPublicByIds(orderedSellerIds.toSet());
-
-      int unresolved = 0;
-      final mapped = orderedSellerIds.map((String raw) {
-        final key = normalizeUuidKey(raw);
-        final pick = sellerByNorm[key];
-        final hasName = pick?.name.trim().isNotEmpty ?? false;
-        if (!hasName) unresolved++;
-        final name = hasName ? pick!.name : 'Sprzedawca';
-        final subtitle =
-        hasName ? null : (key.isNotEmpty ? 'UUID sprzedawcy: $key' : null);
-        return _ProducerItem(
-          id: raw,
-          name: name,
-          subtitle: subtitle,
-          dist: '',
-          rating: '0.0',
-          reviews: '0',
-          verified: pick?.isVerified ?? false,
-        );
-      }).toList();
-
-      final accessHint = _buildAccessHintMessage(unresolved);
-
-      if (!mounted) return;
-      setState(() {
-        _nearbySellers = mapped;
-        _sellersAccessHint = accessHint;
-        _isLoadingSellers = false;
-      });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _isLoadingSellers = false;
-        _sellersError = 'Nie udało się pobrać sprzedawców: $e';
-      });
-    }
-  }
+class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   String? _buildAccessHintMessage(int unresolved) {
     if (unresolved == 0) return null;
@@ -155,36 +34,36 @@ class _HomeScreenState extends State<HomeScreen> {
         'Gotowy skrypt: sql/supabase_sellers_public_read.sql';
   }
 
-  Future<void> _addToCart(ProductData product) async {
-    if (_isAddingToCart) return;
-    setState(() => _isAddingToCart = true);
-    try {
-      await CartRepository.addToCart(productId: product.id);
-      if (!mounted) return;
-      // W przyszłości warto pobrać rzeczywistą liczbę z CartRepository.getCount()
-      setState(() => _cartCount++);
+  Future<void> _addToCart(ProductUiModel product) async {
+    final viewModel = ref.read(homeViewModelProvider.notifier);
+    final error = await viewModel.addToCart(product);
+    if (!mounted) return;
+    final cartCount = ref.read(homeViewModelProvider).cartCount;
+    if (error == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           duration: const Duration(milliseconds: 900),
-          content: Text('Dodano do koszyka: ${product.name} (razem: $_cartCount)'),
+          content: Text('Dodano do koszyka: ${product.name} (razem: $cartCount)'),
         ),
       );
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Nie udało się dodać do koszyka: $e')),
-      );
-    } finally {
-      if (mounted) setState(() => _isAddingToCart = false);
+    } else {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Nie udało się dodać do koszyka: $error')));
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final state = ref.watch(homeViewModelProvider);
+    final sellersAsync = state.nearbySellers;
+    final sellers = sellersAsync.valueOrNull ?? const <Seller>[];
+    final unresolvedCount = sellers.where((Seller s) => !s.hasResolvedName).length;
+
     return ListView(
       padding: EdgeInsets.zero,
       children: <Widget>[
-        _HomeHeader(cartCount: _cartCount),
+        _HomeHeader(cartCount: state.cartCount),
         const _SeasonalBanner(),
         const _NearbyProducersHeader(),
         const Padding(
@@ -192,27 +71,23 @@ class _HomeScreenState extends State<HomeScreen> {
           child: DiscoverMapPreview(),
         ),
         _NearbyProducersList(
-          producers: _nearbySellers,
-          isLoading: _isLoadingSellers,
-          errorText: _sellersError,
-          accessHint: _sellersAccessHint,
-          onRetry: _loadNearbySellers,
+          producers: sellers,
+          isLoading: sellersAsync.isLoading,
+          errorText: sellersAsync.hasError
+              ? 'Nie udało się pobrać sprzedawców: ${sellersAsync.error}'
+              : null,
+          accessHint: _buildAccessHintMessage(unresolvedCount),
+          onRetry: () => ref.read(homeViewModelProvider.notifier).loadSellers(),
           onOpenProducerDetails: widget.onOpenProducerDetails,
         ),
         _FeaturedProductsSection(
-          products: _products,
-          liked: _liked,
-          onOpenDetails: (ProductData product) {
+          products: state.featuredProducts,
+          liked: state.liked,
+          onOpenDetails: (ProductUiModel product) {
             widget.onOpenProductDetails?.call(product);
           },
           onToggleLike: (String id) {
-            setState(() {
-              if (_liked.contains(id)) {
-                _liked.remove(id);
-              } else {
-                _liked.add(id);
-              }
-            });
+            ref.read(homeViewModelProvider.notifier).toggleLike(id);
           },
           onAddToCart: _addToCart,
         ),
@@ -414,11 +289,11 @@ class _FeaturedProductsSection extends StatelessWidget {
     required this.onAddToCart,
   });
 
-  final List<ProductData> products;
+  final List<ProductUiModel> products;
   final Set<String> liked;
-  final ValueChanged<ProductData> onOpenDetails;
+  final ValueChanged<ProductUiModel> onOpenDetails;
   final ValueChanged<String> onToggleLike;
-  final ValueChanged<ProductData> onAddToCart;
+  final ValueChanged<ProductUiModel> onAddToCart;
 
   @override
   Widget build(BuildContext context) {
@@ -475,7 +350,7 @@ class _NearbyProducersList extends StatelessWidget {
     this.onOpenProducerDetails,
   });
 
-  final List<_ProducerItem> producers;
+  final List<Seller> producers;
   final bool isLoading;
   final String? errorText;
   final String? accessHint;
@@ -525,10 +400,10 @@ class _NearbyProducersList extends StatelessWidget {
                   return ProducerTile(
                     name: prod.name,
                     subtitle: prod.subtitle,
-                    distance: prod.dist,
+                    distance: prod.distance,
                     rating: prod.rating,
                     reviews: prod.reviews,
-                    verified: prod.verified,
+                    verified: prod.isVerified,
                     onTap: () => onOpenProducerDetails?.call(prod.id),
                   );
                 }),
@@ -549,24 +424,4 @@ class _NearbyProducersList extends StatelessWidget {
       ),
     );
   }
-}
-
-class _ProducerItem {
-  const _ProducerItem({
-    required this.id,
-    required this.name,
-    this.subtitle,
-    required this.dist,
-    required this.rating,
-    required this.reviews,
-    required this.verified,
-  });
-
-  final String id;
-  final String name;
-  final String? subtitle;
-  final String dist;
-  final String rating;
-  final String reviews;
-  final bool verified;
 }

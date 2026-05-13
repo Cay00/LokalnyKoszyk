@@ -1,158 +1,66 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:lokalny_koszyk/core/formatting/pennies.dart';
-import 'package:lokalny_koszyk/core/supabase/cart_repository.dart';
-import 'package:lokalny_koszyk/core/supabase/supabase_client.dart';
+import 'package:lokalny_koszyk/domain/models/cart_item.dart';
+import 'package:lokalny_koszyk/domain/models/order_summary.dart';
+import 'package:lokalny_koszyk/presentation/orders_view_model.dart';
 import 'package:lokalny_koszyk/widgets/common/section_header.dart';
 
 import '../../core/themes/app_theme.dart';
 
-class OrdersScreen extends StatefulWidget {
-  const OrdersScreen({
-    super.key,
-    this.onOpenCheckout,
-    this.onOpenOrderDetails,
-  });
+class OrdersScreen extends ConsumerStatefulWidget {
+  const OrdersScreen({super.key, this.onOpenCheckout, this.onOpenOrderDetails});
 
   final VoidCallback? onOpenCheckout;
   final ValueChanged<String>? onOpenOrderDetails;
 
   @override
-  State<OrdersScreen> createState() => _OrdersScreenState();
+  ConsumerState<OrdersScreen> createState() => _OrdersScreenState();
 }
 
-class _OrdersScreenState extends State<OrdersScreen> {
-  bool _isLoadingCart = true;
-  bool _isRemovingItem = false;
-  bool _isLoadingOrders = true;
-  String? _ordersError;
-  List<CartItemData> _cartItems = const <CartItemData>[];
-  List<_OrderItem> _orders = const <_OrderItem>[];
-
-  @override
-  void initState() {
-    super.initState();
-    _loadCart();
-    _loadOrders();
-  }
-
-  Future<void> _loadCart() async {
-    setState(() {
-      _isLoadingCart = true;
-    });
-    try {
-      final items = await CartRepository.getCartItemsForCurrentUser();
-      if (!mounted) return;
-      setState(() {
-        _cartItems = items;
-        _isLoadingCart = false;
-      });
-    } catch (_) {
-      if (!mounted) return;
-      setState(() {
-        _cartItems = const <CartItemData>[];
-        _isLoadingCart = false;
-      });
-    }
-  }
-
-  Future<void> _loadOrders() async {
-    setState(() {
-      _isLoadingOrders = true;
-      _ordersError = null;
-    });
-    try {
-      final userId = supabase.auth.currentUser?.id;
-      if (userId == null || userId.isEmpty) {
-        throw StateError('Brak zalogowanego użytkownika.');
-      }
-      final rows = await supabase
-          .from('orders')
-          .select('id, order_number, status, total_amount, currency, created_at')
-          .eq('user_id', userId)
-          .order('created_at', ascending: false);
-
-      final mapped = (rows as List<dynamic>).map<_OrderItem>((dynamic row) {
-        final map = Map<String, dynamic>.from(row as Map);
-        final id = (map['id'] ?? '').toString();
-        final orderNumber = (map['order_number'] ?? '').toString();
-        final rawStatus = (map['status'] ?? '').toString();
-        final statusLabel = _statusLabel(rawStatus);
-        final statusColor = _statusColor(rawStatus);
-        final amountGrosze = parsePennies(map['total_amount']);
-        final currency = (map['currency'] ?? 'PLN').toString();
-        final createdAt = DateTime.tryParse((map['created_at'] ?? '').toString());
-        return _OrderItem(
-          id: id,
-          orderNumber: orderNumber,
-          status: statusLabel,
-          date: _formatDate(createdAt),
-          total: _formatMoney(plnFromPennies(amountGrosze), currency),
-          color: statusColor,
-          iconAsset: _statusIcon(rawStatus),
-        );
-      }).toList();
-
-      if (!mounted) return;
-      setState(() {
-        _orders = mapped;
-        _isLoadingOrders = false;
-      });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _ordersError = 'Nie udało się pobrać historii zamówień: $e';
-        _isLoadingOrders = false;
-      });
-    }
-  }
-
-  Future<void> _removeItem(CartItemData item) async {
-    if (_isRemovingItem) return;
-    setState(() => _isRemovingItem = true);
-    try {
-      await CartRepository.removeCartItem(cartItemId: item.id);
-      if (!mounted) return;
-      setState(() {
-        _cartItems = _cartItems.where((x) => x.id != item.id).toList();
-      });
+class _OrdersScreenState extends ConsumerState<OrdersScreen> {
+  Future<void> _removeItem(CartItem item) async {
+    final err = await ref
+        .read(ordersViewModelProvider.notifier)
+        .removeItem(item);
+    if (!mounted) return;
+    if (err == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Usunięto z koszyka: ${item.name}')),
       );
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Nie udało się usunąć produktu: $e')),
-      );
-    } finally {
-      if (mounted) setState(() => _isRemovingItem = false);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(err)));
     }
-  }
-
-  Future<void> _refreshAll() async {
-    await Future.wait(<Future<void>>[
-      _loadCart(),
-      _loadOrders(),
-    ]);
   }
 
   @override
   Widget build(BuildContext context) {
+    final state = ref.watch(ordersViewModelProvider);
+    final orders = state.orders
+        .map(
+          (OrderSummary order) => _OrderItem(
+            id: order.id,
+            orderNumber: order.orderNumber,
+            status: orderStatusLabel(order.rawStatus),
+            date: formatOrderDate(order.createdAt),
+            total: formatMoney(order.totalAmount, order.currency),
+            color: orderStatusColor(order.rawStatus),
+            iconAsset: orderStatusIcon(order.rawStatus),
+          ),
+        )
+        .toList();
     return RefreshIndicator(
-      onRefresh: _refreshAll,
+      onRefresh: () => ref.read(ordersViewModelProvider.notifier).refreshAll(),
       child: ListView(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.all(16),
         children: <Widget>[
-          const Text(
-            'Zamówienia',
-            style: AppTypography.header,
-          ),
+          const Text('Zamówienia', style: AppTypography.header),
           const SizedBox(height: 16),
           _CartSummaryCard(
-            isLoading: _isLoadingCart,
-            cartItems: _cartItems,
-            isRemovingItem: _isRemovingItem,
+            isLoading: state.isLoadingCart,
+            cartItems: state.cartItems,
+            isRemovingItem: state.isRemovingItem,
             onRemoveItem: _removeItem,
             onOpenCheckout: widget.onOpenCheckout,
           ),
@@ -162,35 +70,33 @@ class _OrdersScreenState extends State<OrdersScreen> {
             actionLabel: 'Wszystkie',
           ),
           const SizedBox(height: 16),
-          if (_isLoadingOrders)
+          if (state.isLoadingOrders)
             const Center(child: CircularProgressIndicator())
-          else if (_ordersError != null)
+          else if (state.ordersError != null)
             Row(
               children: <Widget>[
                 Expanded(
-                  child: Text(
-                    _ordersError!,
-                    style: AppTypography.body,
-                  ),
+                  child: Text(state.ordersError!, style: AppTypography.body),
                 ),
                 TextButton(
-                  onPressed: _loadOrders,
+                  onPressed: () =>
+                      ref.read(ordersViewModelProvider.notifier).loadOrders(),
                   child: const Text('Ponów'),
                 ),
               ],
             )
-          else if (_orders.isEmpty)
+          else if (orders.isEmpty)
             const Text(
               'Brak złożonych zamówień dla tego konta.',
               style: AppTypography.body,
             )
           else
-            ..._orders.asMap().entries.map((entry) {
+            ...orders.asMap().entries.map((entry) {
               final int index = entry.key;
               final _OrderItem order = entry.value;
               return _OrderHistoryTile(
                 order: order,
-                withBottomSpacing: index < _orders.length - 1,
+                withBottomSpacing: index < orders.length - 1,
                 onTap: widget.onOpenOrderDetails != null
                     ? () => widget.onOpenOrderDetails!(order.id)
                     : null,
@@ -212,9 +118,9 @@ class _CartSummaryCard extends StatelessWidget {
   });
 
   final bool isLoading;
-  final List<CartItemData> cartItems;
+  final List<CartItem> cartItems;
   final bool isRemovingItem;
-  final ValueChanged<CartItemData> onRemoveItem;
+  final ValueChanged<CartItem> onRemoveItem;
   final VoidCallback? onOpenCheckout;
 
   @override
@@ -261,10 +167,7 @@ class _CartSummaryCard extends StatelessWidget {
           else if (cartItems.isEmpty)
             const Text(
               'Brak produktów w koszyku.',
-              style: TextStyle(
-                color: AppColors.white,
-                fontSize: 13,
-              ),
+              style: TextStyle(color: AppColors.white, fontSize: 13),
             )
           else ...<Widget>[
             ...cartItems.map((item) {
@@ -282,9 +185,7 @@ class _CartSummaryCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.only(top: 8),
               decoration: const BoxDecoration(
-                border: Border(
-                  top: BorderSide(color: Color(0x40FFFFFF)),
-                ),
+                border: Border(top: BorderSide(color: Color(0x40FFFFFF))),
               ),
               child: Row(
                 children: <Widget>[
@@ -331,10 +232,7 @@ class _CartSummaryCard extends StatelessWidget {
               ),
               child: const Text(
                 'Przejdź do zamówienia',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                ),
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
               ),
             ),
           ),
@@ -376,8 +274,11 @@ class _CartLineItem extends StatelessWidget {
                 'assets/images/food_default.png',
                 fit: BoxFit.cover,
                 errorBuilder:
-                    (BuildContext context, Object error, StackTrace? stackTrace) =>
-                        const ColoredBox(color: Color(0x33FFFFFF)),
+                    (
+                      BuildContext context,
+                      Object error,
+                      StackTrace? stackTrace,
+                    ) => const ColoredBox(color: Color(0x33FFFFFF)),
               ),
             ),
           ),
@@ -388,10 +289,7 @@ class _CartLineItem extends StatelessWidget {
               children: <Widget>[
                 Text(
                   name,
-                  style: const TextStyle(
-                    color: AppColors.white,
-                    fontSize: 14,
-                  ),
+                  style: const TextStyle(color: AppColors.white, fontSize: 14),
                 ),
                 Text(
                   qty,
@@ -405,10 +303,7 @@ class _CartLineItem extends StatelessWidget {
           ),
           Text(
             price,
-            style: const TextStyle(
-              color: AppColors.white,
-              fontSize: 14,
-            ),
+            style: const TextStyle(color: AppColors.white, fontSize: 14),
           ),
           const SizedBox(width: 8),
           InkWell(
@@ -457,79 +352,78 @@ class _OrderHistoryTile extends StatelessWidget {
         child: Column(
           children: <Widget>[
             Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: <Widget>[
-              SvgPicture.asset(
-                order.iconAsset,
-                width: 22,
-                height: 22,
-                colorFilter: const ColorFilter.mode(
-                  AppColors.primary,
-                  BlendMode.srcIn,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(
-                      'Zamówienie ${order.orderNumber}',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    Text(
-                      order.date,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: AppColors.textLight,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                decoration: BoxDecoration(
-                  color: order.color.withValues(alpha: 0.13),
-                  borderRadius: BorderRadius.circular(AppRadius.sm),
-                ),
-                child: Text(
-                  order.status,
-                  style: TextStyle(
-                    color: order.color,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: <Widget>[
+                SvgPicture.asset(
+                  order.iconAsset,
+                  width: 22,
+                  height: 22,
+                  colorFilter: const ColorFilter.mode(
+                    AppColors.primary,
+                    BlendMode.srcIn,
                   ),
                 ),
-              ),
-            ],
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                        'Zamówienie ${order.orderNumber}',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      Text(
+                        order.date,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textLight,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: order.color.withValues(alpha: 0.13),
+                    borderRadius: BorderRadius.circular(AppRadius.sm),
+                  ),
+                  child: Text(
+                    order.status,
+                    style: TextStyle(
+                      color: order.color,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 8),
             Row(
-            children: <Widget>[
-              const Expanded(
-                child: Text(
-                  'Łącznie',
-                  style: TextStyle(
-                    color: AppColors.textLight,
-                    fontSize: 12,
+              children: <Widget>[
+                const Expanded(
+                  child: Text(
+                    'Łącznie',
+                    style: TextStyle(color: AppColors.textLight, fontSize: 12),
                   ),
                 ),
-              ),
-              Text(
-                order.total,
-                style: const TextStyle(
-                  color: AppColors.primary,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
+                Text(
+                  order.total,
+                  style: const TextStyle(
+                    color: AppColors.primary,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
-              ),
-            ],
+              ],
             ),
           ],
         ),
@@ -556,69 +450,4 @@ class _OrderItem {
   final String total;
   final Color color;
   final String iconAsset;
-}
-
-String _statusLabel(String rawStatus) {
-  switch (rawStatus) {
-    case 'placed':
-      return 'Złożone';
-    case 'in_progress':
-      return 'W realizacji';
-    case 'rejected':
-      return 'Odrzucone';
-    case 'sent':
-      return 'Wysłane';
-    case 'delivered':
-      return 'Dostarczone';
-    case 'received':
-      return 'Odebrane';
-    default:
-      return rawStatus.isEmpty ? 'Nieznany' : rawStatus;
-  }
-}
-
-Color _statusColor(String rawStatus) {
-  switch (rawStatus) {
-    case 'placed':
-      return AppColors.primary;
-    case 'in_progress':
-      return AppColors.accent;
-    case 'rejected':
-      return Colors.redAccent;
-    case 'sent':
-      return AppColors.primaryLight;
-    case 'delivered':
-      return AppColors.primary;
-    case 'received':
-      return AppColors.textLight;
-    default:
-      return AppColors.textLight;
-  }
-}
-
-String _statusIcon(String rawStatus) {
-  switch (rawStatus) {
-    case 'placed':
-      return 'assets/icons/receipt.svg';
-    case 'in_progress':
-      return 'assets/icons/clock-countdown.svg';
-    case 'rejected':
-      return 'assets/icons/question.svg';
-    case 'sent':
-      return 'assets/icons/package.svg';
-    case 'delivered':
-      return 'assets/icons/check-circle.svg';
-    case 'received':
-      return 'assets/icons/check-circle.svg';
-    default:
-      return 'assets/icons/receipt.svg';
-  }
-}
-
-String _formatDate(DateTime? date) {
-  if (date == null) return '—';
-  final d = date.toLocal();
-  final dd = d.day.toString().padLeft(2, '0');
-  final mm = d.month.toString().padLeft(2, '0');
-  return '$dd.$mm';
 }

@@ -1,19 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:lokalny_koszyk/core/formatting/entity_keys.dart';
-import 'package:lokalny_koszyk/core/supabase/nested_row.dart';
-import 'package:lokalny_koszyk/core/supabase/seller_public_lookup.dart';
-import 'package:lokalny_koszyk/core/formatting/pennies.dart';
-import 'package:lokalny_koszyk/core/supabase/supabase_client.dart';
+import 'package:lokalny_koszyk/domain/models/producer_profile.dart';
+import 'package:lokalny_koszyk/presentation/models/product_ui_model.dart';
+import 'package:lokalny_koszyk/presentation/producer_details_view_model.dart';
 
 import '../../core/themes/app_theme.dart';
 import '../../widgets/common/default_screen.dart';
 import '../product/product_details_screen.dart';
-import '../product/product_tile.dart';
 import '../product/product_tile_small.dart';
 
-class ProducerDetailsScreen extends StatefulWidget {
+class ProducerDetailsScreen extends ConsumerStatefulWidget {
   const ProducerDetailsScreen({
     super.key,
     this.sellerId,
@@ -24,261 +21,21 @@ class ProducerDetailsScreen extends StatefulWidget {
   final VoidCallback? onBack;
 
   @override
-  State<ProducerDetailsScreen> createState() => _ProducerDetailsScreenState();
+  ConsumerState<ProducerDetailsScreen> createState() => _ProducerDetailsScreenState();
 }
 
-class _ProducerDetailsScreenState extends State<ProducerDetailsScreen> {
-  bool _isLiked = false;
-  bool _isLoading = true;
-  String? _errorText;
-  String _distanceLabel = 'brak danych';
-  _SellerDetails? _seller;
-  List<ProductData> _products = const <ProductData>[];
+class _ProducerDetailsScreenState extends ConsumerState<ProducerDetailsScreen> {
   _InfoSection _selectedInfoSection = _InfoSection.address;
 
   @override
-  void initState() {
-    super.initState();
-    _loadSellerAndProducts();
-  }
-
-  Future<void> _loadSellerAndProducts() async {
-    final sellerId = widget.sellerId;
-    if (sellerId == null || sellerId.isEmpty) {
-      setState(() {
-        _isLoading = false;
-        _errorText = 'Brak identyfikatora sprzedawcy.';
-      });
-      return;
-    }
-    final normalizedSellerId = normalizeUuidKey(sellerId);
-    setState(() {
-      _isLoading = true;
-      _errorText = null;
-    });
-    try {
-      dynamic sellerWithLocationRow = await supabase
-          .from('sellers')
-          .select(
-            'id, name, description, email, phone, is_verified, quality_description, '
-            'seller_locations(address, city, postal_code, country, latitude, longitude)',
-          )
-          .eq('id', normalizedSellerId)
-          .isFilter('deleted_at', null)
-          .maybeSingle();
-
-      if (sellerWithLocationRow == null) {
-        final byNorm = await fetchSellerPublicByIds({sellerId.trim()});
-        final pick = byNorm[normalizedSellerId];
-        if (pick != null) {
-          sellerWithLocationRow = <String, dynamic>{
-            'id': sellerId.trim(),
-            'name': pick.name,
-            'description': '',
-            'email': '',
-            'phone': '',
-            'is_verified': pick.isVerified,
-            'quality_description': '',
-            'seller_locations': null,
-          };
-        }
-      }
-
-      if (sellerWithLocationRow == null) {
-        if (!mounted) return;
-        setState(() {
-          _isLoading = false;
-          _errorText = 'Nie znaleziono sprzedawcy.';
-        });
-        return;
-      }
-
-      final sellerMap = Map<String, dynamic>.from(sellerWithLocationRow as Map);
-      final relatedLocations =
-          supabaseEmbeddedMaps(sellerMap['seller_locations']);
-
-      // Fallback: jeżeli relacja nie zwróciła danych (np. przez konfigurację),
-      // pobierz lokalizacje klasycznym zapytaniem po seller_id.
-      final fallbackRows = relatedLocations.isEmpty
-          ? await supabase
-              .from('seller_locations')
-              .select(
-                'address, city, postal_code, country, latitude, longitude',
-              )
-              .eq('seller_id', normalizedSellerId)
-              .limit(20)
-          : <dynamic>[];
-      // Dodatkowy fallback: jeśli nadal pusto, pobierz szerszy zestaw i dopasuj seller_id po stronie aplikacji.
-      final broadFallbackRows =
-          relatedLocations.isEmpty && fallbackRows.isEmpty
-          ? await supabase
-              .from('seller_locations')
-              .select(
-                'seller_id, address, city, postal_code, country, latitude, longitude',
-              )
-              .limit(300)
-          : <dynamic>[];
-
-      final parsedLocations = <Map<String, dynamic>>[
-        ...relatedLocations,
-        ...fallbackRows.map((row) => Map<String, dynamic>.from(row as Map)),
-        ...broadFallbackRows
-            .map((row) => Map<String, dynamic>.from(row as Map))
-            .where(
-              (row) =>
-                  normalizeUuidKey((row['seller_id'] ?? '').toString()) ==
-                  normalizedSellerId,
-            ),
-      ];
-      final locationMap =
-          parsedLocations.firstWhere(
-                (location) {
-                  final address = (location['address'] ?? '').toString().trim();
-                  final city = (location['city'] ?? '').toString().trim();
-                  final postalCode =
-                      (location['postal_code'] ?? '').toString().trim();
-                  final country = (location['country'] ?? '').toString().trim();
-                  return address.isNotEmpty ||
-                      city.isNotEmpty ||
-                      postalCode.isNotEmpty ||
-                      country.isNotEmpty ||
-                      location['latitude'] != null ||
-                      location['longitude'] != null;
-                },
-                orElse: () =>
-                    parsedLocations.isEmpty ? <String, dynamic>{} : parsedLocations.first,
-              );
-      final sellerEmail = (sellerMap['email'] ?? '').toString().trim();
-      final sellerPhone = (sellerMap['phone'] ?? '').toString().trim();
-      final seller = _SellerDetails(
-        id: sellerMap['id'].toString(),
-        name: (sellerMap['name'] ?? 'Sprzedawca').toString(),
-        description: (sellerMap['description'] ?? '').toString(),
-        email: sellerEmail,
-        phone: sellerPhone,
-        isVerified: sellerMap['is_verified'] == true,
-        qualityDescription: (sellerMap['quality_description'] ?? '').toString(),
-        address: (locationMap['address'] ?? '').toString(),
-        city: (locationMap['city'] ?? '').toString(),
-        postalCode: (locationMap['postal_code'] ?? '').toString(),
-        country: (locationMap['country'] ?? '').toString(),
-        latitude: (locationMap['latitude'] as num?)?.toDouble(),
-        longitude: (locationMap['longitude'] as num?)?.toDouble(),
-      );
-
-      final productRows = await supabase
-          .from('products')
-          .select(
-            'product_id, category_id, name, price_gross_amount, unit, package_size, '
-            'stock_quantity, average_rating, reviews_count, is_active',
-          )
-          .eq('seller_id', normalizedSellerId)
-          .eq('is_active', true)
-          .isFilter('deleted_at', null)
-          .order('created_at', ascending: false);
-
-      final products = (productRows as List<dynamic>).map<ProductData>((dynamic row) {
-        final map = Map<String, dynamic>.from(row as Map);
-        final priceGrosze = parsePennies(map['price_gross_amount']);
-        final ratingNum = (map['average_rating'] as num?)?.toDouble() ?? 0;
-        final reviewsCount = (map['reviews_count'] as num?)?.toInt() ?? 0;
-        final rawUnit = (map['unit'] ?? '').toString();
-        final unitKey = rawUnit.trim().toLowerCase();
-        final qty = (map['package_size'] as num?)?.toDouble();
-        final rawCategoryId = map['category_id']?.toString().trim();
-        final categoryId =
-            rawCategoryId == null || rawCategoryId.isEmpty
-                ? null
-                : rawCategoryId;
-
-        return ProductData(
-          id: (map['product_id'] ?? '').toString(),
-          name: (map['name'] ?? 'Produkt').toString(),
-          producer: seller.name,
-          price: plnCommaStringFromPennies(priceGrosze),
-          unit: '/ ${rawUnit.replaceAll('_', ' ')}',
-          distance: '',
-          season: 'Cały rok',
-          rating: ratingNum.toStringAsFixed(1),
-          reviews: reviewsCount.toString(),
-          emoji: '🧺',
-          tag: 'LOKALNE',
-          bgColor: AppColors.background,
-          tagColor: AppColors.primaryLight,
-          unitKey: unitKey.isEmpty ? null : unitKey,
-          packageQuantity: qty,
-          categoryId: categoryId,
-        );
-      }).where((product) => product.id.isNotEmpty).toList();
-
-      setState(() {
-        _seller = seller;
-        _products = products;
-        _isLoading = false;
-      });
-      _loadDistanceLabelInBackground(seller);
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _isLoading = false;
-        _errorText = 'Nie udało się pobrać danych sprzedawcy: $e';
-      });
-    }
-  }
-
-  Future<void> _loadDistanceLabelInBackground(_SellerDetails seller) async {
-    final distanceLabel = await _buildDistanceLabelForSeller(seller);
-    if (!mounted) return;
-    setState(() {
-      _distanceLabel = distanceLabel;
-    });
-  }
-
-  Future<String> _buildDistanceLabelForSeller(_SellerDetails seller) async {
-    final sellerLat = seller.latitude;
-    final sellerLon = seller.longitude;
-    if (sellerLat == null || sellerLon == null) return 'brak danych';
-
-    final serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) return 'brak danych';
-
-    var permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-    }
-    if (permission == LocationPermission.denied ||
-        permission == LocationPermission.deniedForever) {
-      return 'brak danych';
-    }
-
-    Position? userPosition = await Geolocator.getLastKnownPosition();
-    userPosition ??= await Geolocator.getCurrentPosition(
-      locationSettings: const LocationSettings(
-        accuracy: LocationAccuracy.low,
-      ),
-    ).timeout(
-      const Duration(seconds: 4),
-      onTimeout: () => throw Exception('Timeout lokalizacji'),
-    );
-    final distanceMeters = Geolocator.distanceBetween(
-      userPosition.latitude,
-      userPosition.longitude,
-      sellerLat,
-      sellerLon,
-    );
-    final distanceKm = distanceMeters / 1000.0;
-    final roundedToFiveKm = (distanceKm / 5).round() * 5;
-    return '$roundedToFiveKm km';
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final seller = _seller;
+    final vmState = ref.watch(producerDetailsViewModelProvider(widget.sellerId));
+    final seller = vmState.seller;
     return DefaultScreen(
       title: 'Sprzedawca',
-      body: _isLoading
+      body: vmState.isLoading
           ? const Center(child: CircularProgressIndicator())
-          : _errorText != null
+          : vmState.errorText != null
           ? Center(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -286,7 +43,7 @@ class _ProducerDetailsScreenState extends State<ProducerDetailsScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
                     Text(
-                      _errorText!,
+                      vmState.errorText!,
                       textAlign: TextAlign.center,
                       style: const TextStyle(color: AppColors.textSecondary),
                     ),
@@ -303,7 +60,9 @@ class _ProducerDetailsScreenState extends State<ProducerDetailsScreen> {
                     ),
                     const SizedBox(height: 12),
                     FilledButton(
-                      onPressed: _loadSellerAndProducts,
+                      onPressed: () => ref
+                          .read(producerDetailsViewModelProvider(widget.sellerId).notifier)
+                          .load(),
                       child: const Text('Ponów'),
                     ),
                   ],
@@ -349,7 +108,9 @@ class _ProducerDetailsScreenState extends State<ProducerDetailsScreen> {
                           top: 12,
                           right: 12,
                           child: InkWell(
-                            onTap: () => setState(() => _isLiked = !_isLiked),
+                            onTap: () => ref
+                                .read(producerDetailsViewModelProvider(widget.sellerId).notifier)
+                                .toggleLike(),
                             borderRadius: BorderRadius.circular(AppRadius.normal),
                             child: Container(
                               width: 32,
@@ -360,13 +121,13 @@ class _ProducerDetailsScreenState extends State<ProducerDetailsScreen> {
                               ),
                               alignment: Alignment.center,
                               child: SvgPicture.asset(
-                                _isLiked
+                                vmState.isLiked
                                     ? 'assets/icons/heart-fill.svg'
                                     : 'assets/icons/heart.svg',
                                 width: 16,
                                 height: 16,
                                 colorFilter: ColorFilter.mode(
-                                  _isLiked ? Colors.redAccent : AppColors.primary,
+                                  vmState.isLiked ? Colors.redAccent : AppColors.primary,
                                   BlendMode.srcIn,
                                 ),
                               ),
@@ -447,7 +208,7 @@ class _ProducerDetailsScreenState extends State<ProducerDetailsScreen> {
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              'Odległość: $_distanceLabel',
+                              'Odległość: ${vmState.distanceLabel}',
                               style: const TextStyle(
                                 fontSize: 14,
                                 color: AppColors.textSecondary,
@@ -582,14 +343,14 @@ class _ProducerDetailsScreenState extends State<ProducerDetailsScreen> {
                     style: AppTypography.sectionHeader,
                   ),
                   const SizedBox(height: 12),
-                  if (_products.isEmpty)
+                  if (vmState.products.isEmpty)
                     const Text(
                       'Ten sprzedawca nie ma aktywnych produktów.',
                       style: AppTypography.body,
                     )
                   else
-                    ..._products.map(
-                      (ProductData product) => ProductTileSmall(
+                    ...vmState.products.map(
+                      (ProductUiModel product) => ProductTileSmall(
                         name: product.name,
                         distance: product.distance,
                         priceWithUnitLabel: product.pricePerOfferLabel,
@@ -659,7 +420,7 @@ enum _InfoSection {
   final String title;
   final String content;
 
-  String contentForSeller(_SellerDetails? seller) {
+  String contentForSeller(ProducerProfile? seller) {
     switch (this) {
       case _InfoSection.address:
         final chunks = <String>[
@@ -693,7 +454,7 @@ enum _InfoSection {
   }
 }
 
-List<String> _qualityAndCertificatesForSeller(_SellerDetails? seller) {
+List<String> _qualityAndCertificatesForSeller(ProducerProfile? seller) {
   final quality = (seller?.qualityDescription ?? '').trim();
   if (quality.isEmpty) {
     return const <String>[
@@ -701,36 +462,4 @@ List<String> _qualityAndCertificatesForSeller(_SellerDetails? seller) {
     ];
   }
   return <String>[quality];
-}
-
-class _SellerDetails {
-  const _SellerDetails({
-    required this.id,
-    required this.name,
-    required this.description,
-    required this.email,
-    required this.phone,
-    required this.isVerified,
-    required this.qualityDescription,
-    required this.address,
-    required this.city,
-    required this.postalCode,
-    required this.country,
-    required this.latitude,
-    required this.longitude,
-  });
-
-  final String id;
-  final String name;
-  final String description;
-  final String email;
-  final String phone;
-  final bool isVerified;
-  final String qualityDescription;
-  final String address;
-  final String city;
-  final String postalCode;
-  final String country;
-  final double? latitude;
-  final double? longitude;
 }
