@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../../core/themes/app_theme.dart';
 import 'package:lokalny_koszyk/core/supabase/supabase_client.dart';
 import 'package:lokalny_koszyk/screens/profile/seller/add_product_screen.dart';
+import 'package:lokalny_koszyk/widgets/app_bottom_navigation_bar.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({
@@ -45,7 +46,11 @@ class ProfileScreen extends StatelessWidget {
         : 'Użytkownik';
 
     return ListView(
-      padding: EdgeInsets.zero,
+      // -16: kompensacja pustego miejsca po Transform.translate poniżej
+      padding: EdgeInsets.only(
+        bottom: AppBottomNavigationBar.contentBottomPadding(context) -
+            AppBottomNavigationBar.outerPadding,
+      ),
       children: <Widget>[
         Container(
           padding: const EdgeInsets.fromLTRB(16, 32, 16, 48),

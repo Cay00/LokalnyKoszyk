@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lokalny_koszyk/presentation/checkout_bloc.dart';
 
 import '../../core/themes/app_theme.dart';
-import '../../widgets/common/screen_header.dart';
+import '../../widgets/common/default_screen.dart';
 
 class OrderCheckoutScreen extends StatelessWidget {
   const OrderCheckoutScreen({super.key, this.onBack});
@@ -30,14 +30,10 @@ class OrderCheckoutScreen extends StatelessWidget {
             0,
             (sum, item) => sum + item.lineTotal,
           );
-          return Column(
-            children: <Widget>[
-              ScreenHeader(
-                title: 'Moje zamówienie',
-                leading: ScreenHeaderBackButton(onPressed: onBack),
-              ),
-              Expanded(
-                child: state.isLoading
+          return DefaultScreen(
+            title: 'Moje zamówienie',
+            onBack: onBack,
+            body: state.isLoading
                     ? const Center(child: CircularProgressIndicator())
                     : state.errorText != null
                     ? Center(
@@ -81,7 +77,7 @@ class OrderCheckoutScreen extends StatelessWidget {
                         ),
                       )
                     : ListView(
-                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+                        padding: DefaultScreen.bodyPadding(context, top: 12),
                         children: <Widget>[
                           ...items.map((item) {
                             return Container(
@@ -245,8 +241,6 @@ class OrderCheckoutScreen extends StatelessWidget {
                           ),
                         ],
                       ),
-              ),
-            ],
           );
         },
       ),

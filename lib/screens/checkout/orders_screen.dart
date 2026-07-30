@@ -4,7 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:lokalny_koszyk/domain/models/cart_item.dart';
 import 'package:lokalny_koszyk/domain/models/order_summary.dart';
 import 'package:lokalny_koszyk/presentation/orders_bloc.dart';
-import 'package:lokalny_koszyk/widgets/common/screen_header.dart';
+import 'package:lokalny_koszyk/widgets/common/default_screen.dart';
 import 'package:lokalny_koszyk/widgets/common/section_header.dart';
 
 import '../../core/themes/app_theme.dart';
@@ -43,77 +43,76 @@ class OrdersScreen extends StatelessWidget {
               ),
             )
             .toList();
-        return Column(
-          children: <Widget>[
-            const ScreenHeader(title: 'Koszyk'),
-            Expanded(
-              child: RefreshIndicator(
-                onRefresh: () {
-                  final bloc = context.read<OrdersBloc>();
-                  bloc.add(const OrdersRefreshAllRequested());
-                  return bloc.stream.firstWhere(
-                    (OrdersState s) => !s.isLoadingCart && !s.isLoadingOrders,
-                  );
-                },
-                child: ListView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.all(16),
-                  children: <Widget>[
-                    _CartSummaryCard(
-                isLoading: state.isLoadingCart,
-                cartItems: state.cartItems,
-                isRemovingItem: state.isRemovingItem,
-                onRemoveItem: (CartItem item) {
-                  context.read<OrdersBloc>().add(
-                    OrdersRemoveItemRequested(item),
-                  );
-                },
-                onOpenCheckout: onOpenCheckout,
-              ),
-              const SizedBox(height: 32),
-              const SectionHeader(
-                title: 'Historia zamówień',
-                actionLabel: 'Wszystkie',
-              ),
-              const SizedBox(height: 16),
-              if (state.isLoadingOrders)
-                const Center(child: CircularProgressIndicator())
-              else if (state.ordersError != null)
-                Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: Text(state.ordersError!, style: AppTypography.normal),
-                    ),
-                    TextButton(
-                      onPressed: () => context.read<OrdersBloc>().add(
-                        const OrdersLoadOrdersRequested(),
-                      ),
-                      child: const Text('Ponów'),
-                    ),
-                  ],
-                )
-              else if (orders.isEmpty)
-                const Text(
-                  'Brak złożonych zamówień dla tego konta.',
-                  style: AppTypography.normal,
-                )
-              else
-                ...orders.asMap().entries.map((entry) {
-                  final int index = entry.key;
-                  final _OrderItem order = entry.value;
-                  return _OrderHistoryTile(
-                    order: order,
-                    withBottomSpacing: index < orders.length - 1,
-                    onTap: onOpenOrderDetails != null
-                        ? () => onOpenOrderDetails!(order.id)
-                        : null,
-                  );
-                }),
-                  ],
+        return DefaultScreen(
+          title: 'Koszyk',
+          body: RefreshIndicator(
+            onRefresh: () {
+              final bloc = context.read<OrdersBloc>();
+              bloc.add(const OrdersRefreshAllRequested());
+              return bloc.stream.firstWhere(
+                (OrdersState s) => !s.isLoadingCart && !s.isLoadingOrders,
+              );
+            },
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: DefaultScreen.bodyPadding(context),
+              children: <Widget>[
+                _CartSummaryCard(
+                  isLoading: state.isLoadingCart,
+                  cartItems: state.cartItems,
+                  isRemovingItem: state.isRemovingItem,
+                  onRemoveItem: (CartItem item) {
+                    context.read<OrdersBloc>().add(
+                      OrdersRemoveItemRequested(item),
+                    );
+                  },
+                  onOpenCheckout: onOpenCheckout,
                 ),
-              ),
+                const SizedBox(height: 32),
+                const SectionHeader(
+                  title: 'Historia zamówień',
+                  actionLabel: 'Wszystkie',
+                ),
+                const SizedBox(height: 16),
+                if (state.isLoadingOrders)
+                  const Center(child: CircularProgressIndicator())
+                else if (state.ordersError != null)
+                  Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: Text(
+                          state.ordersError!,
+                          style: AppTypography.normal,
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () => context.read<OrdersBloc>().add(
+                          const OrdersLoadOrdersRequested(),
+                        ),
+                        child: const Text('Ponów'),
+                      ),
+                    ],
+                  )
+                else if (orders.isEmpty)
+                  const Text(
+                    'Brak złożonych zamówień dla tego konta.',
+                    style: AppTypography.normal,
+                  )
+                else
+                  ...orders.asMap().entries.map((entry) {
+                    final int index = entry.key;
+                    final _OrderItem order = entry.value;
+                    return _OrderHistoryTile(
+                      order: order,
+                      withBottomSpacing: index < orders.length - 1,
+                      onTap: onOpenOrderDetails != null
+                          ? () => onOpenOrderDetails!(order.id)
+                          : null,
+                    );
+                  }),
+              ],
             ),
-          ],
+          ),
         );
       },
     ),

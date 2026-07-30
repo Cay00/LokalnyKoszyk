@@ -104,7 +104,7 @@ class _ProductDetailsBody extends StatelessWidget {
         return DefaultScreen(
           title: 'Szczegóły produktu',
           body: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+            padding: DefaultScreen.bodyPadding(context),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[

@@ -7,7 +7,7 @@ import 'package:lokalny_koszyk/screens/producer/producer_details_screen.dart';
 import 'package:lokalny_koszyk/screens/product/product_details_screen.dart';
 
 import '../../core/themes/app_theme.dart';
-import '../../widgets/common/screen_header.dart';
+import '../../widgets/common/default_screen.dart';
 import '../product/product_tile_small.dart';
 
 class FavoritesScreen extends StatelessWidget {
@@ -17,135 +17,125 @@ class FavoritesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: <Widget>[
-        ScreenHeader(
-          title: 'Ulubione',
-          leading: onBack == null
-              ? null
-              : ScreenHeaderBackButton(onPressed: onBack),
-        ),
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: BlocBuilder<FavoritesBloc, FavoritesState>(
-              builder: (BuildContext context, FavoritesState state) {
-                void openProductDetails(ProductUiModel product) {
-                  final String? sid = product.sellerId?.trim();
-                  final bool hasSeller = sid != null && sid.isNotEmpty;
+    return DefaultScreen(
+      title: 'Ulubione',
+      onBack: onBack,
+      body: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+        child: BlocBuilder<FavoritesBloc, FavoritesState>(
+          builder: (BuildContext context, FavoritesState state) {
+            void openProductDetails(ProductUiModel product) {
+              final String? sid = product.sellerId?.trim();
+              final bool hasSeller = sid != null && sid.isNotEmpty;
 
-                  Navigator.of(context).push(
-                    PageRouteBuilder<void>(
-                      pageBuilder: (_, _, _) => ProductDetailsScreen(
-                        product: product,
-                        onBack: () => Navigator.of(context).pop(),
-                        onOpenProducerDetails: hasSeller
-                            ? () {
-                                Navigator.of(context).push(
-                                  PageRouteBuilder<void>(
-                                    pageBuilder: (_, _, _) =>
-                                        ProducerDetailsScreen(
-                                          sellerId: sid,
-                                          onBack: () =>
-                                              Navigator.of(context).pop(),
-                                        ),
-                                    transitionDuration: Duration.zero,
-                                    reverseTransitionDuration: Duration.zero,
-                                  ),
-                                );
-                              }
-                            : null,
-                      ),
-                      transitionDuration: Duration.zero,
-                      reverseTransitionDuration: Duration.zero,
-                    ),
-                  );
-                }
-
-                if (state.isLoading) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (!state.isSignedIn) {
-                  return const Center(
-                    child: Text(
-                      'Zaloguj się, aby zobaczyć obserwowane produkty.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 14,
-                      ),
-                    ),
-                  );
-                }
-                if (state.errorText != null) {
-                  return Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: <Widget>[
-                        Text(
-                          state.errorText!,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            color: AppColors.textSecondary,
-                            fontSize: 14,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        FilledButton(
-                          onPressed: () => context.read<FavoritesBloc>().add(
-                            const FavoritesLoadRequested(),
-                          ),
-                          child: const Text('Ponów'),
-                        ),
-                      ],
-                    ),
-                  );
-                }
-                if (state.items.isEmpty) {
-                  return const Center(
-                    child: Text(
-                      'Nie obserwujesz jeszcze żadnych produktów.\nDodaj obserwację na karcie produktu.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 14,
-                      ),
-                    ),
-                  );
-                }
-                return RefreshIndicator(
-                  onRefresh: () {
-                    final bloc = context.read<FavoritesBloc>();
-                    bloc.add(const FavoritesLoadRequested());
-                    return bloc.stream.firstWhere(
-                      (FavoritesState s) => !s.isLoading,
-                    );
-                  },
-                  child: ListView.separated(
-                    padding: EdgeInsets.zero,
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    itemCount: state.items.length,
-                    separatorBuilder: (BuildContext context, int index) =>
-                        const SizedBox(height: 8),
-                    itemBuilder: (BuildContext context, int index) {
-                      final FavoriteProductUiModel row = state.items[index];
-                      final ProductUiModel product = row.product;
-                      return ProductTileSmall(
-                        name: product.name,
-                        distance: product.distance,
-                        priceWithUnitLabel: product.pricePerOfferLabel,
-                        verified: row.sellerVerified,
-                        margin: EdgeInsets.zero,
-                        onTap: () => openProductDetails(product),
-                      );
-                    },
+              Navigator.of(context).push(
+                PageRouteBuilder<void>(
+                  pageBuilder: (_, _, _) => ProductDetailsScreen(
+                    product: product,
+                    onBack: () => Navigator.of(context).pop(),
+                    onOpenProducerDetails: hasSeller
+                        ? () {
+                            Navigator.of(context).push(
+                              PageRouteBuilder<void>(
+                                pageBuilder: (_, _, _) => ProducerDetailsScreen(
+                                  sellerId: sid,
+                                  onBack: () => Navigator.of(context).pop(),
+                                ),
+                                transitionDuration: Duration.zero,
+                                reverseTransitionDuration: Duration.zero,
+                              ),
+                            );
+                          }
+                        : null,
                   ),
+                  transitionDuration: Duration.zero,
+                  reverseTransitionDuration: Duration.zero,
+                ),
+              );
+            }
+
+            if (state.isLoading) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (!state.isSignedIn) {
+              return const Center(
+                child: Text(
+                  'Zaloguj się, aby zobaczyć obserwowane produkty.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 14,
+                  ),
+                ),
+              );
+            }
+            if (state.errorText != null) {
+              return Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    Text(
+                      state.errorText!,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 14,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    FilledButton(
+                      onPressed: () => context.read<FavoritesBloc>().add(
+                        const FavoritesLoadRequested(),
+                      ),
+                      child: const Text('Ponów'),
+                    ),
+                  ],
+                ),
+              );
+            }
+            if (state.items.isEmpty) {
+              return const Center(
+                child: Text(
+                  'Nie obserwujesz jeszcze żadnych produktów.\nDodaj obserwację na karcie produktu.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 14,
+                  ),
+                ),
+              );
+            }
+            return RefreshIndicator(
+              onRefresh: () {
+                final bloc = context.read<FavoritesBloc>();
+                bloc.add(const FavoritesLoadRequested());
+                return bloc.stream.firstWhere(
+                  (FavoritesState s) => !s.isLoading,
                 );
               },
-            ),
-          ),
+              child: ListView.separated(
+                padding: DefaultScreen.bodyPadding(context, left: 0, top: 0, right: 0),
+                physics: const AlwaysScrollableScrollPhysics(),
+                itemCount: state.items.length,
+                separatorBuilder: (BuildContext context, int index) =>
+                    const SizedBox(height: 8),
+                itemBuilder: (BuildContext context, int index) {
+                  final FavoriteProductUiModel row = state.items[index];
+                  final ProductUiModel product = row.product;
+                  return ProductTileSmall(
+                    name: product.name,
+                    distance: product.distance,
+                    priceWithUnitLabel: product.pricePerOfferLabel,
+                    verified: row.sellerVerified,
+                    margin: EdgeInsets.zero,
+                    onTap: () => openProductDetails(product),
+                  );
+                },
+              ),
+            );
+          },
         ),
-      ],
+      ),
     );
   }
 }

@@ -373,7 +373,7 @@ class _SellerPanelScreenState extends State<SellerPanelScreen> {
             : _load,
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
+          padding: DefaultScreen.bodyPadding(context, top: 12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

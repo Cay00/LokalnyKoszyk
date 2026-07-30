@@ -96,7 +96,7 @@ class _ProducerDetailsBodyState extends State<_ProducerDetailsBody> {
                   ),
                 )
               : SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+                  padding: DefaultScreen.bodyPadding(context),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
@@ -352,26 +352,30 @@ class _ProducerDetailsBodyState extends State<_ProducerDetailsBody> {
                     style: AppTypography.header,
                   ),
                   const SizedBox(height: 8),
-                  ..._qualityAndCertificatesForSeller(seller).map(
-                    (String item) => Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          const Text(
-                            '• ',
-                            style: AppTypography.normal,
-                          ),
-                          Expanded(
-                            child: Text(
-                              item,
+                  ...() {
+                    final certs = _qualityAndCertificatesForSeller(seller);
+                    return certs.asMap().entries.map((entry) {
+                      final bool isLast = entry.key == certs.length - 1;
+                      return Padding(
+                        padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            const Text(
+                              '• ',
                               style: AppTypography.normal,
                             ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+                            Expanded(
+                              child: Text(
+                                entry.value,
+                                style: AppTypography.normal,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    });
+                  }(),
                   const SizedBox(height: 24),
                   const Text(
                     'Wszystkie produkty',
@@ -384,12 +388,16 @@ class _ProducerDetailsBodyState extends State<_ProducerDetailsBody> {
                       style: AppTypography.normal,
                     )
                   else
-                    ...vmState.products.map(
-                      (ProductUiModel product) => ProductTileSmall(
+                    ...vmState.products.asMap().entries.map((entry) {
+                      final bool isLast =
+                          entry.key == vmState.products.length - 1;
+                      final ProductUiModel product = entry.value;
+                      return ProductTileSmall(
                         name: product.name,
                         distance: product.distance,
                         priceWithUnitLabel: product.pricePerOfferLabel,
                         verified: seller?.isVerified == true,
+                        margin: EdgeInsets.only(bottom: isLast ? 0 : 8),
                         onTap: () {
                           Navigator.of(context).push(
                             PageRouteBuilder<void>(
@@ -403,8 +411,8 @@ class _ProducerDetailsBodyState extends State<_ProducerDetailsBody> {
                             ),
                           );
                         },
-                      ),
-                    ),
+                      );
+                    }),
                 ],
               ),
             ),

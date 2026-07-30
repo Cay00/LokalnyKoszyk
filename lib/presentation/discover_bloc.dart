@@ -19,12 +19,6 @@ final class DiscoverAddToCartRequested extends DiscoverEvent {
   final ProductUiModel product;
 }
 
-final class DiscoverFilterSelected extends DiscoverEvent {
-  const DiscoverFilterSelected(this.filter);
-
-  final String filter;
-}
-
 final class DiscoverCategoryToggled extends DiscoverEvent {
   const DiscoverCategoryToggled(this.categoryId);
 
@@ -42,7 +36,6 @@ const _unset = Object();
 class DiscoverState {
   const DiscoverState({
     required this.cartCount,
-    required this.activeFilter,
     required this.activeCategoryId,
     required this.liked,
     required this.isAddingToCart,
@@ -54,7 +47,6 @@ class DiscoverState {
 
   factory DiscoverState.initial() => const DiscoverState(
     cartCount: 0,
-    activeFilter: 'Wszystkie',
     activeCategoryId: null,
     liked: <String>{},
     isAddingToCart: false,
@@ -64,7 +56,6 @@ class DiscoverState {
   );
 
   final int cartCount;
-  final String activeFilter;
   final String? activeCategoryId;
   final Set<String> liked;
   final bool isAddingToCart;
@@ -74,24 +65,10 @@ class DiscoverState {
   final String? feedbackMessage;
 
   List<ProductUiModel> get visibleProducts {
-    List<ProductUiModel> list;
-    if (activeFilter == 'Wszystkie') {
-      list = products;
-    } else {
-      final needle = activeFilter.toUpperCase();
-      list = products
-          .where(
-            (ProductUiModel p) =>
-                p.tag.contains(needle) || p.name.toUpperCase().contains(needle),
-          )
-          .toList();
-    }
-    if (activeCategoryId != null) {
-      list = list
-          .where((ProductUiModel p) => p.categoryId == activeCategoryId)
-          .toList();
-    }
-    return list;
+    if (activeCategoryId == null) return products;
+    return products
+        .where((ProductUiModel p) => p.categoryId == activeCategoryId)
+        .toList();
   }
 
   List<DiscoverCategoryItem> get categoryItems => DiscoverBloc.categoryCatalog
@@ -109,7 +86,6 @@ class DiscoverState {
 
   DiscoverState copyWith({
     int? cartCount,
-    String? activeFilter,
     Object? activeCategoryId = _unset,
     Set<String>? liked,
     bool? isAddingToCart,
@@ -120,7 +96,6 @@ class DiscoverState {
   }) {
     return DiscoverState(
       cartCount: cartCount ?? this.cartCount,
-      activeFilter: activeFilter ?? this.activeFilter,
       activeCategoryId: identical(activeCategoryId, _unset)
           ? this.activeCategoryId
           : activeCategoryId as String?,
@@ -145,20 +120,12 @@ class DiscoverBloc extends Bloc<DiscoverEvent, DiscoverState> {
        super(DiscoverState.initial()) {
     on<DiscoverLoadProductsRequested>(_onLoadProducts);
     on<DiscoverAddToCartRequested>(_onAddToCart);
-    on<DiscoverFilterSelected>(_onFilterSelected);
     on<DiscoverCategoryToggled>(_onCategoryToggled);
     on<DiscoverToggleLikeRequested>(_onToggleLike);
   }
 
   final DiscoverRepository _discoverRepository;
   final CartRepository _cartRepository;
-
-  static const List<String> filters = <String>[
-    'Wszystkie',
-    'BIO',
-    'Regionalne',
-    'Sezonowe',
-  ];
 
   static const List<DiscoverCategoryEntry> categoryCatalog =
       <DiscoverCategoryEntry>[
@@ -319,13 +286,6 @@ class DiscoverBloc extends Bloc<DiscoverEvent, DiscoverState> {
         ),
       );
     }
-  }
-
-  void _onFilterSelected(
-    DiscoverFilterSelected event,
-    Emitter<DiscoverState> emit,
-  ) {
-    emit(state.copyWith(activeFilter: event.filter));
   }
 
   void _onCategoryToggled(

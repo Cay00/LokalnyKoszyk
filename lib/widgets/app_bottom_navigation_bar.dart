@@ -13,6 +13,17 @@ class AppBottomNavigationBar extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
 
+  static const double height = 60;
+  static const double outerPadding = 16;
+
+  /// Dolny clearance treści przy wiszącym barze: 16 + wysokość + 16 (+ safe area).
+  static double contentBottomPadding(BuildContext context) {
+    return outerPadding +
+        height +
+        outerPadding +
+        MediaQuery.viewPaddingOf(context).bottom;
+  }
+
   static const List<({String assetPath, String label})> _navItems = [
     (assetPath: 'assets/icons/house.svg', label: 'Sklep'),
     (assetPath: 'assets/icons/basket.svg', label: 'Koszyk'),
@@ -22,12 +33,17 @@ class AppBottomNavigationBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final double bottomInset = MediaQuery.paddingOf(context).bottom;
+    final double bottomInset = MediaQuery.viewPaddingOf(context).bottom;
 
     return Padding(
-      padding: EdgeInsets.fromLTRB(16, 0, 16, 16 + bottomInset),
+      padding: EdgeInsets.fromLTRB(
+        outerPadding,
+        0,
+        outerPadding,
+        outerPadding + bottomInset,
+      ),
       child: SizedBox(
-        height: 60,
+        height: height,
         child: DecoratedBox(
           decoration: const BoxDecoration(
             color: AppColors.white,

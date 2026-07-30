@@ -5,7 +5,7 @@ import 'package:lokalny_koszyk/presentation/order_history_detail_bloc.dart';
 import 'package:lokalny_koszyk/presentation/orders_bloc.dart';
 
 import '../../core/themes/app_theme.dart';
-import '../../widgets/common/screen_header.dart';
+import '../../widgets/common/default_screen.dart';
 
 class OrderHistoryDetailScreen extends StatelessWidget {
   const OrderHistoryDetailScreen({
@@ -30,16 +30,12 @@ class OrderHistoryDetailScreen extends StatelessWidget {
             ? ''
             : formatMoney(order.totalAmount, order.currency);
         final items = order?.items ?? const <OrderDetailsItem>[];
-        return Column(
-          children: <Widget>[
-            ScreenHeader(
-              title: orderNumber.isEmpty
-                  ? 'Zamówienie'
-                  : 'Zamówienie $orderNumber',
-              leading: ScreenHeaderBackButton(onPressed: onBack),
-            ),
-            Expanded(
-              child: state.isLoading
+        return DefaultScreen(
+          title: orderNumber.isEmpty
+              ? 'Zamówienie'
+              : 'Zamówienie $orderNumber',
+          onBack: onBack,
+          body: state.isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : state.errorText != null
                   ? Center(
@@ -56,7 +52,7 @@ class OrderHistoryDetailScreen extends StatelessWidget {
                       ),
                     )
                   : ListView(
-                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+                      padding: DefaultScreen.bodyPadding(context, top: 12),
                       children: <Widget>[
                         Container(
                           padding: const EdgeInsets.all(12),
@@ -112,8 +108,6 @@ class OrderHistoryDetailScreen extends StatelessWidget {
                           ),
                       ],
                     ),
-            ),
-          ],
         );
       },
     );

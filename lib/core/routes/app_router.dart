@@ -101,30 +101,38 @@ class _AppRouterState extends State<AppRouter> {
         },
         child: Scaffold(
           backgroundColor: AppColors.background,
-          body: Column(
+          body: Stack(
             children: <Widget>[
-              // manualne ustawienie koloru pod status barem
-              Container(
-                height: MediaQuery.paddingOf(context).top,
-                color: AppColors.background,
+              Column(
+                children: <Widget>[
+                  // manualne ustawienie koloru pod status barem
+                  Container(
+                    height: MediaQuery.paddingOf(context).top,
+                    color: AppColors.background,
+                  ),
+                  Expanded(
+                    child: IndexedStack(
+                      index: _selectedIndex,
+                      children: [
+                        DiscoverTab(navigatorKey: _shopNavigatorKey),
+                        OrdersTab(navigatorKey: _cartNavigatorKey),
+                        FavoritesTab(navigatorKey: _favoritesNavigatorKey),
+                        ProfileTab(navigatorKey: _profileNavigatorKey),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-              Expanded(
-                // IndexedStack zachowuje stan każdego taba
-                child: IndexedStack(
-                  index: _selectedIndex,
-                  children: [
-                    DiscoverTab(navigatorKey: _shopNavigatorKey),
-                    OrdersTab(navigatorKey: _cartNavigatorKey),
-                    FavoritesTab(navigatorKey: _favoritesNavigatorKey),
-                    ProfileTab(navigatorKey: _profileNavigatorKey),
-                  ],
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: AppBottomNavigationBar(
+                  currentIndex: _selectedIndex,
+                  onTap: (index) => setState(() => _selectedIndex = index),
                 ),
               ),
             ],
-          ),
-          bottomNavigationBar: AppBottomNavigationBar(
-            currentIndex: _selectedIndex,
-            onTap: (index) => setState(() => _selectedIndex = index),
           ),
         ),
       ),
