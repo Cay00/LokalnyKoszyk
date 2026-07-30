@@ -84,7 +84,7 @@ class ProductCard extends StatelessWidget {
                 children: [
                   Text(
                     name,
-                    style: AppTypography.productNameTiny,
+                    style: AppTypography.header,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -93,7 +93,7 @@ class ProductCard extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Expanded(
-                        child: Text(price, style: AppTypography.priceSmall),
+                        child: Text(price, style: AppTypography.header),
                       ),
                       GestureDetector(
                         onTap: onAddToCart,

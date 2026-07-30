@@ -27,7 +27,7 @@ class SectionHeader extends StatelessWidget {
             children: <Widget>[
               Text(
                 title,
-                style: AppTypography.sectionHeader,
+                style: AppTypography.header,
               ),
               if (titleCount != null)
                 Text(
@@ -46,7 +46,7 @@ class SectionHeader extends StatelessWidget {
             children: <Widget>[
               Text(
                 actionLabel!,
-                style: AppTypography.sectionHeaderAction,
+                style: AppTypography.caption,
               ),
               const SizedBox(width: 4),
               SvgPicture.asset(

@@ -190,7 +190,7 @@ class _ProductDetailsBody extends StatelessWidget {
                     Expanded(
                       child: Text(
                         product.name,
-                        style: AppTypography.productNameNormal,
+                        style: AppTypography.header,
                       ),
                     ),
                     Column(
@@ -199,7 +199,7 @@ class _ProductDetailsBody extends StatelessWidget {
                         Text(
                           product.pricePerOfferLabel,
                           textAlign: TextAlign.right,
-                          style: AppTypography.price,
+                          style: AppTypography.header,
                         ),
                         if (!product.hasKnownDbUnit &&
                             product.unit.trim().isNotEmpty) ...<Widget>[
@@ -313,7 +313,7 @@ class _ProductDetailsBody extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               details.description,
-              style: AppTypography.body.copyWith(height: 1.5),
+              style: AppTypography.normal.copyWith(height: 1.5),
             ),
             // const SizedBox(height: 16),
             // Row(
@@ -382,12 +382,12 @@ class _ProductDetailsBody extends StatelessWidget {
                   children: <Widget>[
                     const Text(
                       '• ',
-                      style: AppTypography.body,
+                      style: AppTypography.normal,
                     ),
                     Expanded(
                       child: Text(
                         item,
-                        style: AppTypography.body,
+                        style: AppTypography.normal,
                       ),
                     ),
                   ],
@@ -414,7 +414,7 @@ class _ProductDetailsBody extends StatelessWidget {
                   const Expanded(
                     child: Text(
                       'Wymaga przechowywania w warunkach chłodzonych',
-                      style: AppTypography.body,
+                      style: AppTypography.normal,
                     ),
                   ),
                 ] else ...<Widget>[
@@ -431,7 +431,7 @@ class _ProductDetailsBody extends StatelessWidget {
                   const Expanded(
                     child: Text(
                       'Nie wymaga przechowywania w warunkach chłodzonych',
-                      style: AppTypography.body,
+                      style: AppTypography.normal,
                     ),
                   ),
                 ],
@@ -440,7 +440,7 @@ class _ProductDetailsBody extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               _sharedStorageDetailsText,
-              style: AppTypography.body.copyWith(height: 1.5),
+              style: AppTypography.normal.copyWith(height: 1.5),
             ),
               ],
             ),

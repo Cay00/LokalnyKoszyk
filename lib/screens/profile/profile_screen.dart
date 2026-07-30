@@ -8,7 +8,6 @@ import 'package:lokalny_koszyk/screens/profile/seller/add_product_screen.dart';
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({
     super.key,
-    this.onOpenFavorites,
     this.onOpenAddresses,
     this.onOpenPayments,
     this.onOpenNotifications,
@@ -19,7 +18,6 @@ class ProfileScreen extends StatelessWidget {
     this.onOpenSellerPanel,
   });
 
-  final VoidCallback? onOpenFavorites;
   final VoidCallback? onOpenAddresses;
   final VoidCallback? onOpenPayments;
   final VoidCallback? onOpenNotifications;
@@ -30,7 +28,6 @@ class ProfileScreen extends StatelessWidget {
   final VoidCallback? onOpenSellerPanel;
 
   static const List<_ProfileMenuItem> _menu = <_ProfileMenuItem>[
-    _ProfileMenuItem(iconAsset: 'assets/icons/heart.svg', label: 'Ulubione produkty'),
     _ProfileMenuItem(iconAsset: 'assets/icons/map-pin-area.svg', label: 'Adresy dostawy'),
     _ProfileMenuItem(iconAsset: 'assets/icons/hand-coins.svg', label: 'Metody płatnosci'),
     _ProfileMenuItem(iconAsset: 'assets/icons/bell.svg', label: 'Powiadomienia'),
@@ -74,7 +71,7 @@ class ProfileScreen extends StatelessWidget {
               const SizedBox(height: 8),
               const Text(
                 'Wrocław · Członek od 2026',
-                style: AppTypography.captionOnDark,
+                style: AppTypography.caption,
               ),
               const SizedBox(height: 16),
               const _ProfileStats(),
@@ -104,7 +101,6 @@ class ProfileScreen extends StatelessWidget {
                           label: item.label,
                           withDivider: i < _menu.length - 1,
                           onTap: switch (item.label) {
-                            'Ulubione produkty' => onOpenFavorites,
                             'Adresy dostawy' => onOpenAddresses,
                             'Metody płatnosci' => onOpenPayments,
                             'Powiadomienia' => onOpenNotifications,
@@ -195,7 +191,7 @@ class _ProfileStat extends StatelessWidget {
         ),
         Text(
           label,
-          style: AppTypography.captionOnDark,
+          style: AppTypography.caption,
         ),
       ],
     );

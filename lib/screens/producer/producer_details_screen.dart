@@ -320,12 +320,12 @@ class _ProducerDetailsBodyState extends State<_ProducerDetailsBody> {
                               children: <Widget>[
                                 Text(
                                   _selectedInfoSection.title,
-                                  style: AppTypography.sectionHeader,
+                                  style: AppTypography.header,
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
                                   _selectedInfoSection.contentForSeller(seller),
-                                  style: AppTypography.body,
+                                  style: AppTypography.normal,
                                 ),
                               ],
                             ),
@@ -337,19 +337,19 @@ class _ProducerDetailsBodyState extends State<_ProducerDetailsBody> {
                   const SizedBox(height: 24),
                   const Text(
                     'Opis',
-                    style: AppTypography.sectionHeader,
+                    style: AppTypography.header,
                   ),
                   const SizedBox(height: 8),
                   Text(
                     (seller?.description ?? '').isEmpty
                         ? 'Ten sprzedawca nie uzupełnił jeszcze opisu.'
                         : seller!.description,
-                    style: AppTypography.body,
+                    style: AppTypography.normal,
                   ),
                   const SizedBox(height: 24),
                   const Text(
                     'Jakość i certyfikaty',
-                    style: AppTypography.sectionHeader,
+                    style: AppTypography.header,
                   ),
                   const SizedBox(height: 8),
                   ..._qualityAndCertificatesForSeller(seller).map(
@@ -360,12 +360,12 @@ class _ProducerDetailsBodyState extends State<_ProducerDetailsBody> {
                         children: <Widget>[
                           const Text(
                             '• ',
-                            style: AppTypography.body,
+                            style: AppTypography.normal,
                           ),
                           Expanded(
                             child: Text(
                               item,
-                              style: AppTypography.body,
+                              style: AppTypography.normal,
                             ),
                           ),
                         ],
@@ -375,13 +375,13 @@ class _ProducerDetailsBodyState extends State<_ProducerDetailsBody> {
                   const SizedBox(height: 24),
                   const Text(
                     'Wszystkie produkty',
-                    style: AppTypography.sectionHeader,
+                    style: AppTypography.header,
                   ),
                   const SizedBox(height: 12),
                   if (vmState.products.isEmpty)
                     const Text(
                       'Ten sprzedawca nie ma aktywnych produktów.',
-                      style: AppTypography.body,
+                      style: AppTypography.normal,
                     )
                   else
                     ...vmState.products.map(

@@ -20,8 +20,10 @@ class FavoritesScreen extends StatelessWidget {
     return Column(
       children: <Widget>[
         ScreenHeader(
-          title: 'Ulubione produkty',
-          leading: ScreenHeaderBackButton(onPressed: onBack),
+          title: 'Ulubione',
+          leading: onBack == null
+              ? null
+              : ScreenHeaderBackButton(onPressed: onBack),
         ),
         Expanded(
           child: Padding(

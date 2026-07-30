@@ -89,7 +89,7 @@ class ProducerTile extends StatelessWidget {
                             name,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: AppTypography.productNameTiny,
+                            style: AppTypography.header,
                           ),
                         ),
                         if (verified) ...<Widget>[

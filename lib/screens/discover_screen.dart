@@ -39,7 +39,7 @@ class DiscoverScreen extends StatelessWidget {
           final visibleProducts = state.visibleProducts;
           return Column(
             children: <Widget>[
-              const ScreenHeader(title: 'Odkrywaj'),
+              const ScreenHeader(title: 'Sklep'),
               Expanded(
                 child: ListView(
                   padding: EdgeInsets.zero,
@@ -81,11 +81,11 @@ class DiscoverScreen extends StatelessWidget {
                           if (state.isLoadingProducts)
                             const Center(child: CircularProgressIndicator())
                           else if (state.productsError != null)
-                            Text(state.productsError!, style: AppTypography.body)
+                            Text(state.productsError!, style: AppTypography.normal)
                           else if (visibleProducts.isEmpty)
                             const Text(
                               'Brak produktów do wyświetlenia.',
-                              style: AppTypography.body,
+                              style: AppTypography.normal,
                             )
                           else
                             ProductCardGrid(

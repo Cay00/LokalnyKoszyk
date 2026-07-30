@@ -45,7 +45,7 @@ class OrdersScreen extends StatelessWidget {
             .toList();
         return Column(
           children: <Widget>[
-            const ScreenHeader(title: 'Zamówienia'),
+            const ScreenHeader(title: 'Koszyk'),
             Expanded(
               child: RefreshIndicator(
                 onRefresh: () {
@@ -82,7 +82,7 @@ class OrdersScreen extends StatelessWidget {
                 Row(
                   children: <Widget>[
                     Expanded(
-                      child: Text(state.ordersError!, style: AppTypography.body),
+                      child: Text(state.ordersError!, style: AppTypography.normal),
                     ),
                     TextButton(
                       onPressed: () => context.read<OrdersBloc>().add(
@@ -95,7 +95,7 @@ class OrdersScreen extends StatelessWidget {
               else if (orders.isEmpty)
                 const Text(
                   'Brak złożonych zamówień dla tego konta.',
-                  style: AppTypography.body,
+                  style: AppTypography.normal,
                 )
               else
                 ...orders.asMap().entries.map((entry) {
@@ -383,7 +383,7 @@ class _OrderHistoryTile extends StatelessWidget {
                     children: <Widget>[
                       Text(
                         'Zamówienie ${order.orderNumber}',
-                        style: AppTypography.productNameTiny,
+                        style: AppTypography.header,
                       ),
                       Text(
                         order.date,
@@ -423,7 +423,7 @@ class _OrderHistoryTile extends StatelessWidget {
                 ),
                 Text(
                   order.total,
-                  style: AppTypography.priceSmall,
+                  style: AppTypography.header,
                 ),
               ],
             ),

@@ -74,7 +74,7 @@ class ProductTile extends StatelessWidget {
                           children: <Widget>[
                             Text(
                               product.name,
-                              style: AppTypography.productNameSmall,
+                              style: AppTypography.header,
                             ),
                             const SizedBox(height: 2),
                             Text(
@@ -90,7 +90,7 @@ class ProductTile extends StatelessWidget {
                           Text(
                             product.pricePerOfferLabel,
                             textAlign: TextAlign.right,
-                            style: AppTypography.price,
+                            style: AppTypography.header,
                           ),
                           if (!product.hasKnownDbUnit &&
                               product.unit.trim().isNotEmpty) ...<Widget>[

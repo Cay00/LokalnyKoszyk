@@ -14,9 +14,9 @@ class AppBottomNavigationBar extends StatelessWidget {
   final ValueChanged<int> onTap;
 
   static const List<({String assetPath, String label})> _navItems = [
-    (assetPath: 'assets/icons/barn.svg', label: 'Ekran główny'),
-    (assetPath: 'assets/icons/compass.svg', label: 'Odkrywaj'),
-    (assetPath: 'assets/icons/basket.svg', label: 'Zamówienia'),
+    (assetPath: 'assets/icons/barn.svg', label: 'Sklep'),
+    (assetPath: 'assets/icons/basket.svg', label: 'Koszyk'),
+    (assetPath: 'assets/icons/heart.svg', label: 'Ulubione'),
     (assetPath: 'assets/icons/user.svg', label: 'Profil'),
   ];
 

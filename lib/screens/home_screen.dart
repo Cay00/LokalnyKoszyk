@@ -366,7 +366,7 @@ class _NearbyProducersList extends StatelessWidget {
                   Expanded(
                     child: Text(
                       errorText!,
-                      style: AppTypography.body,
+                      style: AppTypography.normal,
                     ),
                   ),
                   TextButton(
@@ -381,7 +381,7 @@ class _NearbyProducersList extends StatelessWidget {
                 padding: EdgeInsets.only(bottom: 8),
                 child: Text(
                   'Brak sprzedawców do wyświetlenia.',
-                  style: AppTypography.body,
+                  style: AppTypography.normal,
                 ),
               )
             else ...<Widget>[
@@ -401,7 +401,7 @@ class _NearbyProducersList extends StatelessWidget {
                     padding: const EdgeInsets.only(top: 8, bottom: 4),
                     child: Text(
                       accessHint!,
-                      style: AppTypography.body.copyWith(
+                      style: AppTypography.normal.copyWith(
                         fontSize: 12,
                         color: AppColors.textLight,
                         height: 1.35,

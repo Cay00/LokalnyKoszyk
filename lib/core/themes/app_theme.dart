@@ -30,119 +30,32 @@ class AppTypography {
   static const String fontFamily = 'Inter';
 
   /* <----------- Typography ------------> */
-
   static const TextStyle header = TextStyle(
     fontFamily: fontFamily,
-    fontSize: 24,
-    fontWeight: FontWeight.w600,
-    color: AppColors.textPrimary,
-  );
-
-  static const TextStyle sectionHeader = TextStyle(
-    fontFamily: fontFamily,
-    fontSize: 18,
-    fontWeight: FontWeight.w600,
-    color: AppColors.textPrimary,
-  );
-
-  static const TextStyle sectionHeaderAction = TextStyle(
-    fontFamily: fontFamily,
-    fontSize: 12,
-    color: AppColors.textSecondary,
-  );
-
-  static const TextStyle productNameNormal = TextStyle(
-    fontFamily: fontFamily,
-    fontSize: 18,
-    fontWeight: FontWeight.w600,
-    color: AppColors.textPrimary,
-  );
-
-  static const TextStyle productNameSmall = TextStyle(
-    fontFamily: fontFamily,
     fontSize: 16,
-    fontWeight: FontWeight.w600,
+    fontWeight: FontWeight.bold,
     color: AppColors.textPrimary,
   );
 
-  static const TextStyle productNameTiny = TextStyle(
+  static const TextStyle normal = TextStyle(
     fontFamily: fontFamily,
     fontSize: 14,
-    fontWeight: FontWeight.w600,
-    color: AppColors.textPrimary,
-  );
-
-  static const TextStyle price = TextStyle(
-    fontFamily: fontFamily,
-    fontSize: 18,
-    fontWeight: FontWeight.w600,
-    color: AppColors.textPrimary,
-  );
-
-  static const TextStyle priceSmall = TextStyle(
-    fontFamily: fontFamily,
-    fontSize: 16,
-    fontWeight: FontWeight.w600,
-    color: AppColors.textPrimary,
-  );
-
-  static const TextStyle body = TextStyle(
-    fontFamily: fontFamily,
-    fontSize: 14,
-    height: 1.5,
     fontWeight: FontWeight.w400,
-    color: AppColors.textSecondary,
+    color: AppColors.textPrimary,
   );
 
   static const TextStyle caption = TextStyle(
     fontFamily: fontFamily,
     fontSize: 12,
     fontWeight: FontWeight.w400,
-    color: AppColors.textSecondary,
+    color: AppColors.textPrimary,
   );
 
-  static const TextStyle captionOnDark = TextStyle(
-    fontFamily: fontFamily,
-    fontSize: 12,
-    fontWeight: FontWeight.w400,
-    color: AppColors.textOnDark,
-  );
-
-  static const TextStyle smallCaption = TextStyle(
+  static const TextStyle tinyCaption = TextStyle(
     fontFamily: fontFamily,
     fontSize: 10,
     fontWeight: FontWeight.w400,
     color: AppColors.textSecondary,
-  );
-
-  static const TextStyle buttonDark = TextStyle(
-    fontFamily: fontFamily,
-    fontSize: 16,
-    fontWeight: FontWeight.w600,
-    color: AppColors.textPrimary,
-  );
-
-  /* <----------- Typography ------------> */
-  static const TextStyle h1 = TextStyle(
-    fontFamily: fontFamily,
-    fontSize: 26,
-    fontWeight: FontWeight.w700,
-    height: 1.3,
-    color: AppColors.textPrimary,
-  );
-
-  static const TextStyle h2 = TextStyle(
-    fontFamily: fontFamily,
-    fontSize: 24,
-    fontWeight: FontWeight.w700,
-    color: AppColors.textPrimary,
-  );
-
-  static const TextStyle title = TextStyle(
-    fontFamily: fontFamily,
-    fontSize: 16,
-    fontWeight: FontWeight.w600,
-    color: AppColors.textPrimary,
   );
 }
 
@@ -185,11 +98,10 @@ class AppTheme {
       cardColor: AppColors.surface,
       canvasColor: AppColors.background,
       textTheme: interTextTheme.copyWith(
-        displayLarge: AppTypography.h1,
-        headlineLarge: AppTypography.h2,
-        titleMedium: AppTypography.title,
-        bodyMedium: AppTypography.body,
+        titleMedium: AppTypography.header,
+        bodyMedium: AppTypography.normal,
         labelMedium: AppTypography.caption,
+        labelSmall: AppTypography.tinyCaption,
       ),
       appBarTheme: const AppBarTheme(
         backgroundColor: AppColors.surface,
@@ -200,14 +112,14 @@ class AppTheme {
         style: FilledButton.styleFrom(
           backgroundColor: AppColors.surface,
           foregroundColor: AppColors.textPrimary,
-          textStyle: AppTypography.buttonDark,
+          textStyle: AppTypography.header,
         ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.surface,
           foregroundColor: AppColors.textPrimary,
-          textStyle: AppTypography.buttonDark,
+          textStyle: AppTypography.header,
         ),
       ),
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
@@ -216,16 +128,8 @@ class AppTheme {
         unselectedItemColor: AppColors.textSecondary,
         selectedIconTheme: IconThemeData(size: 20),
         unselectedIconTheme: IconThemeData(size: 20),
-        selectedLabelStyle: TextStyle(
-          fontFamily: AppTypography.fontFamily,
-          fontSize: 12,
-          fontWeight: FontWeight.w500,
-        ),
-        unselectedLabelStyle: TextStyle(
-          fontFamily: AppTypography.fontFamily,
-          fontSize: 12,
-          fontWeight: FontWeight.w500,
-        ),
+        selectedLabelStyle: AppTypography.caption,
+        unselectedLabelStyle: AppTypography.caption,
         showUnselectedLabels: false,
         elevation: 0,
       ),

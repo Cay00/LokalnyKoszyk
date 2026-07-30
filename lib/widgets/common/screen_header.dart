@@ -18,7 +18,7 @@ class ScreenHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: AppColors.white,
+      color: AppColors.background,
       padding: const EdgeInsets.all(16),
       child: SizedBox(
         height: 50,
@@ -32,12 +32,7 @@ class ScreenHeader extends StatelessWidget {
             Center(
               child: Text(
                 title,
-                style: const TextStyle(
-                  fontFamily: AppTypography.fontFamily,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textPrimary,
-                ),
+                style: AppTypography.header,
                 textAlign: TextAlign.center,
               ),
             ),
@@ -68,7 +63,8 @@ class ScreenHeaderButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.transparent,
+      color: AppColors.white,
+      borderRadius: BorderRadius.circular(25),
       child: InkWell(
         onTap: onPressed,
         borderRadius: BorderRadius.circular(25),

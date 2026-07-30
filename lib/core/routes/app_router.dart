@@ -5,13 +5,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lokalny_koszyk/core/themes/app_theme.dart';
 import 'package:lokalny_koszyk/domain/repositories/cart_repository.dart';
 import 'package:lokalny_koszyk/domain/repositories/discover_repository.dart';
-import 'package:lokalny_koszyk/domain/repositories/home_repository.dart';
 import 'package:lokalny_koszyk/domain/repositories/orders_repository.dart';
 import 'package:lokalny_koszyk/domain/repositories/watched_products_repository.dart';
 import 'package:lokalny_koszyk/presentation/checkout_bloc.dart';
 import 'package:lokalny_koszyk/presentation/discover_bloc.dart';
 import 'package:lokalny_koszyk/presentation/favorites_bloc.dart';
-import 'package:lokalny_koszyk/presentation/home_bloc.dart';
 import 'package:lokalny_koszyk/presentation/models/product_ui_model.dart';
 import 'package:lokalny_koszyk/presentation/order_history_detail_bloc.dart';
 import 'package:lokalny_koszyk/presentation/orders_bloc.dart';
@@ -20,7 +18,6 @@ import 'package:lokalny_koszyk/screens/checkout/order_checkout_screen.dart';
 import 'package:lokalny_koszyk/screens/checkout/order_history_detail_screen.dart';
 import 'package:lokalny_koszyk/screens/checkout/orders_screen.dart';
 import 'package:lokalny_koszyk/screens/discover_screen.dart';
-import 'package:lokalny_koszyk/screens/home_screen.dart';
 import 'package:lokalny_koszyk/screens/producer/producer_details_screen.dart';
 import 'package:lokalny_koszyk/screens/product/product_details_screen.dart';
 import 'package:lokalny_koszyk/screens/profile/addresses_screen.dart';
@@ -51,16 +48,17 @@ class _AppRouterState extends State<AppRouter> {
   int _selectedIndex = 0;
 
   // osobne Navigatory dla każdego taba (klucz do niezależnych stacków)
-  final GlobalKey<NavigatorState> _homeNavigatorKey = GlobalKey<NavigatorState>();
-  final GlobalKey<NavigatorState> _discoverNavigatorKey = GlobalKey<NavigatorState>();
-  final GlobalKey<NavigatorState> _ordersNavigatorKey = GlobalKey<NavigatorState>();
+  final GlobalKey<NavigatorState> _shopNavigatorKey = GlobalKey<NavigatorState>();
+  final GlobalKey<NavigatorState> _cartNavigatorKey = GlobalKey<NavigatorState>();
+  final GlobalKey<NavigatorState> _favoritesNavigatorKey =
+      GlobalKey<NavigatorState>();
   final GlobalKey<NavigatorState> _profileNavigatorKey = GlobalKey<NavigatorState>();
 
   // lista navigatorów dla łatwego dostępu po indeksie
   List<GlobalKey<NavigatorState>> get _navigatorKeys => [
-    _homeNavigatorKey,
-    _discoverNavigatorKey,
-    _ordersNavigatorKey,
+    _shopNavigatorKey,
+    _cartNavigatorKey,
+    _favoritesNavigatorKey,
     _profileNavigatorKey,
   ];
 
@@ -115,9 +113,9 @@ class _AppRouterState extends State<AppRouter> {
                 child: IndexedStack(
                   index: _selectedIndex,
                   children: [
-                    HomeTab(navigatorKey: _homeNavigatorKey),
-                    DiscoverTab(navigatorKey: _discoverNavigatorKey),
-                    OrdersTab(navigatorKey: _ordersNavigatorKey),
+                    DiscoverTab(navigatorKey: _shopNavigatorKey),
+                    OrdersTab(navigatorKey: _cartNavigatorKey),
+                    FavoritesTab(navigatorKey: _favoritesNavigatorKey),
                     ProfileTab(navigatorKey: _profileNavigatorKey),
                   ],
                 ),
@@ -164,60 +162,7 @@ void _pushProducerDetails(BuildContext context, String sellerId) {
   );
 }
 
-// ------------------ HOME TAB ------------------
-// wrapper dla Navigatora w tabie Home
-class HomeTab extends StatelessWidget {
-  const HomeTab({required this.navigatorKey, super.key});
-
-  final GlobalKey<NavigatorState> navigatorKey;
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => HomeBloc(
-        homeRepository: context.read<HomeRepository>(),
-        cartRepository: context.read<CartRepository>(),
-      )..add(const HomeLoadSellersRequested()),
-      child: Navigator(
-        key: navigatorKey,
-        onGenerateRoute: (_) => _NoAnimationPageRoute<void>(
-          builder: (_) => const _HomeNavigator(),
-        ),
-      ),
-    );
-  }
-}
-
-// root navigator dla taba Home
-// zawiera logikę przejść z HomeScreen
-class _HomeNavigator extends StatelessWidget {
-  const _HomeNavigator();
-
-  @override
-  Widget build(BuildContext context) {
-    return HomeScreen(
-      onOpenProductDetails: (product) {
-        Navigator.push(
-          context,
-          _NoAnimationPageRoute<void>(
-            builder: (_) => ProductDetailsScreen(
-              product: product,
-              onBack: () => Navigator.pop(context),
-              onOpenProducerDetails: _hasSellerId(product)
-                  ? () => _pushProducerDetails(context, product.sellerId!)
-                  : null,
-            ),
-          ),
-        );
-      },
-      onOpenProducerDetails: (sellerId) {
-        _pushProducerDetails(context, sellerId);
-      },
-    );
-  }
-}
-
-// ------------------ DISCOVER TAB ------------------
+// ------------------ SHOP TAB (Sklep) ------------------
 class DiscoverTab extends StatelessWidget {
   const DiscoverTab({required this.navigatorKey, super.key});
 
@@ -240,7 +185,7 @@ class DiscoverTab extends StatelessWidget {
   }
 }
 
-// root navigator dla Discover
+// root navigator dla Sklepu
 class _DiscoverNavigator extends StatelessWidget {
   const _DiscoverNavigator();
 
@@ -265,7 +210,7 @@ class _DiscoverNavigator extends StatelessWidget {
   }
 }
 
-// ------------------ ORDERS TAB ------------------
+// ------------------ CART TAB (Koszyk) ------------------
 class OrdersTab extends StatelessWidget {
   const OrdersTab({required this.navigatorKey, super.key});
 
@@ -288,7 +233,7 @@ class OrdersTab extends StatelessWidget {
   }
 }
 
-// root navigator dla Orders
+// root navigator dla Koszyka
 class _OrdersNavigator extends StatelessWidget {
   const _OrdersNavigator();
 
@@ -331,6 +276,28 @@ class _OrdersNavigator extends StatelessWidget {
   }
 }
 
+// ------------------ FAVORITES TAB (Ulubione) ------------------
+class FavoritesTab extends StatelessWidget {
+  const FavoritesTab({required this.navigatorKey, super.key});
+
+  final GlobalKey<NavigatorState> navigatorKey;
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) => FavoritesBloc(
+        watchedProductsRepository: context.read<WatchedProductsRepository>(),
+      )..add(const FavoritesLoadRequested()),
+      child: Navigator(
+        key: navigatorKey,
+        onGenerateRoute: (_) => _NoAnimationPageRoute<void>(
+          builder: (_) => const FavoritesScreen(),
+        ),
+      ),
+    );
+  }
+}
+
 // ------------------ PROFILE TAB ------------------
 class ProfileTab extends StatelessWidget {
   const ProfileTab({required this.navigatorKey, super.key});
@@ -362,22 +329,6 @@ class _ProfileNavigator extends StatelessWidget {
           _NoAnimationPageRoute<void>(
             builder: (_) => SellerPanelScreen(
               onBack: () => Navigator.pop(context),
-            ),
-          ),
-        );
-      },
-      onOpenFavorites: () {
-        Navigator.push(
-          context,
-          _NoAnimationPageRoute<void>(
-            builder: (_) => BlocProvider(
-              create: (context) => FavoritesBloc(
-                watchedProductsRepository:
-                    context.read<WatchedProductsRepository>(),
-              )..add(const FavoritesLoadRequested()),
-              child: FavoritesScreen(
-                onBack: () => Navigator.pop(context),
-              ),
             ),
           ),
         );

@@ -29,7 +29,7 @@ class PrimaryActionButton extends StatelessWidget {
         ),
         child: Text(
           label,
-          style: AppTypography.buttonDark.copyWith(color: AppColors.white),
+          style: AppTypography.header.copyWith(color: AppColors.white),
         ),
       ),
     );
