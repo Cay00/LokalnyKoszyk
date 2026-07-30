@@ -335,7 +335,7 @@ class _ProducerDetailsBodyState extends State<_ProducerDetailsBody> {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  const Text(
+                  Text(
                     'Opis',
                     style: AppTypography.header,
                   ),
@@ -347,7 +347,7 @@ class _ProducerDetailsBodyState extends State<_ProducerDetailsBody> {
                     style: AppTypography.normal,
                   ),
                   const SizedBox(height: 24),
-                  const Text(
+                  Text(
                     'Jakość i certyfikaty',
                     style: AppTypography.header,
                   ),
@@ -361,7 +361,7 @@ class _ProducerDetailsBodyState extends State<_ProducerDetailsBody> {
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: <Widget>[
-                            const Text(
+                            Text(
                               '• ',
                               style: AppTypography.normal,
                             ),
@@ -377,13 +377,13 @@ class _ProducerDetailsBodyState extends State<_ProducerDetailsBody> {
                     });
                   }(),
                   const SizedBox(height: 24),
-                  const Text(
+                  Text(
                     'Wszystkie produkty',
                     style: AppTypography.header,
                   ),
                   const SizedBox(height: 12),
                   if (vmState.products.isEmpty)
-                    const Text(
+                    Text(
                       'Ten sprzedawca nie ma aktywnych produktów.',
                       style: AppTypography.normal,
                     )

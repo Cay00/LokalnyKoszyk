@@ -85,6 +85,52 @@ bool _isOne(double value) {
 /// 7,99 zł/l
 /// 4,99 zł/330 ml
 ///
+///
+/// Przykłady: `25 kg`, `2 szt.`, `250 g`, `330 ml`
+///
+String buildProductSizeLabel({
+  required ProductUnit? unit,
+  double? quantity,
+  String fallback = '',
+}) {
+  final q = quantity;
+  final hasQuantity = q != null && q > 0 && q.isFinite;
+
+  if (unit == null) {
+    return fallback.trim();
+  }
+
+  switch (unit) {
+    case ProductUnit.piece:
+      if (!hasQuantity) return 'szt.';
+      return '${formatAmountPl(q)} szt.';
+
+    case ProductUnit.kilogram:
+      if (!hasQuantity) return 'kg';
+      if (q < 1) {
+        final grams = (q * 1000).round();
+        return '$grams g';
+      }
+      return '${formatAmountPl(q)} kg';
+
+    case ProductUnit.gram:
+      if (!hasQuantity) return 'g';
+      return '${formatAmountPl(q)} g';
+
+    case ProductUnit.liter:
+      if (!hasQuantity) return 'l';
+      if (q < 1) {
+        final ml = (q * 1000).round();
+        return '$ml ml';
+      }
+      return '${formatAmountPl(q)} l';
+
+    case ProductUnit.milliliter:
+      if (!hasQuantity) return 'ml';
+      return '${formatAmountPl(q)} ml';
+  }
+}
+
 String buildProductPricePerLabel({
   required String priceFormatted,
   required ProductUnit? unit,

@@ -55,5 +55,13 @@ class ProductUiModel {
     quantity: packageQuantity,
   );
 
+  String get priceLabel => '$price zł';
+
+  String get sizeLabel => buildProductSizeLabel(
+    unit: productUnit,
+    quantity: packageQuantity,
+    fallback: unit.replaceFirst(RegExp(r'^/\s*'), ''),
+  );
+
   bool get hasKnownDbUnit => productUnit != null;
 }

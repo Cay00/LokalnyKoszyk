@@ -91,7 +91,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                           style: AppTypography.normal,
                         )
                       else if (visibleProducts.isEmpty)
-                        const Text(
+                        Text(
                           'Brak produktów do wyświetlenia.',
                           style: AppTypography.normal,
                         )
@@ -115,7 +115,8 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                                     ) => ColoredBox(color: product.bgColor),
                               ),
                               name: product.name,
-                              price: product.pricePerOfferLabel,
+                              size: product.sizeLabel,
+                              price: product.priceLabel,
                               onTap: () =>
                                   widget.onOpenProductDetails?.call(product),
                               onAddToCart: () {

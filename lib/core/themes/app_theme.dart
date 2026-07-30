@@ -16,35 +16,32 @@ class AppColors {
 class AppTypography {
   const AppTypography._();
 
-  static const String fontFamily = 'Inter';
+  static String get fontFamily => GoogleFonts.inter().fontFamily!;
 
   /* <----------- Typography ------------> */
-  static const TextStyle header = TextStyle(
-    fontFamily: fontFamily,
+  static TextStyle get header => GoogleFonts.inter(
     fontSize: 16,
     fontWeight: FontWeight.bold,
     color: AppColors.textPrimary,
   );
 
-  static const TextStyle normal = TextStyle(
-    fontFamily: fontFamily,
+  static TextStyle get normal => GoogleFonts.inter(
     fontSize: 14,
     fontWeight: FontWeight.w400,
     color: AppColors.textPrimary,
   );
 
-  static const TextStyle caption = TextStyle(
-    fontFamily: fontFamily,
+  static TextStyle get caption => GoogleFonts.inter(
     fontSize: 12,
     fontWeight: FontWeight.w400,
     color: AppColors.textPrimary,
   );
 
-  static const TextStyle tinyCaption = TextStyle(
-    fontFamily: fontFamily,
+  static TextStyle get tinyCaption => GoogleFonts.inter(
     fontSize: 10,
     fontWeight: FontWeight.w400,
-    color: AppColors.textSecondary,  );
+    color: AppColors.textSecondary,
+  );
 }
 
 class AppRadius {
@@ -91,6 +88,7 @@ class AppTheme {
         labelMedium: AppTypography.caption,
         labelSmall: AppTypography.tinyCaption,
       ),
+      primaryTextTheme: interTextTheme,
       appBarTheme: const AppBarTheme(
         backgroundColor: AppColors.surface,
         foregroundColor: AppColors.textPrimary,
@@ -110,12 +108,12 @@ class AppTheme {
           textStyle: AppTypography.header,
         ),
       ),
-      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+      bottomNavigationBarTheme: BottomNavigationBarThemeData(
         backgroundColor: AppColors.surface,
         selectedItemColor: AppColors.accent,
         unselectedItemColor: AppColors.textSecondary,
-        selectedIconTheme: IconThemeData(size: 20),
-        unselectedIconTheme: IconThemeData(size: 20),
+        selectedIconTheme: const IconThemeData(size: 20),
+        unselectedIconTheme: const IconThemeData(size: 20),
         selectedLabelStyle: AppTypography.caption,
         unselectedLabelStyle: AppTypography.caption,
         showUnselectedLabels: false,

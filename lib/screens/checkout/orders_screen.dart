@@ -94,7 +94,7 @@ class OrdersScreen extends StatelessWidget {
                     ],
                   )
                 else if (orders.isEmpty)
-                  const Text(
+                  Text(
                     'Brak złożonych zamówień dla tego konta.',
                     style: AppTypography.normal,
                   )

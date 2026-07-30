@@ -380,7 +380,7 @@ class _ProductDetailsBody extends StatelessWidget {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    const Text(
+                    Text(
                       '• ',
                       style: AppTypography.normal,
                     ),
@@ -411,7 +411,7 @@ class _ProductDetailsBody extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 10),
-                  const Expanded(
+                  Expanded(
                     child: Text(
                       'Wymaga przechowywania w warunkach chłodzonych',
                       style: AppTypography.normal,
@@ -428,7 +428,7 @@ class _ProductDetailsBody extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 10),
-                  const Expanded(
+                  Expanded(
                     child: Text(
                       'Nie wymaga przechowywania w warunkach chłodzonych',
                       style: AppTypography.normal,

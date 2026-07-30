@@ -1,4 +1,5 @@
 ﻿import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../core/themes/app_theme.dart';
 
@@ -12,7 +13,7 @@ class ProductCardGrid extends StatelessWidget {
   final int itemCount;
   final IndexedWidgetBuilder itemBuilder;
 
-  static const double _gap = 16;
+  static const double _gap = 8;
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +39,9 @@ class ProductCardGrid extends StatelessWidget {
 class ProductCard extends StatelessWidget {
   final Widget image;
   final String name;
+  final String size;
   final String price;
+  final String? oldPrice;
   final VoidCallback? onTap;
   final VoidCallback? onAddToCart;
 
@@ -46,10 +49,16 @@ class ProductCard extends StatelessWidget {
     super.key,
     required this.image,
     required this.name,
+    required this.size,
     required this.price,
+    this.oldPrice,
     this.onTap,
     this.onAddToCart,
   });
+
+  static const double _addButtonSize = 38;
+  static const double _addIconSize = 24;
+  static const double _edgePad = 8;
 
   @override
   Widget build(BuildContext context) {
@@ -57,64 +66,108 @@ class ProductCard extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.white,
           borderRadius: BorderRadius.circular(AppRadius.normal),
-          border: Border.all(color: AppColors.background, width: 1),
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
+        clipBehavior: Clip.antiAlias,
+        child: Stack(
           children: [
-            ClipRRect(
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(AppRadius.normal),
-                topRight: Radius.circular(AppRadius.normal),
-              ),
-              child: SizedBox(
-                height: 128,
-                width: double.infinity,
-                child: image,
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    name,
-                    style: AppTypography.header,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(AppRadius.normal),
+                  child: AspectRatio(
+                    aspectRatio: 4 / 3,
+                    child: SizedBox.expand(child: image),
                   ),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    _edgePad,
+                    _edgePad,
+                    _edgePad,
+                    0,
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: Text(price, style: AppTypography.header),
+                      Text(
+                        name,
+                        style: AppTypography.normal.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      GestureDetector(
-                        onTap: onAddToCart,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: AppColors.accent,
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Padding(
-                            padding: EdgeInsets.all(8),
-                            child: Icon(
-                              Icons.add,
-                              color: Colors.white,
-                              size: 16,
+                      const SizedBox(height: 8),
+                      Text(
+                        size,
+                        style: AppTypography.caption,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Padding(
+                        padding: const EdgeInsets.only(
+                          right: _addButtonSize,
+                          bottom: _edgePad,
+                        ),
+                        child: Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                price,
+                                style: AppTypography.header,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
-                          ),
+                            if (oldPrice != null &&
+                                oldPrice!.trim().isNotEmpty) ...[
+                              const SizedBox(width: 2),
+                              Text(
+                                oldPrice!,
+                                style: AppTypography.tinyCaption.copyWith(
+                                  decoration: TextDecoration.lineThrough,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ],
                         ),
                       ),
                     ],
                   ),
-                ],
+                ),
+              ],
+            ),
+            Positioned(
+              right: _edgePad,
+              bottom: _edgePad,
+              child: GestureDetector(
+                onTap: onAddToCart,
+                child: Container(
+                  width: _addButtonSize,
+                  height: _addButtonSize,
+                  decoration: const BoxDecoration(
+                    color: AppColors.accent,
+                    shape: BoxShape.circle,
+                  ),
+                  alignment: Alignment.center,
+                  child: SvgPicture.asset(
+                    'assets/icons/basket.svg',
+                    width: _addIconSize,
+                    height: _addIconSize,
+                    colorFilter: const ColorFilter.mode(
+                      AppColors.textPrimary,
+                      BlendMode.srcIn,
+                    ),
+                  ),
+                ),
               ),
             ),
           ],

@@ -74,7 +74,7 @@ class ProfileScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 8),
-              const Text(
+              Text(
                 'Wrocław · Członek od 2026',
                 style: AppTypography.caption,
               ),

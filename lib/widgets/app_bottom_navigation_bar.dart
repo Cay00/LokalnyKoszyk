@@ -111,13 +111,7 @@ class _BottomNavItem extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 label,
-                style: const TextStyle(
-                  fontFamily: AppTypography.fontFamily,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w400,
-                  height: 1,
-                  color: AppColors.textPrimary,
-                ),
+                style: AppTypography.caption.copyWith(height: 1),
               ),
             ],
           ),
