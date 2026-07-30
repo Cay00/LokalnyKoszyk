@@ -157,7 +157,7 @@ class _CategoriesSection extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         SizedBox(
-          height: 92,
+          height: 84,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -165,7 +165,7 @@ class _CategoriesSection extends StatelessWidget {
               parent: AlwaysScrollableScrollPhysics(),
             ),
             itemCount: categories.length,
-            separatorBuilder: (_, _) => const SizedBox(width: 8),
+            separatorBuilder: (_, _) => const SizedBox(width: 16),
             itemBuilder: (BuildContext context, int index) {
               final DiscoverCategoryItem category = categories[index];
               final bool active = activeCategoryId == category.id;

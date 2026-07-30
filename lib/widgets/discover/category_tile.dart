@@ -21,44 +21,31 @@ class CategoryTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(AppRadius.normal),
-      child: Container(
-        constraints: const BoxConstraints(minWidth: 68),
-        padding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 12,
-        ),
-        decoration: BoxDecoration(
-          color: active ? AppColors.accent : AppColors.white,
-          borderRadius: BorderRadius.circular(AppRadius.normal),
-          border: Border.all(
-            color: active ? AppColors.accent : AppColors.background,
-          ),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: <Widget>[
-            Text(
+      borderRadius: BorderRadius.circular(25),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          Container(
+            width: 50,
+            height: 50,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: active ? AppColors.accent : AppColors.white,
+              shape: BoxShape.circle,
+            ),
+            child: Text(
               icon,
-              style: const TextStyle(fontSize: 22, height: 1.0),
+              style: const TextStyle(fontSize: 24, height: 1),
             ),
-            const SizedBox(height: 16),
-            Text(
-              name,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 12,
-                height: 1.0,
-                color:
-                    active ? AppColors.white : AppColors.textSecondary,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            name,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: AppTypography.caption.copyWith(height: 1),
+          ),
+        ],
       ),
     );
   }
