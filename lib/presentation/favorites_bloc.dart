@@ -1,4 +1,4 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
+﻿import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lokalny_koszyk/core/themes/app_theme.dart';
 import 'package:lokalny_koszyk/domain/models/watched_product.dart';
 import 'package:lokalny_koszyk/domain/repositories/watched_products_repository.dart';
@@ -112,7 +112,7 @@ class FavoritesBloc extends Bloc<FavoritesEvent, FavoritesState> {
         emoji: '🧺',
         tag: 'LOKALNE',
         bgColor: AppColors.background,
-        tagColor: AppColors.primaryLight,
+        tagColor: AppColors.accent,
         sellerId: item.sellerId,
         unitKey: item.unitKey,
         packageQuantity: item.packageQuantity,

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:lokalny_koszyk/core/themes/app_theme.dart';
@@ -102,7 +102,7 @@ class _HomeHeader extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          colors: <Color>[AppColors.primary, AppColors.primaryLight],
+          colors: <Color>[AppColors.accent, AppColors.accent],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -180,7 +180,7 @@ class _HeaderLocationRow extends StatelessWidget {
           child: Text(
             'Wrocław, Dolnośląskie',
             style: TextStyle(
-              color: AppColors.textOnDark,
+              color: AppColors.textPrimary,
               fontSize: 14,
               fontWeight: FontWeight.w500,
             ),
@@ -189,7 +189,7 @@ class _HeaderLocationRow extends StatelessWidget {
         const Text(
           'Zmień',
           style: TextStyle(
-            color: AppColors.textOnDark,
+            color: AppColors.textPrimary,
             fontSize: 12,
             fontWeight: FontWeight.w500,
           ),
@@ -200,7 +200,7 @@ class _HeaderLocationRow extends StatelessWidget {
           width: 12,
           height: 12,
           colorFilter: const ColorFilter.mode(
-            AppColors.textOnDark,
+            AppColors.textPrimary,
             BlendMode.srcIn,
           ),
         ),
@@ -220,7 +220,7 @@ class _SeasonalBanner extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         decoration: BoxDecoration(
           gradient: const LinearGradient(
-            colors: <Color>[AppColors.accent, AppColors.warmBrown],
+            colors: <Color>[AppColors.accent, AppColors.textSecondary],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -403,7 +403,7 @@ class _NearbyProducersList extends StatelessWidget {
                       accessHint!,
                       style: AppTypography.normal.copyWith(
                         fontSize: 12,
-                        color: AppColors.textLight,
+                        color: AppColors.textSecondary,
                         height: 1.35,
                       ),
                     ),

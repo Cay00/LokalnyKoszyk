@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:lokalny_koszyk/core/supabase/supabase_client.dart';
@@ -225,7 +225,7 @@ class _BecomeSellerScreenState extends State<BecomeSellerScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.storefront, size: 48, color: AppColors.primary),
+                const Icon(Icons.storefront, size: 48, color: AppColors.accent),
                 const SizedBox(height: 16),
                 const Text(
                   'Masz już konto sprzedawcy powiązane z tym kontem.',
@@ -254,7 +254,7 @@ class _BecomeSellerScreenState extends State<BecomeSellerScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.login, size: 48, color: AppColors.primary),
+                const Icon(Icons.login, size: 48, color: AppColors.accent),
                 const SizedBox(height: 16),
                 const Text(
                   'Zaloguj się, aby dodać dane sprzedawcy i lokalizacji.',
@@ -292,7 +292,7 @@ class _BecomeSellerScreenState extends State<BecomeSellerScreen> {
             const SizedBox(height: 8),
             const Text(
               'Powiązanie z kontem: user_id = zalogowany użytkownik (profiles).',
-              style: TextStyle(fontSize: 12, color: AppColors.textLight),
+              style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
             ),
             const SizedBox(height: 12),
             _SellerFormField(controller: _nameController, label: 'Nazwa / gospodarstwo *'),
@@ -350,7 +350,7 @@ class _BecomeSellerScreenState extends State<BecomeSellerScreen> {
             const SizedBox(height: 8),
             const Text(
               'Zapis do tabeli seller_locations z seller_id = nowy rekord sellers.',
-              style: TextStyle(fontSize: 12, color: AppColors.textLight),
+              style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
             ),
             const SizedBox(height: 12),
             _SellerFormField(controller: _addressController, label: 'Adres *'),

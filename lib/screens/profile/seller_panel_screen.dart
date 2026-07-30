@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import 'package:lokalny_koszyk/core/supabase/supabase_client.dart';
 import 'package:lokalny_koszyk/core/themes/app_theme.dart';
@@ -281,7 +281,7 @@ class _SellerPanelScreenState extends State<SellerPanelScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.error_outline, size: 48, color: AppColors.textLight),
+                const Icon(Icons.error_outline, size: 48, color: AppColors.textSecondary),
                 const SizedBox(height: 16),
                 Text(
                   _error!,
@@ -311,7 +311,7 @@ class _SellerPanelScreenState extends State<SellerPanelScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.login, size: 48, color: AppColors.primary),
+                const Icon(Icons.login, size: 48, color: AppColors.accent),
                 const SizedBox(height: 16),
                 const Text(
                   'Zaloguj się, aby zobaczyć panel sprzedawcy.',
@@ -340,7 +340,7 @@ class _SellerPanelScreenState extends State<SellerPanelScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.storefront_outlined, size: 48, color: AppColors.primary),
+                const Icon(Icons.storefront_outlined, size: 48, color: AppColors.accent),
                 const SizedBox(height: 16),
                 const Text(
                   'Nie masz jeszcze konta sprzedawcy w bazie.',
@@ -443,7 +443,7 @@ class _SellerPanelScreenState extends State<SellerPanelScreen> {
                   padding: EdgeInsets.only(bottom: 10),
                   child: Text(
                     'E-mail zmienisz w ustawieniach konta / profilu (jeśli dodamy edycję).',
-                    style: TextStyle(fontSize: 12, color: AppColors.textLight),
+                    style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
                   ),
                 ),
                 _PanelField(
@@ -483,7 +483,7 @@ class _SellerPanelScreenState extends State<SellerPanelScreen> {
                   const SizedBox(width: 8),
                   Text(
                     _editing ? '(${_locationDrafts.length})' : '(${_locations.length})',
-                    style: const TextStyle(fontSize: 14, color: AppColors.textLight),
+                    style: const TextStyle(fontSize: 14, color: AppColors.textSecondary),
                   ),
                 ],
               ),
@@ -494,7 +494,7 @@ class _SellerPanelScreenState extends State<SellerPanelScreen> {
                     padding: EdgeInsets.only(top: 8),
                     child: Text(
                       'Brak wpisów w seller_locations.',
-                      style: TextStyle(fontSize: 14, color: AppColors.textLight),
+                      style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
                     ),
                   )
                 else
@@ -509,7 +509,7 @@ class _SellerPanelScreenState extends State<SellerPanelScreen> {
                         decoration: BoxDecoration(
                           color: AppColors.white,
                           borderRadius: BorderRadius.circular(AppRadius.md),
-                          border: Border.all(color: AppColors.border),
+                          border: Border.all(color: AppColors.background),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -518,7 +518,7 @@ class _SellerPanelScreenState extends State<SellerPanelScreen> {
                               'Lokalizacja $i',
                               style: const TextStyle(
                                 fontWeight: FontWeight.w600,
-                                color: AppColors.primary,
+                                color: AppColors.accent,
                               ),
                             ),
                             const SizedBox(height: 8),
@@ -546,7 +546,7 @@ class _SellerPanelScreenState extends State<SellerPanelScreen> {
                       children: [
                         const Text(
                           'Brak lokalizacji — możesz dodać pierwszą.',
-                          style: TextStyle(fontSize: 14, color: AppColors.textLight),
+                          style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
                         ),
                         const SizedBox(height: 8),
                         TextButton.icon(
@@ -568,7 +568,7 @@ class _SellerPanelScreenState extends State<SellerPanelScreen> {
                       decoration: BoxDecoration(
                         color: AppColors.white,
                         borderRadius: BorderRadius.circular(AppRadius.md),
-                        border: Border.all(color: AppColors.border),
+                        border: Border.all(color: AppColors.background),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -582,7 +582,7 @@ class _SellerPanelScreenState extends State<SellerPanelScreen> {
                                       : 'Lokalizacja (ID: ${_shortId(draft.locationId!)})',
                                   style: const TextStyle(
                                     fontWeight: FontWeight.w600,
-                                    color: AppColors.primary,
+                                    color: AppColors.accent,
                                   ),
                                 ),
                               ),
@@ -841,7 +841,7 @@ class _InfoTile extends StatelessWidget {
               label,
               style: TextStyle(
                 fontSize: dense ? 12 : 13,
-                color: AppColors.textLight,
+                color: AppColors.textSecondary,
                 fontWeight: FontWeight.w500,
               ),
             ),

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:lokalny_koszyk/domain/repositories/product_details_repository.dart';
@@ -115,7 +115,7 @@ class _ProductDetailsBody extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: product.bgColor,
                     borderRadius: BorderRadius.circular(AppRadius.normal),
-                    border: Border.all(color: AppColors.border),
+                    border: Border.all(color: AppColors.background),
                   ),
                   child: Stack(
                     fit: StackFit.expand,
@@ -163,7 +163,7 @@ class _ProductDetailsBody extends StatelessWidget {
                                 colorFilter: ColorFilter.mode(
                                   vmState.isFavorite == true
                                       ? Colors.redAccent
-                                      : AppColors.primary,
+                                      : AppColors.accent,
                                   BlendMode.srcIn,
                                 ),
                               ),
@@ -224,15 +224,15 @@ class _ProductDetailsBody extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: AppColors.white,
                     borderRadius: BorderRadius.circular(AppRadius.normal),
-                    border: Border.all(color: AppColors.border),
+                    border: Border.all(color: AppColors.background),
                   ),
                   child: Row(
                     children: <Widget>[
                       Container(
                         decoration: BoxDecoration(
                           color: vmState.selectedQuantity > 1
-                              ? AppColors.primaryLight
-                              : AppColors.border,
+                              ? AppColors.accent
+                              : AppColors.background,
                           borderRadius: const BorderRadius.only(
                             topLeft: Radius.circular(AppRadius.normal),
                             bottomLeft: Radius.circular(AppRadius.normal),
@@ -251,7 +251,7 @@ class _ProductDetailsBody extends StatelessWidget {
                             size: 16,
                             color: vmState.selectedQuantity > 1
                                 ? AppColors.white
-                                : AppColors.textLight,
+                                : AppColors.textSecondary,
                           ),
                           padding: const EdgeInsets.symmetric(
                             horizontal: 16,
@@ -274,7 +274,7 @@ class _ProductDetailsBody extends StatelessWidget {
                       ),
                       Container(
                         decoration: const BoxDecoration(
-                          color: AppColors.primaryLight,
+                          color: AppColors.accent,
                           borderRadius: BorderRadius.only(
                             topRight: Radius.circular(AppRadius.normal),
                             bottomRight: Radius.circular(AppRadius.normal),
@@ -324,7 +324,7 @@ class _ProductDetailsBody extends StatelessWidget {
             //       width: 22,
             //       height: 22,
             //       colorFilter: const ColorFilter.mode(
-            //         AppColors.primaryLight,
+            //         AppColors.accent,
             //         BlendMode.srcIn,
             //       ),
             //     ),
@@ -350,7 +350,7 @@ class _ProductDetailsBody extends StatelessWidget {
             //       width: 22,
             //       height: 22,
             //       colorFilter: const ColorFilter.mode(
-            //         AppColors.primaryLight,
+            //         AppColors.accent,
             //         BlendMode.srcIn,
             //       ),
             //     ),
@@ -406,7 +406,7 @@ class _ProductDetailsBody extends StatelessWidget {
                     width: 20,
                     height: 20,
                     colorFilter: const ColorFilter.mode(
-                      AppColors.primaryLight,
+                      AppColors.accent,
                       BlendMode.srcIn,
                     ),
                   ),
@@ -423,7 +423,7 @@ class _ProductDetailsBody extends StatelessWidget {
                     width: 20,
                     height: 20,
                     colorFilter: const ColorFilter.mode(
-                      AppColors.primaryLight,
+                      AppColors.accent,
                       BlendMode.srcIn,
                     ),
                   ),
@@ -490,10 +490,10 @@ class _MonthAvailabilityGrid extends StatelessWidget {
                   padding: EdgeInsets.only(right: col < 3 ? 8 : 0),
                   child: DecoratedBox(
                     decoration: BoxDecoration(
-                      color: active ? AppColors.primary : AppColors.background,
+                      color: active ? AppColors.accent : AppColors.background,
                       borderRadius: BorderRadius.circular(AppRadius.sm),
                       border: Border.all(
-                        color: active ? AppColors.primary : AppColors.border,
+                        color: active ? AppColors.accent : AppColors.background,
                       ),
                     ),
                     child: Material(
@@ -513,7 +513,7 @@ class _MonthAvailabilityGrid extends StatelessWidget {
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: active ? FontWeight.w600 : FontWeight.w500,
-                                  color: active ? AppColors.white : AppColors.textLight,
+                                  color: active ? AppColors.white : AppColors.textSecondary,
                                 ),
                               ),
                             ),

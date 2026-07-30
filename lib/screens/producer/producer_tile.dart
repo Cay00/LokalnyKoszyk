@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../core/themes/app_theme.dart';
@@ -42,7 +42,7 @@ class ProducerTile extends StatelessWidget {
           decoration: BoxDecoration(
             color: AppColors.white,
             borderRadius: BorderRadius.circular(AppRadius.normal),
-            border: Border.all(color: AppColors.border),
+            border: Border.all(color: AppColors.background),
           ),
           child: Row(
             children: <Widget>[
@@ -52,7 +52,7 @@ class ProducerTile extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: AppColors.background,
                   borderRadius: BorderRadius.circular(AppRadius.sm),
-                  border: Border.all(color: AppColors.border),
+                  border: Border.all(color: AppColors.background),
                 ),
                 clipBehavior: Clip.antiAlias,
                 child: Stack(
@@ -64,7 +64,7 @@ class ProducerTile extends StatelessWidget {
                         width: 24,
                         height: 24,
                         colorFilter: const ColorFilter.mode(
-                          AppColors.primary,
+                          AppColors.accent,
                           BlendMode.srcIn,
                         ),
                       ),
@@ -99,7 +99,7 @@ class ProducerTile extends StatelessWidget {
                             width: 16,
                             height: 16,
                             colorFilter: const ColorFilter.mode(
-                              AppColors.primary,
+                              AppColors.accent,
                               BlendMode.srcIn,
                             ),
                           ),
@@ -114,7 +114,7 @@ class ProducerTile extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           fontSize: 11,
-                          color: AppColors.textLight,
+                          color: AppColors.textSecondary,
                           height: 1.25,
                         ),
                       ),
@@ -144,7 +144,7 @@ class ProducerTile extends StatelessWidget {
                           '($reviews)',
                           style: const TextStyle(
                             fontSize: 12,
-                            color: AppColors.textLight,
+                            color: AppColors.textSecondary,
                           ),
                         ),
                         // Don't show distance for now, as it's not implemented in the backend yet
@@ -152,7 +152,7 @@ class ProducerTile extends StatelessWidget {
                         // Text(
                         //   "•",
                         //   style: const TextStyle(
-                        //     color: AppColors.textLight,
+                        //     color: AppColors.textSecondary,
                         //     fontSize: 12,
                         //   ),
                         // ),
@@ -160,7 +160,7 @@ class ProducerTile extends StatelessWidget {
                         // Text(
                         //   distance,
                         //   style: const TextStyle(
-                        //     color: AppColors.textLight,
+                        //     color: AppColors.textSecondary,
                         //     fontSize: 12,
                         //   ),
                         // ),
@@ -174,7 +174,7 @@ class ProducerTile extends StatelessWidget {
                 width: 12,
                 height: 12,
                 colorFilter: const ColorFilter.mode(
-                  AppColors.primary,
+                  AppColors.accent,
                   BlendMode.srcIn,
                 ),
               ),

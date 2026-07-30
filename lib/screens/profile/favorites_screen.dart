@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lokalny_koszyk/presentation/models/product_ui_model.dart';
 import 'package:lokalny_koszyk/presentation/models/favorite_product_ui_model.dart';
@@ -71,7 +71,7 @@ class FavoritesScreen extends StatelessWidget {
                       'Zaloguj się, aby zobaczyć obserwowane produkty.',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        color: AppColors.textLight,
+                        color: AppColors.textSecondary,
                         fontSize: 14,
                       ),
                     ),
@@ -107,7 +107,7 @@ class FavoritesScreen extends StatelessWidget {
                       'Nie obserwujesz jeszcze żadnych produktów.\nDodaj obserwację na karcie produktu.',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        color: AppColors.textLight,
+                        color: AppColors.textSecondary,
                         fontSize: 14,
                       ),
                     ),

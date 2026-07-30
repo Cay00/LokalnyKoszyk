@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -153,7 +153,7 @@ class _AuthScreenState extends State<AuthScreen> {
                     textAlign: TextAlign.center,
                     style: const TextStyle(
                       fontSize: 13,
-                      color: AppColors.textLight,
+                      color: AppColors.textSecondary,
                     ),
                   ),
                   const SizedBox(height: 32),
@@ -191,7 +191,7 @@ class _AuthScreenState extends State<AuthScreen> {
                   FilledButton(
                     onPressed: _loading ? null : _submit,
                     style: FilledButton.styleFrom(
-                      backgroundColor: AppColors.primary,
+                      backgroundColor: AppColors.accent,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(AppRadius.normal),
@@ -229,7 +229,7 @@ class _AuthScreenState extends State<AuthScreen> {
                         'FastLogin',
                         style: TextStyle(
                           fontWeight: FontWeight.w700,
-                          color: AppColors.primary,
+                          color: AppColors.accent,
                         ),
                       ),
                     ),
@@ -246,7 +246,7 @@ class _AuthScreenState extends State<AuthScreen> {
                     child: Text(
                       switchLabel,
                       style: const TextStyle(
-                        color: AppColors.primary,
+                        color: AppColors.accent,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -289,15 +289,15 @@ class _Field extends StatelessWidget {
         fillColor: AppColors.white,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.normal),
-          borderSide: BorderSide(color: AppColors.border),
+          borderSide: BorderSide(color: AppColors.background),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.normal),
-          borderSide: BorderSide(color: AppColors.border),
+          borderSide: BorderSide(color: AppColors.background),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.normal),
-          borderSide: const BorderSide(color: AppColors.primary, width: 1.4),
+          borderSide: const BorderSide(color: AppColors.accent, width: 1.4),
         ),
       ),
     );

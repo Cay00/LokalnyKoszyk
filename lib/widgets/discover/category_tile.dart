@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:lokalny_koszyk/core/themes/app_theme.dart';
 
 class CategoryTile extends StatelessWidget {
@@ -29,10 +29,10 @@ class CategoryTile extends StatelessWidget {
           vertical: 12,
         ),
         decoration: BoxDecoration(
-          color: active ? AppColors.primary : AppColors.white,
+          color: active ? AppColors.accent : AppColors.white,
           borderRadius: BorderRadius.circular(AppRadius.normal),
           border: Border.all(
-            color: active ? AppColors.primaryLight : AppColors.border,
+            color: active ? AppColors.accent : AppColors.background,
           ),
         ),
         child: Column(

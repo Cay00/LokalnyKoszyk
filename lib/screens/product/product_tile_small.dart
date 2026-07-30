@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../core/themes/app_theme.dart';
@@ -43,7 +43,7 @@ class ProductTileSmall extends StatelessWidget {
           decoration: BoxDecoration(
             color: AppColors.white,
             borderRadius: BorderRadius.circular(AppRadius.normal),
-            border: Border.all(color: AppColors.border),
+            border: Border.all(color: AppColors.background),
           ),
           child: IntrinsicHeight(
             child: Row(
@@ -56,7 +56,7 @@ class ProductTileSmall extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: AppColors.background,
                       borderRadius: BorderRadius.circular(AppRadius.sm),
-                      border: Border.all(color: AppColors.border),
+                      border: Border.all(color: AppColors.background),
                     ),
                     clipBehavior: Clip.antiAlias,
                     child: Stack(
@@ -68,7 +68,7 @@ class ProductTileSmall extends StatelessWidget {
                             width: 28,
                             height: 28,
                             colorFilter: const ColorFilter.mode(
-                              AppColors.primary,
+                              AppColors.accent,
                               BlendMode.srcIn,
                             ),
                           ),
@@ -119,7 +119,7 @@ class ProductTileSmall extends StatelessWidget {
                           width: 12,
                           height: 12,
                           colorFilter: const ColorFilter.mode(
-                            AppColors.primary,
+                            AppColors.accent,
                             BlendMode.srcIn,
                           ),
                         ),

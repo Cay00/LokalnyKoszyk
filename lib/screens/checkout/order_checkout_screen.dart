@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lokalny_koszyk/presentation/checkout_bloc.dart';
 
@@ -50,7 +50,7 @@ class OrderCheckoutScreen extends StatelessWidget {
                                 state.errorText!,
                                 textAlign: TextAlign.center,
                                 style: const TextStyle(
-                                  color: AppColors.textLight,
+                                  color: AppColors.textSecondary,
                                   fontSize: 14,
                                 ),
                               ),
@@ -74,7 +74,7 @@ class OrderCheckoutScreen extends StatelessWidget {
                             'Koszyk jest pusty.',
                             textAlign: TextAlign.center,
                             style: TextStyle(
-                              color: AppColors.textLight,
+                              color: AppColors.textSecondary,
                               fontSize: 14,
                             ),
                           ),
@@ -92,7 +92,7 @@ class OrderCheckoutScreen extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(
                                   AppRadius.normal,
                                 ),
-                                border: Border.all(color: AppColors.border),
+                                border: Border.all(color: AppColors.background),
                               ),
                               child: Row(
                                 children: <Widget>[
@@ -116,7 +116,7 @@ class OrderCheckoutScreen extends StatelessWidget {
                                         Text(
                                           '${item.quantity} ${item.unit}',
                                           style: const TextStyle(
-                                            color: AppColors.textLight,
+                                            color: AppColors.textSecondary,
                                             fontSize: 12,
                                           ),
                                         ),
@@ -129,7 +129,7 @@ class OrderCheckoutScreen extends StatelessWidget {
                                       item.currency,
                                     ),
                                     style: const TextStyle(
-                                      color: AppColors.primary,
+                                      color: AppColors.accent,
                                       fontWeight: FontWeight.w700,
                                     ),
                                   ),
@@ -147,8 +147,8 @@ class OrderCheckoutScreen extends StatelessWidget {
                                     child: Icon(
                                       Icons.delete_outline,
                                       color: state.isRemovingItem
-                                          ? AppColors.textLight
-                                          : AppColors.primary,
+                                          ? AppColors.textSecondary
+                                          : AppColors.accent,
                                       size: 20,
                                     ),
                                   ),
@@ -185,7 +185,7 @@ class OrderCheckoutScreen extends StatelessWidget {
                                     borderRadius: BorderRadius.circular(
                                       AppRadius.normal,
                                     ),
-                                    border: Border.all(color: AppColors.border),
+                                    border: Border.all(color: AppColors.background),
                                   ),
                                   child: RadioListTile<DeliveryOption>(
                                     value: option,
@@ -216,7 +216,7 @@ class OrderCheckoutScreen extends StatelessWidget {
                                       : items.first.currency,
                                 ),
                                 style: const TextStyle(
-                                  color: AppColors.primary,
+                                  color: AppColors.accent,
                                   fontSize: 18,
                                   fontWeight: FontWeight.w700,
                                 ),

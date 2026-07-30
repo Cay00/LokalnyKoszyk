@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lokalny_koszyk/domain/models/order_details.dart';
 import 'package:lokalny_koszyk/presentation/order_history_detail_bloc.dart';
@@ -49,7 +49,7 @@ class OrderHistoryDetailScreen extends StatelessWidget {
                           state.errorText!,
                           textAlign: TextAlign.center,
                           style: const TextStyle(
-                            color: AppColors.textLight,
+                            color: AppColors.textSecondary,
                             fontSize: 14,
                           ),
                         ),
@@ -65,7 +65,7 @@ class OrderHistoryDetailScreen extends StatelessWidget {
                             borderRadius: BorderRadius.circular(
                               AppRadius.normal,
                             ),
-                            border: Border.all(color: AppColors.border),
+                            border: Border.all(color: AppColors.background),
                           ),
                           child: Row(
                             children: <Widget>[
@@ -81,7 +81,7 @@ class OrderHistoryDetailScreen extends StatelessWidget {
                               Text(
                                 orderTotal,
                                 style: const TextStyle(
-                                  color: AppColors.primary,
+                                  color: AppColors.accent,
                                   fontWeight: FontWeight.w700,
                                 ),
                               ),
@@ -101,7 +101,7 @@ class OrderHistoryDetailScreen extends StatelessWidget {
                         if (items.isEmpty)
                           const Text(
                             'Brak pozycji w tym zamówieniu.',
-                            style: TextStyle(color: AppColors.textLight),
+                            style: TextStyle(color: AppColors.textSecondary),
                           )
                         else
                           ...items.map(
@@ -134,7 +134,7 @@ class _OrderProductTile extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(AppRadius.normal),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColors.background),
       ),
       child: Row(
         children: <Widget>[
@@ -154,7 +154,7 @@ class _OrderProductTile extends StatelessWidget {
                 Text(
                   '${item.quantity} ${item.unit}',
                   style: const TextStyle(
-                    color: AppColors.textLight,
+                    color: AppColors.textSecondary,
                     fontSize: 12,
                   ),
                 ),
@@ -164,7 +164,7 @@ class _OrderProductTile extends StatelessWidget {
           Text(
             _formatMoney(item.lineTotal, currency),
             style: const TextStyle(
-              color: AppColors.primary,
+              color: AppColors.accent,
               fontWeight: FontWeight.w700,
             ),
           ),

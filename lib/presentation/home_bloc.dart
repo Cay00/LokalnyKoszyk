@@ -1,4 +1,4 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
+﻿import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lokalny_koszyk/core/themes/app_theme.dart';
 import 'package:lokalny_koszyk/domain/models/seller.dart';
 import 'package:lokalny_koszyk/domain/repositories/cart_repository.dart';
@@ -169,8 +169,8 @@ const List<ProductUiModel> _products = <ProductUiModel>[
     reviews: '64',
     emoji: '🌱',
     tag: 'BIO',
-    bgColor: AppColors.lightSage,
-    tagColor: AppColors.leafGreen,
+    bgColor: AppColors.background,
+    tagColor: AppColors.accent,
   ),
   ProductUiModel(
     id: 'hp2',
@@ -185,6 +185,6 @@ const List<ProductUiModel> _products = <ProductUiModel>[
     emoji: '🥚',
     tag: 'REGIONALNE',
     bgColor: AppColors.background,
-    tagColor: AppColors.warmBrown,
+    tagColor: AppColors.textSecondary,
   ),
 ];

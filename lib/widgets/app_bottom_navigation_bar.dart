@@ -14,7 +14,7 @@ class AppBottomNavigationBar extends StatelessWidget {
   final ValueChanged<int> onTap;
 
   static const List<({String assetPath, String label})> _navItems = [
-    (assetPath: 'assets/icons/barn.svg', label: 'Sklep'),
+    (assetPath: 'assets/icons/house.svg', label: 'Sklep'),
     (assetPath: 'assets/icons/basket.svg', label: 'Koszyk'),
     (assetPath: 'assets/icons/heart.svg', label: 'Ulubione'),
     (assetPath: 'assets/icons/user.svg', label: 'Profil'),
@@ -22,76 +22,91 @@ class AppBottomNavigationBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BottomNavigationBar(
-      currentIndex: currentIndex,
-      onTap: onTap,
-      type: BottomNavigationBarType.fixed,
-      showSelectedLabels: false,
-      showUnselectedLabels: false,
-      items: _navItems
-          .map(
-            (item) => BottomNavigationBarItem(
-              icon: _BottomNavItemVisual(
-                assetPath: item.assetPath,
-                label: item.label,
-                isActive: false,
-              ),
-              activeIcon: _BottomNavItemVisual(
-                assetPath: item.assetPath,
-                label: item.label,
-                isActive: true,
-              ),
-              label: '',
+    final double bottomInset = MediaQuery.paddingOf(context).bottom;
+
+    return Padding(
+      padding: EdgeInsets.fromLTRB(16, 0, 16, 16 + bottomInset),
+      child: SizedBox(
+        height: 60,
+        child: DecoratedBox(
+          decoration: const BoxDecoration(
+            color: AppColors.white,
+            borderRadius: BorderRadius.all(Radius.circular(999)),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(2),
+            child: Row(
+              children: [
+                for (int i = 0; i < _navItems.length; i++)
+                  Expanded(
+                    child: _BottomNavItem(
+                      assetPath: _navItems[i].assetPath,
+                      label: _navItems[i].label,
+                      isActive: currentIndex == i,
+                      onTap: () => onTap(i),
+                    ),
+                  ),
+              ],
             ),
-          )
-          .toList(),
+          ),
+        ),
+      ),
     );
   }
 }
 
-class _BottomNavItemVisual extends StatelessWidget {
-  const _BottomNavItemVisual({
+class _BottomNavItem extends StatelessWidget {
+  const _BottomNavItem({
     required this.assetPath,
     required this.label,
     required this.isActive,
+    required this.onTap,
   });
 
   final String assetPath;
   final String label;
   final bool isActive;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final Color itemColor = isActive ? AppColors.white : AppColors.textOnDark;
-
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        const SizedBox(height: 2),
-        SvgPicture.asset(
-          assetPath,
-          width: 22,
-          height: 22,
-          colorFilter: ColorFilter.mode(itemColor, BlendMode.srcIn),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
-            color: itemColor,
+    return Material(
+      color: isActive ? AppColors.accent : Colors.transparent,
+      borderRadius: const BorderRadius.all(Radius.circular(999)),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: const BorderRadius.all(Radius.circular(999)),
+        splashFactory: NoSplash.splashFactory,
+        highlightColor: Colors.transparent,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SvgPicture.asset(
+                assetPath,
+                width: 24,
+                height: 24,
+                colorFilter: const ColorFilter.mode(
+                  AppColors.textPrimary,
+                  BlendMode.srcIn,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                style: const TextStyle(
+                  fontFamily: AppTypography.fontFamily,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w400,
+                  height: 1,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+            ],
           ),
         ),
-        Transform.translate(
-          offset: const Offset(0, 4),
-          child: Container(
-            height: 2,
-            width: 16,
-            color: isActive ? AppColors.white : Colors.transparent,
-          ),
-        ),
-      ],
+      ),
     );
   }
 }

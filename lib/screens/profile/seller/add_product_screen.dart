@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import 'package:lokalny_koszyk/core/supabase/supabase_client.dart';
 import 'package:lokalny_koszyk/core/themes/app_theme.dart';
@@ -224,7 +224,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                 'seller_id: rekord z tabeli sellers dla Twojego user_id',
                 style: TextStyle(
                   fontSize: 12,
-                  color: AppColors.textLight,
+                  color: AppColors.textSecondary,
                 ),
               ),
             ),

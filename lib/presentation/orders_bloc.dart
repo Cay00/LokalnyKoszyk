@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lokalny_koszyk/core/themes/app_theme.dart';
 import 'package:lokalny_koszyk/domain/models/cart_item.dart';
@@ -196,19 +196,19 @@ String orderStatusLabel(String rawStatus) {
 Color orderStatusColor(String rawStatus) {
   switch (rawStatus) {
     case 'placed':
-      return AppColors.primary;
+      return AppColors.accent;
     case 'in_progress':
       return AppColors.accent;
     case 'rejected':
       return Colors.redAccent;
     case 'sent':
-      return AppColors.primaryLight;
+      return AppColors.accent;
     case 'delivered':
-      return AppColors.primary;
+      return AppColors.accent;
     case 'received':
-      return AppColors.textLight;
+      return AppColors.textSecondary;
     default:
-      return AppColors.textLight;
+      return AppColors.textSecondary;
   }
 }
 

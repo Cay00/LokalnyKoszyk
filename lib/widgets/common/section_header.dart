@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../core/themes/app_theme.dart';
@@ -12,7 +12,7 @@ class SectionHeader extends StatelessWidget {
   });
 
   final String title;
-  /// Liczba w nawiasie obok tytułu, kolorem [AppColors.textLight] (null = ukryj).
+  /// Liczba w nawiasie obok tytułu, kolorem [AppColors.textSecondary] (null = ukryj).
   final int? titleCount;
   final String? actionLabel;
 
@@ -35,7 +35,7 @@ class SectionHeader extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
-                    color: AppColors.textLight,
+                    color: AppColors.textSecondary,
                   ),
                 ),
             ],
@@ -54,7 +54,7 @@ class SectionHeader extends StatelessWidget {
                 width: 12,
                 height: 12,
                 colorFilter: const ColorFilter.mode(
-                  AppColors.primary,
+                  AppColors.accent,
                   BlendMode.srcIn,
                 ),
               ),

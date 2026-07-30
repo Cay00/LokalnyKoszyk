@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import '../../core/themes/app_theme.dart';
 
@@ -69,7 +69,7 @@ class _MapDot extends StatelessWidget {
         width: size,
         height: size,
         decoration: BoxDecoration(
-          color: isMain ? AppColors.accent : AppColors.primary,
+          color: isMain ? AppColors.accent : AppColors.accent,
           shape: BoxShape.circle,
           border: Border.all(color: Colors.white, width: 2),
           boxShadow: const <BoxShadow>[

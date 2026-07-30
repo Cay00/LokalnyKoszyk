@@ -5,23 +5,12 @@ class AppColors {
   const AppColors._();
 
   /* <----------- Colors ------------> */
-  static const Color leafGreen = Color(0xFF8FB83A);
-  static const Color warmBrown = Color(0xFF4A4A42);
-  static const Color softSage = Color(0xFFD4EBA0);
-  static const Color lightSage = Color(0xFFE8F5C8);
-
-  /// Main Colors
   static const Color white = Color(0xFFFFFFFF);
   static const Color background = Color(0xFFF1F1F1);
-  static const Color primary = Color(0xFFB4DB4A);
-  static const Color primaryLight = Color(0xFFC5E56E);
   static const Color accent = Color(0xFFB4DB4A);
   static const Color surface = Color(0xFFFFFFFF);
   static const Color textPrimary = Color(0xFF1A1A18);
   static const Color textSecondary = Color(0xFF4A4A42);
-  static const Color textLight = Color(0xFF4A4A42);
-  static const Color textOnDark = Color(0xFF1A1A18);
-  static const Color border = Color(0xFFE5E5E5);
 }
 
 class AppTypography {
@@ -55,8 +44,7 @@ class AppTypography {
     fontFamily: fontFamily,
     fontSize: 10,
     fontWeight: FontWeight.w400,
-    color: AppColors.textSecondary,
-  );
+    color: AppColors.textSecondary,  );
 }
 
 class AppRadius {

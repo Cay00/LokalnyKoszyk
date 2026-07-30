@@ -1,4 +1,4 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
+﻿import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lokalny_koszyk/core/themes/app_theme.dart';
 import 'package:lokalny_koszyk/domain/models/producer_profile.dart';
 import 'package:lokalny_koszyk/domain/models/product.dart';
@@ -134,7 +134,7 @@ class ProducerDetailsBloc
       emoji: '🧺',
       tag: 'LOKALNE',
       bgColor: AppColors.background,
-      tagColor: AppColors.primaryLight,
+      tagColor: AppColors.accent,
       sellerId: product.sellerId,
       unitKey: product.unitKey,
       packageQuantity: product.packageQuantity,

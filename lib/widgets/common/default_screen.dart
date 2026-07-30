@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import '../../core/themes/app_theme.dart';
 import 'screen_header.dart';
@@ -37,7 +37,7 @@ class DefaultScreen extends StatelessWidget {
                   child: Text(
                     message!,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(color: AppColors.textLight, fontSize: 14),
+                    style: const TextStyle(color: AppColors.textSecondary, fontSize: 14),
                   ),
                 ),
               ),

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:lokalny_koszyk/presentation/models/product_ui_model.dart';
 
@@ -32,7 +32,7 @@ class ProductTile extends StatelessWidget {
         ),
         foregroundDecoration: BoxDecoration(
           borderRadius: BorderRadius.circular(AppRadius.normal),
-          border: Border.all(color: AppColors.border),
+          border: Border.all(color: AppColors.background),
         ),
         clipBehavior: Clip.antiAlias,
         child: Column(
@@ -137,7 +137,7 @@ class ProductTile extends StatelessWidget {
                         '(${product.reviews})',
                         style: const TextStyle(
                           fontSize: 12,
-                          color: AppColors.textLight,
+                          color: AppColors.textSecondary,
                         ),
                       ),
                     ],

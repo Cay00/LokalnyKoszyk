@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../core/themes/app_theme.dart';
@@ -51,7 +51,7 @@ class ProfileScreen extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(16, 32, 16, 48),
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: <Color>[AppColors.primary, AppColors.primaryLight],
+              colors: <Color>[AppColors.accent, AppColors.accent],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -89,7 +89,7 @@ class ProfileScreen extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: AppColors.white,
                     borderRadius: BorderRadius.circular(AppRadius.normal),
-                    border: Border.all(color: AppColors.border),
+                    border: Border.all(color: AppColors.background),
                   ),
                   child: Column(
                     children: <Widget>[
@@ -145,7 +145,7 @@ class _ProfileAvatar extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.white,
         shape: BoxShape.circle,
-        border: Border.all(color: AppColors.textOnDark, width: 4),
+        border: Border.all(color: AppColors.textPrimary, width: 4),
       ),
       alignment: Alignment.center,
       child: const Text('🧑', style: TextStyle(fontSize: 36)),
@@ -228,7 +228,7 @@ class _ProfileMenuTile extends StatelessWidget {
                     width: 20,
                     height: 20,
                     colorFilter: const ColorFilter.mode(
-                      AppColors.primary,
+                      AppColors.accent,
                       BlendMode.srcIn,
                     ),
                   ),
@@ -247,7 +247,7 @@ class _ProfileMenuTile extends StatelessWidget {
                   width: 12,
                   height: 12,
                   colorFilter: const ColorFilter.mode(
-                    AppColors.primary,
+                    AppColors.accent,
                     BlendMode.srcIn,
                   ),
                 ),
@@ -261,7 +261,7 @@ class _ProfileMenuTile extends StatelessWidget {
             child: Divider(
               height: 1,
               thickness: 1,
-              color: AppColors.border,
+              color: AppColors.background,
             ),
           ),
       ],
@@ -284,7 +284,7 @@ class _SellerPanelCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.white,
           borderRadius: BorderRadius.circular(AppRadius.normal),
-          border: Border.all(color: AppColors.primary, width: 1.5),
+          border: Border.all(color: AppColors.accent, width: 1.5),
         ),
         child: Row(
           children: <Widget>[
@@ -293,7 +293,7 @@ class _SellerPanelCard extends StatelessWidget {
               width: 32,
               height: 32,
               colorFilter: const ColorFilter.mode(
-                AppColors.primary,
+                AppColors.accent,
                 BlendMode.srcIn,
               ),
             ),
@@ -305,7 +305,7 @@ class _SellerPanelCard extends StatelessWidget {
                   Text(
                     'Panel sprzedawcy',
                     style: TextStyle(
-                      color: AppColors.primary,
+                      color: AppColors.accent,
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                     ),
@@ -314,7 +314,7 @@ class _SellerPanelCard extends StatelessWidget {
                   Text(
                     'Dane konta, weryfikacja i lokalizacje z bazy',
                     style: TextStyle(
-                      color: AppColors.textLight,
+                      color: AppColors.textSecondary,
                       fontSize: 12,
                     ),
                   ),
@@ -326,7 +326,7 @@ class _SellerPanelCard extends StatelessWidget {
               width: 12,
               height: 12,
               colorFilter: const ColorFilter.mode(
-                AppColors.primary,
+                AppColors.accent,
                 BlendMode.srcIn,
               ),
             ),
@@ -352,9 +352,9 @@ class _BecomeProducerCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: AppColors.lightSage,
+          color: AppColors.background,
           borderRadius: BorderRadius.circular(AppRadius.normal),
-          border: Border.all(color: AppColors.softSage),
+          border: Border.all(color: AppColors.accent),
         ),
         child: Row(
           children: <Widget>[
@@ -367,7 +367,7 @@ class _BecomeProducerCard extends StatelessWidget {
                   Text(
                     'Zostań sprzedawcą',
                     style: TextStyle(
-                      color: AppColors.primary,
+                      color: AppColors.accent,
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                     ),
@@ -376,7 +376,7 @@ class _BecomeProducerCard extends StatelessWidget {
                   Text(
                     'Sprzedawaj swoje produkty lokalnie',
                     style: TextStyle(
-                      color: AppColors.textLight,
+                      color: AppColors.textSecondary,
                       fontSize: 12,
                     ),
                   ),
@@ -388,7 +388,7 @@ class _BecomeProducerCard extends StatelessWidget {
               width: 12,
               height: 12,
               colorFilter: const ColorFilter.mode(
-                AppColors.primary,
+                AppColors.accent,
                 BlendMode.srcIn,
               ),
             ),
@@ -411,7 +411,7 @@ class _LogoutTile extends StatelessWidget {
           child: Divider(
             height: 1,
             thickness: 1,
-            color: AppColors.border,
+            color: AppColors.background,
           ),
         ),
         Padding(

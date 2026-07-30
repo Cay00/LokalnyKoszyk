@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:lokalny_koszyk/domain/models/cart_item.dart';
@@ -142,7 +142,7 @@ class _CartSummaryCard extends StatelessWidget {
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: <Color>[AppColors.primary, AppColors.primaryLight],
+          colors: <Color>[AppColors.accent, AppColors.accent],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -165,7 +165,7 @@ class _CartSummaryCard extends StatelessWidget {
               Text(
                 '${cartItems.length} produkty',
                 style: const TextStyle(
-                  color: AppColors.textOnDark,
+                  color: AppColors.textPrimary,
                   fontSize: 12,
                 ),
               ),
@@ -206,7 +206,7 @@ class _CartSummaryCard extends StatelessWidget {
                     child: Text(
                       'Razem',
                       style: TextStyle(
-                        color: AppColors.textOnDark,
+                        color: AppColors.textPrimary,
                         fontSize: 14,
                       ),
                     ),
@@ -307,7 +307,7 @@ class _CartLineItem extends StatelessWidget {
                 Text(
                   qty,
                   style: const TextStyle(
-                    color: AppColors.textOnDark,
+                    color: AppColors.textPrimary,
                     fontSize: 12,
                   ),
                 ),
@@ -360,7 +360,7 @@ class _OrderHistoryTile extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(AppRadius.normal),
-          border: Border.all(color: AppColors.border),
+          border: Border.all(color: AppColors.background),
         ),
         child: Column(
           children: <Widget>[
@@ -372,7 +372,7 @@ class _OrderHistoryTile extends StatelessWidget {
                   width: 22,
                   height: 22,
                   colorFilter: const ColorFilter.mode(
-                    AppColors.primary,
+                    AppColors.accent,
                     BlendMode.srcIn,
                   ),
                 ),

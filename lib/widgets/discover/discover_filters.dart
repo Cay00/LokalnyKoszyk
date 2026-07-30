@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import '../../core/themes/app_theme.dart';
 
@@ -30,11 +30,11 @@ class DiscoverFilters extends StatelessWidget {
                 onPressed: () => onFilterSelected(filter),
                 style: OutlinedButton.styleFrom(
                   backgroundColor:
-                      isActive ? AppColors.primary : Colors.white,
+                      isActive ? AppColors.accent : Colors.white,
                   side: BorderSide(
                     color: isActive
-                        ? AppColors.primaryLight
-                        : AppColors.border,
+                        ? AppColors.accent
+                        : AppColors.background,
                   ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(24),

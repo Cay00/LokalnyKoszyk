@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:lokalny_koszyk/domain/models/producer_profile.dart';
@@ -79,7 +79,7 @@ class _ProducerDetailsBodyState extends State<_ProducerDetailsBody> {
                           'W repozytorium: sql/supabase_sellers_public_read.sql',
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                            color: AppColors.textLight,
+                            color: AppColors.textSecondary,
                             fontSize: 12,
                             height: 1.35,
                           ),
@@ -104,9 +104,9 @@ class _ProducerDetailsBodyState extends State<_ProducerDetailsBody> {
                         width: double.infinity,
                         height: 220,
                         decoration: BoxDecoration(
-                          color: AppColors.lightSage,
+                          color: AppColors.background,
                           borderRadius: BorderRadius.circular(AppRadius.normal),
-                          border: Border.all(color: AppColors.border),
+                          border: Border.all(color: AppColors.background),
                         ),
                         clipBehavior: Clip.antiAlias,
                         child: Stack(
@@ -118,7 +118,7 @@ class _ProducerDetailsBodyState extends State<_ProducerDetailsBody> {
                                 width: 120,
                                 height: 120,
                                 colorFilter: const ColorFilter.mode(
-                                  AppColors.primary,
+                                  AppColors.accent,
                                   BlendMode.srcIn,
                                 ),
                               ),
@@ -162,7 +162,7 @@ class _ProducerDetailsBodyState extends State<_ProducerDetailsBody> {
                                     colorFilter: ColorFilter.mode(
                                       vmState.isLiked
                                           ? Colors.redAccent
-                                          : AppColors.primary,
+                                          : AppColors.accent,
                                       BlendMode.srcIn,
                                     ),
                                   ),
@@ -182,7 +182,7 @@ class _ProducerDetailsBodyState extends State<_ProducerDetailsBody> {
                         decoration: BoxDecoration(
                           color: AppColors.background,
                           borderRadius: BorderRadius.circular(AppRadius.normal),
-                          border: Border.all(color: AppColors.border),
+                          border: Border.all(color: AppColors.background),
                         ),
                         clipBehavior: Clip.antiAlias,
                         child: Stack(
@@ -194,7 +194,7 @@ class _ProducerDetailsBodyState extends State<_ProducerDetailsBody> {
                                 width: 36,
                                 height: 36,
                                 colorFilter: const ColorFilter.mode(
-                                  AppColors.primary,
+                                  AppColors.accent,
                                   BlendMode.srcIn,
                                 ),
                               ),
@@ -234,7 +234,7 @@ class _ProducerDetailsBodyState extends State<_ProducerDetailsBody> {
                                     width: 18,
                                     height: 18,
                                     colorFilter: const ColorFilter.mode(
-                                      AppColors.primary,
+                                      AppColors.accent,
                                       BlendMode.srcIn,
                                     ),
                                   ),
@@ -281,7 +281,7 @@ class _ProducerDetailsBodyState extends State<_ProducerDetailsBody> {
                     decoration: BoxDecoration(
                       color: AppColors.white,
                       borderRadius: BorderRadius.circular(AppRadius.normal),
-                      border: Border.all(color: AppColors.border),
+                      border: Border.all(color: AppColors.background),
                     ),
                     clipBehavior: Clip.antiAlias,
                     child: Column(
@@ -306,7 +306,7 @@ class _ProducerDetailsBodyState extends State<_ProducerDetailsBody> {
                             ],
                           ),
                         ),
-                        Container(height: 1, color: AppColors.border),
+                        Container(height: 1, color: AppColors.background),
                         SizedBox(
                           height: 120,
                           width: double.infinity,
@@ -426,7 +426,7 @@ class _ProducerDetailsBodyState extends State<_ProducerDetailsBody> {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
-            color: isSelected ? AppColors.primary : Colors.transparent,
+            color: isSelected ? AppColors.accent : Colors.transparent,
             borderRadius: BorderRadius.circular(AppRadius.md),
           ),
           alignment: Alignment.center,

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import '../../core/themes/app_theme.dart';
 
@@ -59,7 +59,7 @@ class ProductCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(AppRadius.normal),
-          border: Border.all(color: AppColors.border, width: 1),
+          border: Border.all(color: AppColors.background, width: 1),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -99,7 +99,7 @@ class ProductCard extends StatelessWidget {
                         onTap: onAddToCart,
                         child: Container(
                           decoration: BoxDecoration(
-                            color: AppColors.primary,
+                            color: AppColors.accent,
                             shape: BoxShape.circle,
                           ),
                           child: const Padding(

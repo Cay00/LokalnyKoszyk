@@ -1,4 +1,4 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
+﻿import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lokalny_koszyk/core/themes/app_theme.dart';
 import 'package:lokalny_koszyk/domain/models/product.dart';
 import 'package:lokalny_koszyk/domain/repositories/cart_repository.dart';
@@ -368,7 +368,7 @@ class DiscoverBloc extends Bloc<DiscoverEvent, DiscoverState> {
       emoji: '🧺',
       tag: 'LOKALNE',
       bgColor: AppColors.background,
-      tagColor: AppColors.primaryLight,
+      tagColor: AppColors.accent,
       sellerId: product.sellerId,
       unitKey: product.unitKey,
       packageQuantity: product.packageQuantity,
