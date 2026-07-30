@@ -7,49 +7,98 @@ class ScreenHeader extends StatelessWidget {
   const ScreenHeader({
     super.key,
     required this.title,
-    this.onBack,
+    this.leading,
+    this.actions = const <Widget>[],
   });
 
   final String title;
-  final VoidCallback? onBack;
+  final Widget? leading;
+  final List<Widget> actions;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-      color: AppColors.primary,
-      child: Row(
-        children: <Widget>[
-          Material(
-            color: AppColors.primary,
-            shape: const CircleBorder(),
-            child: InkWell(
-              onTap: onBack,
-              customBorder: const CircleBorder(),
-              child: Padding(
-                padding: const EdgeInsets.all(8),
-                child: SvgPicture.asset(
-                  'assets/icons/caret-left.svg',
-                  width: 16,
-                  height: 16,
-                  colorFilter: const ColorFilter.mode(
-                    AppColors.white,
-                    BlendMode.srcIn,
-                  ),
+      color: AppColors.white,
+      padding: const EdgeInsets.all(16),
+      child: SizedBox(
+        height: 50,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Align(
+              alignment: Alignment.centerLeft,
+              child: leading ?? const SizedBox(width: 50),
+            ),
+            Center(
+              child: Text(
+                title,
+                style: const TextStyle(
+                  fontFamily: AppTypography.fontFamily,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
                 ),
+                textAlign: TextAlign.center,
               ),
             ),
-          ),
-          const SizedBox(width: 8),
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w700,
-              color: AppColors.white,
+            Align(
+              alignment: Alignment.centerRight,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: actions,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class ScreenHeaderButton extends StatelessWidget {
+  const ScreenHeaderButton({
+    super.key,
+    required this.child,
+    this.onPressed,
+  });
+
+  final Widget child;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(25),
+        child: SizedBox(
+          width: 50,
+          height: 50,
+          child: Center(child: child),
+        ),
+      ),
+    );
+  }
+}
+
+class ScreenHeaderBackButton extends StatelessWidget {
+  const ScreenHeaderBackButton({super.key, this.onPressed});
+
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return ScreenHeaderButton(
+      onPressed: onPressed,
+      child: SvgPicture.asset(
+        'assets/icons/caret-left.svg',
+        width: 24,
+        height: 24,
+        colorFilter: const ColorFilter.mode(
+          AppColors.textPrimary,
+          BlendMode.srcIn,
+        ),
       ),
     );
   }

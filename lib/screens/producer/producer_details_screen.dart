@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:lokalny_koszyk/domain/models/producer_profile.dart';
+import 'package:lokalny_koszyk/domain/repositories/producer_details_repository.dart';
 import 'package:lokalny_koszyk/presentation/models/product_ui_model.dart';
-import 'package:lokalny_koszyk/presentation/producer_details_view_model.dart';
+import 'package:lokalny_koszyk/presentation/producer_details_cubit.dart';
 
 import '../../core/themes/app_theme.dart';
 import '../../widgets/common/default_screen.dart';
 import '../product/product_details_screen.dart';
 import '../product/product_tile_small.dart';
 
-class ProducerDetailsScreen extends ConsumerStatefulWidget {
+class ProducerDetailsScreen extends StatelessWidget {
   const ProducerDetailsScreen({
     super.key,
     this.sellerId,
@@ -21,122 +22,153 @@ class ProducerDetailsScreen extends ConsumerStatefulWidget {
   final VoidCallback? onBack;
 
   @override
-  ConsumerState<ProducerDetailsScreen> createState() => _ProducerDetailsScreenState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (BuildContext context) => ProducerDetailsCubit(
+        repository: context.read<ProducerDetailsRepository>(),
+        sellerId: sellerId,
+      )..load(),
+      child: _ProducerDetailsBody(
+        sellerId: sellerId,
+        onBack: onBack,
+      ),
+    );
+  }
 }
 
-class _ProducerDetailsScreenState extends ConsumerState<ProducerDetailsScreen> {
+class _ProducerDetailsBody extends StatefulWidget {
+  const _ProducerDetailsBody({
+    this.sellerId,
+    this.onBack,
+  });
+
+  final String? sellerId;
+  final VoidCallback? onBack;
+
+  @override
+  State<_ProducerDetailsBody> createState() => _ProducerDetailsBodyState();
+}
+
+class _ProducerDetailsBodyState extends State<_ProducerDetailsBody> {
   _InfoSection _selectedInfoSection = _InfoSection.address;
 
   @override
   Widget build(BuildContext context) {
-    final vmState = ref.watch(producerDetailsViewModelProvider(widget.sellerId));
-    final seller = vmState.seller;
-    return DefaultScreen(
-      title: 'Sprzedawca',
-      body: vmState.isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : vmState.errorText != null
-          ? Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    Text(
-                      vmState.errorText!,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(color: AppColors.textSecondary),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Przy braku danych sprzedawcy sprawdź polityki RLS w Supabase. '
-                      'W repozytorium: sql/supabase_sellers_public_read.sql',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: AppColors.textLight,
-                        fontSize: 12,
-                        height: 1.35,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    FilledButton(
-                      onPressed: () => ref
-                          .read(producerDetailsViewModelProvider(widget.sellerId).notifier)
-                          .load(),
-                      child: const Text('Ponów'),
-                    ),
-                  ],
-                ),
-              ),
-            )
-          : SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Container(
-                    width: double.infinity,
-                    height: 220,
-                    decoration: BoxDecoration(
-                      color: AppColors.lightSage,
-                      borderRadius: BorderRadius.circular(AppRadius.normal),
-                      border: Border.all(color: AppColors.border),
-                    ),
-                    clipBehavior: Clip.antiAlias,
-                    child: Stack(
-                      fit: StackFit.expand,
+    return BlocBuilder<ProducerDetailsCubit, ProducerDetailsState>(
+      builder: (BuildContext context, ProducerDetailsState vmState) {
+        final seller = vmState.seller;
+        return DefaultScreen(
+          title: 'Sprzedawca',
+          body: vmState.isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : vmState.errorText != null
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
                       children: <Widget>[
-                        Center(
-                          child: SvgPicture.asset(
-                            'assets/icons/farm.svg',
-                            width: 120,
-                            height: 120,
-                            colorFilter: const ColorFilter.mode(
-                              AppColors.primary,
-                              BlendMode.srcIn,
-                            ),
+                        Text(
+                          vmState.errorText!,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(color: AppColors.textSecondary),
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Przy braku danych sprzedawcy sprawdź polityki RLS w Supabase. '
+                          'W repozytorium: sql/supabase_sellers_public_read.sql',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: AppColors.textLight,
+                            fontSize: 12,
+                            height: 1.35,
                           ),
                         ),
-                        Image.asset(
-                          'assets/images/farm_bg.png',
-                          fit: BoxFit.cover,
-                          errorBuilder:
-                              (BuildContext context, Object error, StackTrace? stackTrace) =>
-                                  const SizedBox.shrink(),
-                        ),
-                        Positioned(
-                          top: 12,
-                          right: 12,
-                          child: InkWell(
-                            onTap: () => ref
-                                .read(producerDetailsViewModelProvider(widget.sellerId).notifier)
-                                .toggleLike(),
-                            borderRadius: BorderRadius.circular(AppRadius.normal),
-                            child: Container(
-                              width: 32,
-                              height: 32,
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.85),
-                                shape: BoxShape.circle,
-                              ),
-                              alignment: Alignment.center,
-                              child: SvgPicture.asset(
-                                vmState.isLiked
-                                    ? 'assets/icons/heart-fill.svg'
-                                    : 'assets/icons/heart.svg',
-                                width: 16,
-                                height: 16,
-                                colorFilter: ColorFilter.mode(
-                                  vmState.isLiked ? Colors.redAccent : AppColors.primary,
-                                  BlendMode.srcIn,
-                                ),
-                              ),
-                            ),
-                          ),
+                        const SizedBox(height: 12),
+                        FilledButton(
+                          onPressed: () =>
+                              context.read<ProducerDetailsCubit>().load(),
+                          child: const Text('Ponów'),
                         ),
                       ],
                     ),
                   ),
+                )
+              : SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Container(
+                        width: double.infinity,
+                        height: 220,
+                        decoration: BoxDecoration(
+                          color: AppColors.lightSage,
+                          borderRadius: BorderRadius.circular(AppRadius.normal),
+                          border: Border.all(color: AppColors.border),
+                        ),
+                        clipBehavior: Clip.antiAlias,
+                        child: Stack(
+                          fit: StackFit.expand,
+                          children: <Widget>[
+                            Center(
+                              child: SvgPicture.asset(
+                                'assets/icons/farm.svg',
+                                width: 120,
+                                height: 120,
+                                colorFilter: const ColorFilter.mode(
+                                  AppColors.primary,
+                                  BlendMode.srcIn,
+                                ),
+                              ),
+                            ),
+                            Image.asset(
+                              'assets/images/farm_bg.png',
+                              fit: BoxFit.cover,
+                              errorBuilder:
+                                  (
+                                    BuildContext context,
+                                    Object error,
+                                    StackTrace? stackTrace,
+                                  ) => const SizedBox.shrink(),
+                            ),
+                            Positioned(
+                              top: 12,
+                              right: 12,
+                              child: InkWell(
+                                onTap: () => context
+                                    .read<ProducerDetailsCubit>()
+                                    .toggleLike(),
+                                borderRadius: BorderRadius.circular(
+                                  AppRadius.normal,
+                                ),
+                                child: Container(
+                                  width: 32,
+                                  height: 32,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.85),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  alignment: Alignment.center,
+                                  child: SvgPicture.asset(
+                                    vmState.isLiked
+                                        ? 'assets/icons/heart-fill.svg'
+                                        : 'assets/icons/heart.svg',
+                                    width: 16,
+                                    height: 16,
+                                    colorFilter: ColorFilter.mode(
+                                      vmState.isLiked
+                                          ? Colors.redAccent
+                                          : AppColors.primary,
+                                      BlendMode.srcIn,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                   const SizedBox(height: 16),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -373,7 +405,9 @@ class _ProducerDetailsScreenState extends ConsumerState<ProducerDetailsScreen> {
                 ],
               ),
             ),
-      onBack: widget.onBack,
+          onBack: widget.onBack,
+        );
+      },
     );
   }
 

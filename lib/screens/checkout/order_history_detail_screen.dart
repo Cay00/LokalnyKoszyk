@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lokalny_koszyk/domain/models/order_details.dart';
-import 'package:lokalny_koszyk/presentation/order_history_detail_view_model.dart';
-import 'package:lokalny_koszyk/presentation/orders_view_model.dart';
+import 'package:lokalny_koszyk/presentation/order_history_detail_cubit.dart';
+import 'package:lokalny_koszyk/presentation/orders_cubit.dart';
 
 import '../../core/themes/app_theme.dart';
 import '../../widgets/common/screen_header.dart';
 
-class OrderHistoryDetailScreen extends ConsumerWidget {
+class OrderHistoryDetailScreen extends StatelessWidget {
   const OrderHistoryDetailScreen({
     super.key,
     required this.orderId,
@@ -18,95 +18,104 @@ class OrderHistoryDetailScreen extends ConsumerWidget {
   final VoidCallback? onBack;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(orderHistoryDetailViewModelProvider(orderId));
-    final order = state.order;
-    final orderNumber = order?.orderNumber ?? '';
-    final orderStatus = order == null ? '' : orderStatusLabel(order.rawStatus);
-    final orderTotal = order == null
-        ? ''
-        : formatMoney(order.totalAmount, order.currency);
-    final items = order?.items ?? const <OrderDetailsItem>[];
-    return Column(
-      children: <Widget>[
-        ScreenHeader(
-          title: orderNumber.isEmpty ? 'Zamówienie' : 'Zamówienie $orderNumber',
-          onBack: onBack,
-        ),
-        Expanded(
-          child: state.isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : state.errorText != null
-              ? Center(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Text(
-                      state.errorText!,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        color: AppColors.textLight,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ),
-                )
-              : ListView(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-                  children: <Widget>[
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: AppColors.white,
-                        borderRadius: BorderRadius.circular(AppRadius.normal),
-                        border: Border.all(color: AppColors.border),
-                      ),
-                      child: Row(
-                        children: <Widget>[
-                          Expanded(
-                            child: Text(
-                              'Status: $orderStatus',
-                              style: const TextStyle(
-                                color: AppColors.textSecondary,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
+  Widget build(BuildContext context) {
+    return BlocBuilder<OrderHistoryDetailCubit, OrderHistoryDetailState>(
+      builder: (BuildContext context, OrderHistoryDetailState state) {
+        final order = state.order;
+        final orderNumber = order?.orderNumber ?? '';
+        final orderStatus = order == null
+            ? ''
+            : orderStatusLabel(order.rawStatus);
+        final orderTotal = order == null
+            ? ''
+            : formatMoney(order.totalAmount, order.currency);
+        final items = order?.items ?? const <OrderDetailsItem>[];
+        return Column(
+          children: <Widget>[
+            ScreenHeader(
+              title: orderNumber.isEmpty
+                  ? 'Zamówienie'
+                  : 'Zamówienie $orderNumber',
+              leading: ScreenHeaderBackButton(onPressed: onBack),
+            ),
+            Expanded(
+              child: state.isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : state.errorText != null
+                  ? Center(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: Text(
+                          state.errorText!,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            color: AppColors.textLight,
+                            fontSize: 14,
                           ),
-                          Text(
-                            orderTotal,
-                            style: const TextStyle(
-                              color: AppColors.primary,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'Kupione produkty',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    if (items.isEmpty)
-                      const Text(
-                        'Brak pozycji w tym zamówieniu.',
-                        style: TextStyle(color: AppColors.textLight),
-                      )
-                    else
-                      ...items.map(
-                        (item) => _OrderProductTile(
-                          item: item,
-                          currency: order?.currency ?? 'PLN',
                         ),
                       ),
-                  ],
-                ),
-        ),
-      ],
+                    )
+                  : ListView(
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+                      children: <Widget>[
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: AppColors.white,
+                            borderRadius: BorderRadius.circular(
+                              AppRadius.normal,
+                            ),
+                            border: Border.all(color: AppColors.border),
+                          ),
+                          child: Row(
+                            children: <Widget>[
+                              Expanded(
+                                child: Text(
+                                  'Status: $orderStatus',
+                                  style: const TextStyle(
+                                    color: AppColors.textSecondary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                              Text(
+                                orderTotal,
+                                style: const TextStyle(
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        const Text(
+                          'Kupione produkty',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        if (items.isEmpty)
+                          const Text(
+                            'Brak pozycji w tym zamówieniu.',
+                            style: TextStyle(color: AppColors.textLight),
+                          )
+                        else
+                          ...items.map(
+                            (item) => _OrderProductTile(
+                              item: item,
+                              currency: order?.currency ?? 'PLN',
+                            ),
+                          ),
+                      ],
+                    ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

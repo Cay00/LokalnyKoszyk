@@ -26,7 +26,7 @@ class DefaultScreen extends StatelessWidget {
       children: <Widget>[
         ScreenHeader(
           title: title,
-          onBack: onBack,
+          leading: ScreenHeaderBackButton(onPressed: onBack),
         ),
         Expanded(
           child:

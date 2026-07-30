@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:lokalny_koszyk/domain/repositories/product_details_repository.dart';
 import 'package:lokalny_koszyk/presentation/models/product_ui_model.dart';
-import 'package:lokalny_koszyk/presentation/product_details_view_model.dart';
+import 'package:lokalny_koszyk/presentation/product_details_cubit.dart';
 import 'package:lokalny_koszyk/screens/producer/producer_tile.dart';
 
 import '../../core/themes/app_theme.dart';
@@ -10,7 +11,7 @@ import '../../widgets/common/default_screen.dart';
 import '../../widgets/common/primary_action_button.dart';
 import '../../widgets/common/section_header.dart';
 
-class ProductDetailsScreen extends ConsumerStatefulWidget {
+class ProductDetailsScreen extends StatelessWidget {
   const ProductDetailsScreen({
     super.key,
     required this.product,
@@ -25,31 +26,52 @@ class ProductDetailsScreen extends ConsumerStatefulWidget {
   final bool openedFromSeller;
 
   @override
-  ConsumerState<ProductDetailsScreen> createState() => _ProductDetailsScreenState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (BuildContext context) => ProductDetailsCubit(
+        repository: context.read<ProductDetailsRepository>(),
+        product: product,
+      )..initialize(),
+      child: _ProductDetailsBody(
+        product: product,
+        onBack: onBack,
+        onOpenProducerDetails: onOpenProducerDetails,
+        openedFromSeller: openedFromSeller,
+      ),
+    );
+  }
 }
 
-class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
+class _ProductDetailsBody extends StatelessWidget {
+  const _ProductDetailsBody({
+    required this.product,
+    this.onBack,
+    this.onOpenProducerDetails,
+    this.openedFromSeller = false,
+  });
 
-  String get _producerDisplayName {
-    final state = ref.watch(productDetailsViewModelProvider(widget.product));
+  final ProductUiModel product;
+  final VoidCallback? onBack;
+  final VoidCallback? onOpenProducerDetails;
+  final bool openedFromSeller;
+
+  String _producerDisplayName(ProductDetailsState state) {
     final fromDb = state.sellerNameFromDb?.trim();
     if (fromDb != null && fromDb.isNotEmpty) return fromDb;
-    final fromProduct = widget.product.producer.trim();
+    final fromProduct = product.producer.trim();
     if (fromProduct.isNotEmpty) return fromProduct;
     return 'Sprzedawca';
   }
 
-  Future<void> _addToCart() async {
-    final vm = ref.read(productDetailsViewModelProvider(widget.product).notifier);
-    final err = await vm.addToCart();
-    if (!mounted) return;
-    final qty = ref.read(productDetailsViewModelProvider(widget.product)).selectedQuantity;
+  Future<void> _addToCart(BuildContext context) async {
+    final cubit = context.read<ProductDetailsCubit>();
+    final err = await cubit.addToCart();
+    if (!context.mounted) return;
+    final qty = cubit.state.selectedQuantity;
     if (err == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            'Dodano do koszyka: ${widget.product.name} x$qty',
-          ),
+          content: Text('Dodano do koszyka: ${product.name} x$qty'),
         ),
       );
     } else {
@@ -59,222 +81,232 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
     }
   }
 
-  Future<void> _onFavoriteTap() async {
-    final vm = ref.read(productDetailsViewModelProvider(widget.product).notifier);
-    final message = await vm.toggleFavorite();
-    if (message == null || !mounted) return;
+  Future<void> _onFavoriteTap(BuildContext context) async {
+    final message = await context.read<ProductDetailsCubit>().toggleFavorite();
+    if (message == null || !context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
     );
   }
 
-  void _handleOpenProducer() {
-    if (widget.openedFromSeller) {
+  void _handleOpenProducer(BuildContext context) {
+    if (openedFromSeller) {
       Navigator.of(context).pop();
       return;
     }
-    widget.onOpenProducerDetails?.call();
+    onOpenProducerDetails?.call();
   }
 
   @override
   Widget build(BuildContext context) {
-    final vmState = ref.watch(productDetailsViewModelProvider(widget.product));
-    final _LocalProductDetails details =
-        _detailsById[widget.product.id] ?? _fallbackDetails;
+    return BlocBuilder<ProductDetailsCubit, ProductDetailsState>(
+      builder: (BuildContext context, ProductDetailsState vmState) {
+        final _LocalProductDetails details =
+            _detailsById[product.id] ?? _fallbackDetails;
 
-    return DefaultScreen(
-      title: 'Szczegóły produktu',
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Container(
-              width: double.infinity,
-              height: 220,
-              clipBehavior: Clip.antiAlias,
-              decoration: BoxDecoration(
-                color: widget.product.bgColor,
-                borderRadius: BorderRadius.circular(AppRadius.normal),
-                border: Border.all(color: AppColors.border),
-              ),
-              child: Stack(
-                fit: StackFit.expand,
-                children: <Widget>[
-                  Positioned.fill(
-                    child: Image.asset(
-                      'assets/images/food_default.png',
-                      fit: BoxFit.cover,
-                      alignment: Alignment.center,
-                      errorBuilder:
-                          (BuildContext context, Object error, StackTrace? stackTrace) =>
-                              ColoredBox(color: widget.product.bgColor),
-                    ),
+        return DefaultScreen(
+          title: 'Szczegóły produktu',
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Container(
+                  width: double.infinity,
+                  height: 220,
+                  clipBehavior: Clip.antiAlias,
+                  decoration: BoxDecoration(
+                    color: product.bgColor,
+                    borderRadius: BorderRadius.circular(AppRadius.normal),
+                    border: Border.all(color: AppColors.border),
                   ),
-                  Positioned(
-                    top: 12,
-                    right: 12,
-                    child: InkWell(
-                      onTap: vmState.favoriteBusy ? null : _onFavoriteTap,
-                      borderRadius: BorderRadius.circular(AppRadius.normal),
-                      child: Container(
-                        width: 32,
-                        height: 32,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.85),
-                          shape: BoxShape.circle,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: <Widget>[
+                      Positioned.fill(
+                        child: Image.asset(
+                          'assets/images/food_default.png',
+                          fit: BoxFit.cover,
+                          alignment: Alignment.center,
+                          errorBuilder:
+                              (
+                                BuildContext context,
+                                Object error,
+                                StackTrace? stackTrace,
+                              ) => ColoredBox(color: product.bgColor),
                         ),
-                        alignment: Alignment.center,
-                        child: Opacity(
-                          opacity: vmState.isFavorite == null || vmState.favoriteBusy ? 0.55 : 1,
-                          child: SvgPicture.asset(
-                            vmState.isFavorite == true
-                                ? 'assets/icons/heart-fill.svg'
-                                : 'assets/icons/heart.svg',
-                            width: 16,
-                            height: 16,
-                            colorFilter: ColorFilter.mode(
-                              vmState.isFavorite == true
-                                  ? Colors.redAccent
-                                  : AppColors.primary,
-                              BlendMode.srcIn,
+                      ),
+                      Positioned(
+                        top: 12,
+                        right: 12,
+                        child: InkWell(
+                          onTap: vmState.favoriteBusy
+                              ? null
+                              : () => _onFavoriteTap(context),
+                          borderRadius: BorderRadius.circular(AppRadius.normal),
+                          child: Container(
+                            width: 32,
+                            height: 32,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.85),
+                              shape: BoxShape.circle,
+                            ),
+                            alignment: Alignment.center,
+                            child: Opacity(
+                              opacity: vmState.isFavorite == null ||
+                                      vmState.favoriteBusy
+                                  ? 0.55
+                                  : 1,
+                              child: SvgPicture.asset(
+                                vmState.isFavorite == true
+                                    ? 'assets/icons/heart-fill.svg'
+                                    : 'assets/icons/heart.svg',
+                                width: 16,
+                                height: 16,
+                                colorFilter: ColorFilter.mode(
+                                  vmState.isFavorite == true
+                                      ? Colors.redAccent
+                                      : AppColors.primary,
+                                  BlendMode.srcIn,
+                                ),
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            ProducerTile(
-              name: _producerDisplayName,
-              distance: widget.product.distance,
-              rating: widget.product.rating,
-              reviews: '16',
-              verified: true,
-              onTap: _handleOpenProducer,
-            ),
-            const SizedBox(height: 8),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Expanded(
-                  child: Text(
-                    widget.product.name,
-                    style: AppTypography.productNameNormal,
+                    ],
                   ),
                 ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
+                const SizedBox(height: 16),
+                ProducerTile(
+                  name: _producerDisplayName(vmState),
+                  distance: product.distance,
+                  rating: product.rating,
+                  reviews: '16',
+                  verified: true,
+                  onTap: () => _handleOpenProducer(context),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    Text(
-                      widget.product.pricePerOfferLabel,
-                      textAlign: TextAlign.right,
-                      style: AppTypography.price,
-                    ),
-                    if (!widget.product.hasKnownDbUnit &&
-                        widget.product.unit.trim().isNotEmpty) ...<Widget>[
-                      const SizedBox(height: 2),
-                      Text(
-                        widget.product.unit,
-                        style: AppTypography.caption,
+                    Expanded(
+                      child: Text(
+                        product.name,
+                        style: AppTypography.productNameNormal,
                       ),
-                    ],
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: <Widget>[
+                        Text(
+                          product.pricePerOfferLabel,
+                          textAlign: TextAlign.right,
+                          style: AppTypography.price,
+                        ),
+                        if (!product.hasKnownDbUnit &&
+                            product.unit.trim().isNotEmpty) ...<Widget>[
+                          const SizedBox(height: 2),
+                          Text(
+                            product.unit,
+                            style: AppTypography.caption,
+                          ),
+                        ],
+                      ],
+                    ),
                   ],
                 ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              '*Najniższa cena z ostatnich 30 dni: ${widget.product.pricePerOfferLabel}',
-              style: AppTypography.caption,
-            ),
-            const SizedBox(height: 8),
-            Container(
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: AppColors.white,
-                borderRadius: BorderRadius.circular(AppRadius.normal),
-                border: Border.all(color: AppColors.border),
-              ),
-              child: Row(
-                children: <Widget>[
-                  Container(
-                    decoration: BoxDecoration(
-                      color: vmState.selectedQuantity > 1
-                          ? AppColors.primaryLight
-                          : AppColors.border,
-                      borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(AppRadius.normal),
-                        bottomLeft: Radius.circular(AppRadius.normal),
-                      ),
-                    ),
-                    child: IconButton(
-                      onPressed: vmState.selectedQuantity > 1
-                          ? () => ref
-                                .read(productDetailsViewModelProvider(widget.product).notifier)
-                                .decreaseQuantity()
-                          : null,
-                      icon: Icon(
-                        Icons.remove,
-                        size: 16,
-                        color: vmState.selectedQuantity > 1
-                            ? AppColors.white
-                            : AppColors.textLight,
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      constraints: const BoxConstraints(),
-                    ),
+                const SizedBox(height: 8),
+                Text(
+                  '*Najniższa cena z ostatnich 30 dni: ${product.pricePerOfferLabel}',
+                  style: AppTypography.caption,
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: AppColors.white,
+                    borderRadius: BorderRadius.circular(AppRadius.normal),
+                    border: Border.all(color: AppColors.border),
                   ),
-                  Expanded(
-                    child: Center(
-                      child: Text(
-                        '${vmState.selectedQuantity}',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimary,
+                  child: Row(
+                    children: <Widget>[
+                      Container(
+                        decoration: BoxDecoration(
+                          color: vmState.selectedQuantity > 1
+                              ? AppColors.primaryLight
+                              : AppColors.border,
+                          borderRadius: const BorderRadius.only(
+                            topLeft: Radius.circular(AppRadius.normal),
+                            bottomLeft: Radius.circular(AppRadius.normal),
+                          ),
+                        ),
+                        child: IconButton(
+                          onPressed: vmState.selectedQuantity > 1
+                              ? () => context
+                                    .read<ProductDetailsCubit>()
+                                    .decreaseQuantity()
+                              : null,
+                          icon: Icon(
+                            Icons.remove,
+                            size: 16,
+                            color: vmState.selectedQuantity > 1
+                                ? AppColors.white
+                                : AppColors.textLight,
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          constraints: const BoxConstraints(),
                         ),
                       ),
-                    ),
+                      Expanded(
+                        child: Center(
+                          child: Text(
+                            '${vmState.selectedQuantity}',
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                        ),
+                      ),
+                      Container(
+                        decoration: const BoxDecoration(
+                          color: AppColors.primaryLight,
+                          borderRadius: BorderRadius.only(
+                            topRight: Radius.circular(AppRadius.normal),
+                            bottomRight: Radius.circular(AppRadius.normal),
+                          ),
+                        ),
+                        child: IconButton(
+                          onPressed: () => context
+                              .read<ProductDetailsCubit>()
+                              .increaseQuantity(),
+                          icon: const Icon(
+                            Icons.add,
+                            size: 16,
+                            color: AppColors.white,
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          constraints: const BoxConstraints(),
+                        ),
+                      ),
+                    ],
                   ),
-                  Container(
-                    decoration: const BoxDecoration(
-                      color: AppColors.primaryLight,
-                      borderRadius: BorderRadius.only(
-                        topRight: Radius.circular(AppRadius.normal),
-                        bottomRight: Radius.circular(AppRadius.normal),
-                      ),
-                    ),
-                    child: IconButton(
-                      onPressed: () => ref
-                          .read(productDetailsViewModelProvider(widget.product).notifier)
-                          .increaseQuantity(),
-                      icon: const Icon(
-                        Icons.add,
-                        size: 16,
-                        color: AppColors.white,
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      constraints: const BoxConstraints(),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 8),
-            PrimaryActionButton(
-              label: 'Dodaj do koszyka',
-              onPressed: vmState.isAddingToCart ? null : _addToCart,
-            ),
+                ),
+                const SizedBox(height: 8),
+                PrimaryActionButton(
+                  label: 'Dodaj do koszyka',
+                  onPressed: vmState.isAddingToCart
+                      ? null
+                      : () => _addToCart(context),
+                ),
             const SizedBox(height: 24),
             const SectionHeader(title: 'Opis'),
             const SizedBox(height: 16),
@@ -409,10 +441,12 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
               _sharedStorageDetailsText,
               style: AppTypography.body.copyWith(height: 1.5),
             ),
-          ],
-        ),
-      ),
-      onBack: widget.onBack,
+              ],
+            ),
+          ),
+          onBack: onBack,
+        );
+      },
     );
   }
 }

@@ -1,8 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:lokalny_koszyk/core/themes/app_theme.dart';
+import 'package:lokalny_koszyk/domain/repositories/cart_repository.dart';
+import 'package:lokalny_koszyk/domain/repositories/discover_repository.dart';
+import 'package:lokalny_koszyk/domain/repositories/home_repository.dart';
+import 'package:lokalny_koszyk/domain/repositories/orders_repository.dart';
+import 'package:lokalny_koszyk/domain/repositories/watched_products_repository.dart';
+import 'package:lokalny_koszyk/presentation/checkout_cubit.dart';
+import 'package:lokalny_koszyk/presentation/discover_cubit.dart';
+import 'package:lokalny_koszyk/presentation/favorites_cubit.dart';
+import 'package:lokalny_koszyk/presentation/home_cubit.dart';
 import 'package:lokalny_koszyk/presentation/models/product_ui_model.dart';
+import 'package:lokalny_koszyk/presentation/order_history_detail_cubit.dart';
+import 'package:lokalny_koszyk/presentation/orders_cubit.dart';
 import 'package:lokalny_koszyk/widgets/app_bottom_navigation_bar.dart';
 import 'package:lokalny_koszyk/screens/checkout/order_checkout_screen.dart';
 import 'package:lokalny_koszyk/screens/checkout/order_history_detail_screen.dart';
@@ -78,9 +90,9 @@ class _AppRouterState extends State<AppRouter> {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       // styl status bara
       value: const SystemUiOverlayStyle(
-        statusBarColor: AppColors.primary,
-        statusBarIconBrightness: Brightness.light,
-        statusBarBrightness: Brightness.dark,
+        statusBarColor: AppColors.background,
+        statusBarIconBrightness: Brightness.dark,
+        statusBarBrightness: Brightness.light,
       ),
       child: PopScope(
         canPop: false,
@@ -96,7 +108,7 @@ class _AppRouterState extends State<AppRouter> {
               // manualne ustawienie koloru pod status barem
               Container(
                 height: MediaQuery.paddingOf(context).top,
-                color: AppColors.primary,
+                color: AppColors.background,
               ),
               Expanded(
                 // IndexedStack zachowuje stan każdego taba
@@ -161,10 +173,16 @@ class HomeTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Navigator(
-      key: navigatorKey,
-      onGenerateRoute: (_) => _NoAnimationPageRoute<void>(
-        builder: (_) => const _HomeNavigator(),
+    return BlocProvider(
+      create: (context) => HomeCubit(
+        homeRepository: context.read<HomeRepository>(),
+        cartRepository: context.read<CartRepository>(),
+      )..loadSellers(),
+      child: Navigator(
+        key: navigatorKey,
+        onGenerateRoute: (_) => _NoAnimationPageRoute<void>(
+          builder: (_) => const _HomeNavigator(),
+        ),
       ),
     );
   }
@@ -207,10 +225,16 @@ class DiscoverTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Navigator(
-      key: navigatorKey,
-      onGenerateRoute: (_) => _NoAnimationPageRoute<void>(
-        builder: (_) => const _DiscoverNavigator(),
+    return BlocProvider(
+      create: (context) => DiscoverCubit(
+        discoverRepository: context.read<DiscoverRepository>(),
+        cartRepository: context.read<CartRepository>(),
+      )..loadProducts(),
+      child: Navigator(
+        key: navigatorKey,
+        onGenerateRoute: (_) => _NoAnimationPageRoute<void>(
+          builder: (_) => const _DiscoverNavigator(),
+        ),
       ),
     );
   }
@@ -249,10 +273,16 @@ class OrdersTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Navigator(
-      key: navigatorKey,
-      onGenerateRoute: (_) => _NoAnimationPageRoute<void>(
-        builder: (_) => const _OrdersNavigator(),
+    return BlocProvider(
+      create: (context) => OrdersCubit(
+        cartRepository: context.read<CartRepository>(),
+        ordersRepository: context.read<OrdersRepository>(),
+      )..refreshAll(),
+      child: Navigator(
+        key: navigatorKey,
+        onGenerateRoute: (_) => _NoAnimationPageRoute<void>(
+          builder: (_) => const _OrdersNavigator(),
+        ),
       ),
     );
   }
@@ -269,8 +299,13 @@ class _OrdersNavigator extends StatelessWidget {
         Navigator.push(
           context,
           _NoAnimationPageRoute<void>(
-            builder: (_) => OrderCheckoutScreen(
-              onBack: () => Navigator.pop(context),
+            builder: (_) => BlocProvider(
+              create: (context) => CheckoutCubit(
+                cartRepository: context.read<CartRepository>(),
+              )..load(),
+              child: OrderCheckoutScreen(
+                onBack: () => Navigator.pop(context),
+              ),
             ),
           ),
         );
@@ -279,9 +314,15 @@ class _OrdersNavigator extends StatelessWidget {
         Navigator.push(
           context,
           _NoAnimationPageRoute<void>(
-            builder: (_) => OrderHistoryDetailScreen(
-              orderId: id,
-              onBack: () => Navigator.pop(context),
+            builder: (_) => BlocProvider(
+              create: (context) => OrderHistoryDetailCubit(
+                ordersRepository: context.read<OrdersRepository>(),
+                orderId: id,
+              )..load(),
+              child: OrderHistoryDetailScreen(
+                orderId: id,
+                onBack: () => Navigator.pop(context),
+              ),
             ),
           ),
         );
@@ -329,8 +370,14 @@ class _ProfileNavigator extends StatelessWidget {
         Navigator.push(
           context,
           _NoAnimationPageRoute<void>(
-            builder: (_) => FavoritesScreen(
-              onBack: () => Navigator.pop(context),
+            builder: (_) => BlocProvider(
+              create: (context) => FavoritesCubit(
+                watchedProductsRepository:
+                    context.read<WatchedProductsRepository>(),
+              )..load(),
+              child: FavoritesScreen(
+                onBack: () => Navigator.pop(context),
+              ),
             ),
           ),
         );

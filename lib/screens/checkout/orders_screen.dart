@@ -1,110 +1,112 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:lokalny_koszyk/domain/models/cart_item.dart';
 import 'package:lokalny_koszyk/domain/models/order_summary.dart';
-import 'package:lokalny_koszyk/presentation/orders_view_model.dart';
+import 'package:lokalny_koszyk/presentation/orders_cubit.dart';
+import 'package:lokalny_koszyk/widgets/common/screen_header.dart';
 import 'package:lokalny_koszyk/widgets/common/section_header.dart';
 
 import '../../core/themes/app_theme.dart';
 
-class OrdersScreen extends ConsumerStatefulWidget {
+class OrdersScreen extends StatelessWidget {
   const OrdersScreen({super.key, this.onOpenCheckout, this.onOpenOrderDetails});
 
   final VoidCallback? onOpenCheckout;
   final ValueChanged<String>? onOpenOrderDetails;
 
   @override
-  ConsumerState<OrdersScreen> createState() => _OrdersScreenState();
+  Widget build(BuildContext context) {
+    return BlocBuilder<OrdersCubit, OrdersState>(
+      builder: (BuildContext context, OrdersState state) {
+        final orders = state.orders
+            .map(
+              (OrderSummary order) => _OrderItem(
+                id: order.id,
+                orderNumber: order.orderNumber,
+                status: orderStatusLabel(order.rawStatus),
+                date: formatOrderDate(order.createdAt),
+                total: formatMoney(order.totalAmount, order.currency),
+                color: orderStatusColor(order.rawStatus),
+                iconAsset: orderStatusIcon(order.rawStatus),
+              ),
+            )
+            .toList();
+        return Column(
+          children: <Widget>[
+            const ScreenHeader(title: 'Zamówienia'),
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: () => context.read<OrdersCubit>().refreshAll(),
+                child: ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.all(16),
+                  children: <Widget>[
+                    _CartSummaryCard(
+                isLoading: state.isLoadingCart,
+                cartItems: state.cartItems,
+                isRemovingItem: state.isRemovingItem,
+                onRemoveItem: (CartItem item) => _removeItem(context, item),
+                onOpenCheckout: onOpenCheckout,
+              ),
+              const SizedBox(height: 32),
+              const SectionHeader(
+                title: 'Historia zamówień',
+                actionLabel: 'Wszystkie',
+              ),
+              const SizedBox(height: 16),
+              if (state.isLoadingOrders)
+                const Center(child: CircularProgressIndicator())
+              else if (state.ordersError != null)
+                Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: Text(state.ordersError!, style: AppTypography.body),
+                    ),
+                    TextButton(
+                      onPressed: () =>
+                          context.read<OrdersCubit>().loadOrders(),
+                      child: const Text('Ponów'),
+                    ),
+                  ],
+                )
+              else if (orders.isEmpty)
+                const Text(
+                  'Brak złożonych zamówień dla tego konta.',
+                  style: AppTypography.body,
+                )
+              else
+                ...orders.asMap().entries.map((entry) {
+                  final int index = entry.key;
+                  final _OrderItem order = entry.value;
+                  return _OrderHistoryTile(
+                    order: order,
+                    withBottomSpacing: index < orders.length - 1,
+                    onTap: onOpenOrderDetails != null
+                        ? () => onOpenOrderDetails!(order.id)
+                        : null,
+                  );
+                }),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
 }
 
-class _OrdersScreenState extends ConsumerState<OrdersScreen> {
-  Future<void> _removeItem(CartItem item) async {
-    final err = await ref
-        .read(ordersViewModelProvider.notifier)
-        .removeItem(item);
-    if (!mounted) return;
-    if (err == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Usunięto z koszyka: ${item.name}')),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(err)));
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final state = ref.watch(ordersViewModelProvider);
-    final orders = state.orders
-        .map(
-          (OrderSummary order) => _OrderItem(
-            id: order.id,
-            orderNumber: order.orderNumber,
-            status: orderStatusLabel(order.rawStatus),
-            date: formatOrderDate(order.createdAt),
-            total: formatMoney(order.totalAmount, order.currency),
-            color: orderStatusColor(order.rawStatus),
-            iconAsset: orderStatusIcon(order.rawStatus),
-          ),
-        )
-        .toList();
-    return RefreshIndicator(
-      onRefresh: () => ref.read(ordersViewModelProvider.notifier).refreshAll(),
-      child: ListView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(16),
-        children: <Widget>[
-          const Text('Zamówienia', style: AppTypography.header),
-          const SizedBox(height: 16),
-          _CartSummaryCard(
-            isLoading: state.isLoadingCart,
-            cartItems: state.cartItems,
-            isRemovingItem: state.isRemovingItem,
-            onRemoveItem: _removeItem,
-            onOpenCheckout: widget.onOpenCheckout,
-          ),
-          const SizedBox(height: 32),
-          const SectionHeader(
-            title: 'Historia zamówień',
-            actionLabel: 'Wszystkie',
-          ),
-          const SizedBox(height: 16),
-          if (state.isLoadingOrders)
-            const Center(child: CircularProgressIndicator())
-          else if (state.ordersError != null)
-            Row(
-              children: <Widget>[
-                Expanded(
-                  child: Text(state.ordersError!, style: AppTypography.body),
-                ),
-                TextButton(
-                  onPressed: () =>
-                      ref.read(ordersViewModelProvider.notifier).loadOrders(),
-                  child: const Text('Ponów'),
-                ),
-              ],
-            )
-          else if (orders.isEmpty)
-            const Text(
-              'Brak złożonych zamówień dla tego konta.',
-              style: AppTypography.body,
-            )
-          else
-            ...orders.asMap().entries.map((entry) {
-              final int index = entry.key;
-              final _OrderItem order = entry.value;
-              return _OrderHistoryTile(
-                order: order,
-                withBottomSpacing: index < orders.length - 1,
-                onTap: widget.onOpenOrderDetails != null
-                    ? () => widget.onOpenOrderDetails!(order.id)
-                    : null,
-              );
-            }),
-        ],
-      ),
+Future<void> _removeItem(BuildContext context, CartItem item) async {
+  final err = await context.read<OrdersCubit>().removeItem(item);
+  if (!context.mounted) return;
+  if (err == null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Usunięto z koszyka: ${item.name}')),
     );
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(err)));
   }
 }
 

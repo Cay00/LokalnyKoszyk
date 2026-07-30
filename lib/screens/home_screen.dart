@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:lokalny_koszyk/core/themes/app_theme.dart';
 import 'package:lokalny_koszyk/domain/models/seller.dart';
-import 'package:lokalny_koszyk/presentation/home_view_model.dart';
+import 'package:lokalny_koszyk/presentation/home_cubit.dart';
 import 'package:lokalny_koszyk/presentation/models/product_ui_model.dart';
 import 'package:lokalny_koszyk/widgets/common/search_bar.dart';
 import 'package:lokalny_koszyk/widgets/discover/discover_map_preview.dart';
@@ -11,7 +11,7 @@ import 'package:lokalny_koszyk/screens/producer/producer_tile.dart';
 import 'package:lokalny_koszyk/widgets/common/section_header.dart';
 import 'package:lokalny_koszyk/screens/product/product_tile.dart';
 
-class HomeScreen extends ConsumerStatefulWidget {
+class HomeScreen extends StatelessWidget {
   const HomeScreen({
     super.key,
     this.onOpenProductDetails,
@@ -21,12 +21,6 @@ class HomeScreen extends ConsumerStatefulWidget {
   final ValueChanged<ProductUiModel>? onOpenProductDetails;
   final ValueChanged<String>? onOpenProducerDetails;
 
-  @override
-  ConsumerState<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends ConsumerState<HomeScreen> {
-
   String? _buildAccessHintMessage(int unresolved) {
     if (unresolved == 0) return null;
     return 'Brak nazw sprzedawców — baza zwraca tylko identyfikatory. '
@@ -34,60 +28,64 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         'Gotowy skrypt: sql/supabase_sellers_public_read.sql';
   }
 
-  Future<void> _addToCart(ProductUiModel product) async {
-    final viewModel = ref.read(homeViewModelProvider.notifier);
-    final error = await viewModel.addToCart(product);
-    if (!mounted) return;
-    final cartCount = ref.read(homeViewModelProvider).cartCount;
-    if (error == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          duration: const Duration(milliseconds: 900),
-          content: Text('Dodano do koszyka: ${product.name} (razem: $cartCount)'),
-        ),
-      );
-    } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Nie udało się dodać do koszyka: $error')));
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(homeViewModelProvider);
-    final sellersAsync = state.nearbySellers;
-    final sellers = sellersAsync.valueOrNull ?? const <Seller>[];
-    final unresolvedCount = sellers.where((Seller s) => !s.hasResolvedName).length;
+    return BlocBuilder<HomeCubit, HomeState>(
+      builder: (BuildContext context, HomeState state) {
+        final sellers = state.nearbySellers;
+        final unresolvedCount =
+            sellers.where((Seller s) => !s.hasResolvedName).length;
 
-    return ListView(
-      padding: EdgeInsets.zero,
-      children: <Widget>[
-        _HomeHeader(cartCount: state.cartCount),
-        const _SeasonalBanner(),
-        const _NearbyProducersHeader(),
-        const Padding(
-          padding: EdgeInsets.fromLTRB(16, 16, 16, 16),
-          child: DiscoverMapPreview(),
-        ),
-        _NearbyProducersList(
-          producers: sellers,
-          isLoading: sellersAsync.isLoading,
-          errorText: sellersAsync.hasError
-              ? 'Nie udało się pobrać sprzedawców: ${sellersAsync.error}'
-              : null,
-          accessHint: _buildAccessHintMessage(unresolvedCount),
-          onRetry: () => ref.read(homeViewModelProvider.notifier).loadSellers(),
-          onOpenProducerDetails: widget.onOpenProducerDetails,
-        ),
-        _FeaturedProductsSection(
-          products: state.featuredProducts,
-          onOpenDetails: (ProductUiModel product) {
-            widget.onOpenProductDetails?.call(product);
-          },
-          onAddToCart: _addToCart,
-        ),
-      ],
+        return ListView(
+          padding: EdgeInsets.zero,
+          children: <Widget>[
+            _HomeHeader(cartCount: state.cartCount),
+            const _SeasonalBanner(),
+            const _NearbyProducersHeader(),
+            const Padding(
+              padding: EdgeInsets.fromLTRB(16, 16, 16, 16),
+              child: DiscoverMapPreview(),
+            ),
+            _NearbyProducersList(
+              producers: sellers,
+              isLoading: state.isLoadingSellers,
+              errorText: state.sellersError != null
+                  ? 'Nie udało się pobrać sprzedawców: ${state.sellersError}'
+                  : null,
+              accessHint: _buildAccessHintMessage(unresolvedCount),
+              onRetry: () => context.read<HomeCubit>().loadSellers(),
+              onOpenProducerDetails: onOpenProducerDetails,
+            ),
+            _FeaturedProductsSection(
+              products: state.featuredProducts,
+              onOpenDetails: (ProductUiModel product) {
+                onOpenProductDetails?.call(product);
+              },
+              onAddToCart: (ProductUiModel product) =>
+                  _addToCart(context, product),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+Future<void> _addToCart(BuildContext context, ProductUiModel product) async {
+  final cubit = context.read<HomeCubit>();
+  final error = await cubit.addToCart(product);
+  if (!context.mounted) return;
+  final cartCount = cubit.state.cartCount;
+  if (error == null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        duration: const Duration(milliseconds: 900),
+        content: Text('Dodano do koszyka: ${product.name} (razem: $cartCount)'),
+      ),
+    );
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Nie udało się dodać do koszyka: $error')),
     );
   }
 }
