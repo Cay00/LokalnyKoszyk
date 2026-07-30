@@ -8,13 +8,13 @@ import 'package:lokalny_koszyk/domain/repositories/discover_repository.dart';
 import 'package:lokalny_koszyk/domain/repositories/home_repository.dart';
 import 'package:lokalny_koszyk/domain/repositories/orders_repository.dart';
 import 'package:lokalny_koszyk/domain/repositories/watched_products_repository.dart';
-import 'package:lokalny_koszyk/presentation/checkout_cubit.dart';
-import 'package:lokalny_koszyk/presentation/discover_cubit.dart';
-import 'package:lokalny_koszyk/presentation/favorites_cubit.dart';
-import 'package:lokalny_koszyk/presentation/home_cubit.dart';
+import 'package:lokalny_koszyk/presentation/checkout_bloc.dart';
+import 'package:lokalny_koszyk/presentation/discover_bloc.dart';
+import 'package:lokalny_koszyk/presentation/favorites_bloc.dart';
+import 'package:lokalny_koszyk/presentation/home_bloc.dart';
 import 'package:lokalny_koszyk/presentation/models/product_ui_model.dart';
-import 'package:lokalny_koszyk/presentation/order_history_detail_cubit.dart';
-import 'package:lokalny_koszyk/presentation/orders_cubit.dart';
+import 'package:lokalny_koszyk/presentation/order_history_detail_bloc.dart';
+import 'package:lokalny_koszyk/presentation/orders_bloc.dart';
 import 'package:lokalny_koszyk/widgets/app_bottom_navigation_bar.dart';
 import 'package:lokalny_koszyk/screens/checkout/order_checkout_screen.dart';
 import 'package:lokalny_koszyk/screens/checkout/order_history_detail_screen.dart';
@@ -174,10 +174,10 @@ class HomeTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => HomeCubit(
+      create: (context) => HomeBloc(
         homeRepository: context.read<HomeRepository>(),
         cartRepository: context.read<CartRepository>(),
-      )..loadSellers(),
+      )..add(const HomeLoadSellersRequested()),
       child: Navigator(
         key: navigatorKey,
         onGenerateRoute: (_) => _NoAnimationPageRoute<void>(
@@ -226,10 +226,10 @@ class DiscoverTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => DiscoverCubit(
+      create: (context) => DiscoverBloc(
         discoverRepository: context.read<DiscoverRepository>(),
         cartRepository: context.read<CartRepository>(),
-      )..loadProducts(),
+      )..add(const DiscoverLoadProductsRequested()),
       child: Navigator(
         key: navigatorKey,
         onGenerateRoute: (_) => _NoAnimationPageRoute<void>(
@@ -274,10 +274,10 @@ class OrdersTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => OrdersCubit(
+      create: (context) => OrdersBloc(
         cartRepository: context.read<CartRepository>(),
         ordersRepository: context.read<OrdersRepository>(),
-      )..refreshAll(),
+      )..add(const OrdersRefreshAllRequested()),
       child: Navigator(
         key: navigatorKey,
         onGenerateRoute: (_) => _NoAnimationPageRoute<void>(
@@ -300,9 +300,9 @@ class _OrdersNavigator extends StatelessWidget {
           context,
           _NoAnimationPageRoute<void>(
             builder: (_) => BlocProvider(
-              create: (context) => CheckoutCubit(
+              create: (context) => CheckoutBloc(
                 cartRepository: context.read<CartRepository>(),
-              )..load(),
+              )..add(const CheckoutLoadRequested()),
               child: OrderCheckoutScreen(
                 onBack: () => Navigator.pop(context),
               ),
@@ -315,10 +315,10 @@ class _OrdersNavigator extends StatelessWidget {
           context,
           _NoAnimationPageRoute<void>(
             builder: (_) => BlocProvider(
-              create: (context) => OrderHistoryDetailCubit(
+              create: (context) => OrderHistoryDetailBloc(
                 ordersRepository: context.read<OrdersRepository>(),
                 orderId: id,
-              )..load(),
+              )..add(const OrderHistoryDetailLoadRequested()),
               child: OrderHistoryDetailScreen(
                 orderId: id,
                 onBack: () => Navigator.pop(context),
@@ -371,10 +371,10 @@ class _ProfileNavigator extends StatelessWidget {
           context,
           _NoAnimationPageRoute<void>(
             builder: (_) => BlocProvider(
-              create: (context) => FavoritesCubit(
+              create: (context) => FavoritesBloc(
                 watchedProductsRepository:
                     context.read<WatchedProductsRepository>(),
-              )..load(),
+              )..add(const FavoritesLoadRequested()),
               child: FavoritesScreen(
                 onBack: () => Navigator.pop(context),
               ),

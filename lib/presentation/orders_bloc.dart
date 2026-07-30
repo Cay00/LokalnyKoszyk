@@ -6,6 +6,28 @@ import 'package:lokalny_koszyk/domain/models/order_summary.dart';
 import 'package:lokalny_koszyk/domain/repositories/cart_repository.dart';
 import 'package:lokalny_koszyk/domain/repositories/orders_repository.dart';
 
+sealed class OrdersEvent {
+  const OrdersEvent();
+}
+
+final class OrdersLoadCartRequested extends OrdersEvent {
+  const OrdersLoadCartRequested();
+}
+
+final class OrdersLoadOrdersRequested extends OrdersEvent {
+  const OrdersLoadOrdersRequested();
+}
+
+final class OrdersRefreshAllRequested extends OrdersEvent {
+  const OrdersRefreshAllRequested();
+}
+
+final class OrdersRemoveItemRequested extends OrdersEvent {
+  const OrdersRemoveItemRequested(this.item);
+
+  final CartItem item;
+}
+
 class OrdersState {
   const OrdersState({
     required this.isLoadingCart,
@@ -14,6 +36,7 @@ class OrdersState {
     required this.cartItems,
     required this.orders,
     this.ordersError,
+    this.feedbackMessage,
   });
 
   factory OrdersState.initial() => const OrdersState(
@@ -30,6 +53,7 @@ class OrdersState {
   final String? ordersError;
   final List<CartItem> cartItems;
   final List<OrderSummary> orders;
+  final String? feedbackMessage;
 
   OrdersState copyWith({
     bool? isLoadingCart,
@@ -38,6 +62,7 @@ class OrdersState {
     String? ordersError,
     List<CartItem>? cartItems,
     List<OrderSummary>? orders,
+    Object? feedbackMessage = _unset,
   }) {
     return OrdersState(
       isLoadingCart: isLoadingCart ?? this.isLoadingCart,
@@ -46,22 +71,35 @@ class OrdersState {
       ordersError: ordersError,
       cartItems: cartItems ?? this.cartItems,
       orders: orders ?? this.orders,
+      feedbackMessage: identical(feedbackMessage, _unset)
+          ? this.feedbackMessage
+          : feedbackMessage as String?,
     );
   }
 }
 
-class OrdersCubit extends Cubit<OrdersState> {
-  OrdersCubit({
+const _unset = Object();
+
+class OrdersBloc extends Bloc<OrdersEvent, OrdersState> {
+  OrdersBloc({
     required CartRepository cartRepository,
     required OrdersRepository ordersRepository,
   }) : _cartRepository = cartRepository,
        _ordersRepository = ordersRepository,
-       super(OrdersState.initial());
+       super(OrdersState.initial()) {
+    on<OrdersLoadCartRequested>(_onLoadCart);
+    on<OrdersLoadOrdersRequested>(_onLoadOrders);
+    on<OrdersRefreshAllRequested>(_onRefreshAll);
+    on<OrdersRemoveItemRequested>(_onRemoveItem);
+  }
 
   final CartRepository _cartRepository;
   final OrdersRepository _ordersRepository;
 
-  Future<void> loadCart() async {
+  Future<void> _onLoadCart(
+    OrdersLoadCartRequested event,
+    Emitter<OrdersState> emit,
+  ) async {
     emit(state.copyWith(isLoadingCart: true));
     try {
       final items = await _cartRepository.getCartItemsForCurrentUser();
@@ -76,7 +114,10 @@ class OrdersCubit extends Cubit<OrdersState> {
     }
   }
 
-  Future<void> loadOrders() async {
+  Future<void> _onLoadOrders(
+    OrdersLoadOrdersRequested event,
+    Emitter<OrdersState> emit,
+  ) async {
     emit(state.copyWith(isLoadingOrders: true, ordersError: null));
     try {
       final orders = await _ordersRepository.getOrdersForCurrentUser();
@@ -97,25 +138,38 @@ class OrdersCubit extends Cubit<OrdersState> {
     }
   }
 
-  Future<void> refreshAll() async {
-    await Future.wait(<Future<void>>[loadCart(), loadOrders()]);
+  Future<void> _onRefreshAll(
+    OrdersRefreshAllRequested event,
+    Emitter<OrdersState> emit,
+  ) async {
+    await _onLoadCart(const OrdersLoadCartRequested(), emit);
+    await _onLoadOrders(const OrdersLoadOrdersRequested(), emit);
   }
 
-  Future<String?> removeItem(CartItem item) async {
-    if (state.isRemovingItem) return null;
-    emit(state.copyWith(isRemovingItem: true));
+  Future<void> _onRemoveItem(
+    OrdersRemoveItemRequested event,
+    Emitter<OrdersState> emit,
+  ) async {
+    if (state.isRemovingItem) return;
+    emit(state.copyWith(isRemovingItem: true, feedbackMessage: null));
     try {
-      await _cartRepository.removeCartItem(cartItemId: item.id);
+      await _cartRepository.removeCartItem(cartItemId: event.item.id);
       emit(
         state.copyWith(
-          cartItems: state.cartItems.where((x) => x.id != item.id).toList(),
+          cartItems: state.cartItems
+              .where((x) => x.id != event.item.id)
+              .toList(),
+          isRemovingItem: false,
+          feedbackMessage: 'Usunięto z koszyka: ${event.item.name}',
         ),
       );
-      return null;
     } catch (e) {
-      return 'Nie udało się usunąć produktu: $e';
-    } finally {
-      emit(state.copyWith(isRemovingItem: false));
+      emit(
+        state.copyWith(
+          isRemovingItem: false,
+          feedbackMessage: 'Nie udało się usunąć produktu: $e',
+        ),
+      );
     }
   }
 }

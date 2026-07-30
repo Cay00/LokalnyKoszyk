@@ -5,6 +5,14 @@ import 'package:lokalny_koszyk/domain/repositories/watched_products_repository.d
 import 'package:lokalny_koszyk/presentation/models/favorite_product_ui_model.dart';
 import 'package:lokalny_koszyk/presentation/models/product_ui_model.dart';
 
+sealed class FavoritesEvent {
+  const FavoritesEvent();
+}
+
+final class FavoritesLoadRequested extends FavoritesEvent {
+  const FavoritesLoadRequested();
+}
+
 class FavoritesState {
   const FavoritesState({
     required this.isLoading,
@@ -40,15 +48,20 @@ class FavoritesState {
   }
 }
 
-class FavoritesCubit extends Cubit<FavoritesState> {
-  FavoritesCubit({
+class FavoritesBloc extends Bloc<FavoritesEvent, FavoritesState> {
+  FavoritesBloc({
     required WatchedProductsRepository watchedProductsRepository,
   }) : _watchedProductsRepository = watchedProductsRepository,
-       super(FavoritesState.initial());
+       super(FavoritesState.initial()) {
+    on<FavoritesLoadRequested>(_onLoad);
+  }
 
   final WatchedProductsRepository _watchedProductsRepository;
 
-  Future<void> load() async {
+  Future<void> _onLoad(
+    FavoritesLoadRequested event,
+    Emitter<FavoritesState> emit,
+  ) async {
     if (!_watchedProductsRepository.isUserSignedIn) {
       emit(
         state.copyWith(

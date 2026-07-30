@@ -5,6 +5,26 @@ import 'package:lokalny_koszyk/domain/repositories/cart_repository.dart';
 import 'package:lokalny_koszyk/domain/repositories/home_repository.dart';
 import 'package:lokalny_koszyk/presentation/models/product_ui_model.dart';
 
+sealed class HomeEvent {
+  const HomeEvent();
+}
+
+final class HomeLoadSellersRequested extends HomeEvent {
+  const HomeLoadSellersRequested();
+}
+
+final class HomeAddToCartRequested extends HomeEvent {
+  const HomeAddToCartRequested(this.product);
+
+  final ProductUiModel product;
+}
+
+final class HomeToggleLikeRequested extends HomeEvent {
+  const HomeToggleLikeRequested(this.id);
+
+  final String id;
+}
+
 class HomeState {
   const HomeState({
     required this.isLoadingSellers,
@@ -14,6 +34,7 @@ class HomeState {
     required this.liked,
     required this.isAddingToCart,
     this.sellersError,
+    this.feedbackMessage,
   });
 
   factory HomeState.initial() => HomeState(
@@ -32,6 +53,7 @@ class HomeState {
   final int cartCount;
   final Set<String> liked;
   final bool isAddingToCart;
+  final String? feedbackMessage;
 
   HomeState copyWith({
     bool? isLoadingSellers,
@@ -41,6 +63,7 @@ class HomeState {
     int? cartCount,
     Set<String>? liked,
     bool? isAddingToCart,
+    Object? feedbackMessage = _unset,
   }) {
     return HomeState(
       isLoadingSellers: isLoadingSellers ?? this.isLoadingSellers,
@@ -52,24 +75,34 @@ class HomeState {
       cartCount: cartCount ?? this.cartCount,
       liked: liked ?? this.liked,
       isAddingToCart: isAddingToCart ?? this.isAddingToCart,
+      feedbackMessage: identical(feedbackMessage, _unset)
+          ? this.feedbackMessage
+          : feedbackMessage as String?,
     );
   }
 }
 
 const _unset = Object();
 
-class HomeCubit extends Cubit<HomeState> {
-  HomeCubit({
+class HomeBloc extends Bloc<HomeEvent, HomeState> {
+  HomeBloc({
     required HomeRepository homeRepository,
     required CartRepository cartRepository,
   }) : _homeRepository = homeRepository,
        _cartRepository = cartRepository,
-       super(HomeState.initial());
+       super(HomeState.initial()) {
+    on<HomeLoadSellersRequested>(_onLoadSellers);
+    on<HomeAddToCartRequested>(_onAddToCart);
+    on<HomeToggleLikeRequested>(_onToggleLike);
+  }
 
   final HomeRepository _homeRepository;
   final CartRepository _cartRepository;
 
-  Future<void> loadSellers() async {
+  Future<void> _onLoadSellers(
+    HomeLoadSellersRequested event,
+    Emitter<HomeState> emit,
+  ) async {
     emit(state.copyWith(isLoadingSellers: true, sellersError: null));
     try {
       final sellers = await _homeRepository.getNearbySellers();
@@ -85,26 +118,39 @@ class HomeCubit extends Cubit<HomeState> {
     }
   }
 
-  Future<String?> addToCart(ProductUiModel product) async {
-    if (state.isAddingToCart) return null;
-    emit(state.copyWith(isAddingToCart: true));
+  Future<void> _onAddToCart(
+    HomeAddToCartRequested event,
+    Emitter<HomeState> emit,
+  ) async {
+    if (state.isAddingToCart) return;
+    emit(state.copyWith(isAddingToCart: true, feedbackMessage: null));
     try {
-      await _cartRepository.addToCart(productId: product.id);
-      emit(state.copyWith(cartCount: state.cartCount + 1));
-      return null;
+      await _cartRepository.addToCart(productId: event.product.id);
+      final nextCount = state.cartCount + 1;
+      emit(
+        state.copyWith(
+          cartCount: nextCount,
+          isAddingToCart: false,
+          feedbackMessage:
+              'Dodano do koszyka: ${event.product.name} (razem: $nextCount)',
+        ),
+      );
     } catch (e) {
-      return e.toString();
-    } finally {
-      emit(state.copyWith(isAddingToCart: false));
+      emit(
+        state.copyWith(
+          isAddingToCart: false,
+          feedbackMessage: 'Nie udało się dodać do koszyka: $e',
+        ),
+      );
     }
   }
 
-  void toggleLike(String id) {
+  void _onToggleLike(HomeToggleLikeRequested event, Emitter<HomeState> emit) {
     final next = <String>{...state.liked};
-    if (next.contains(id)) {
-      next.remove(id);
+    if (next.contains(event.id)) {
+      next.remove(event.id);
     } else {
-      next.add(id);
+      next.add(event.id);
     }
     emit(state.copyWith(liked: next));
   }

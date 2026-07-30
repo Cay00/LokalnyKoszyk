@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:lokalny_koszyk/domain/models/cart_item.dart';
 import 'package:lokalny_koszyk/domain/models/order_summary.dart';
-import 'package:lokalny_koszyk/presentation/orders_cubit.dart';
+import 'package:lokalny_koszyk/presentation/orders_bloc.dart';
 import 'package:lokalny_koszyk/widgets/common/screen_header.dart';
 import 'package:lokalny_koszyk/widgets/common/section_header.dart';
 
@@ -17,7 +17,18 @@ class OrdersScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<OrdersCubit, OrdersState>(
+    return BlocListener<OrdersBloc, OrdersState>(
+      listenWhen: (OrdersState previous, OrdersState current) =>
+          current.feedbackMessage != null &&
+          current.feedbackMessage != previous.feedbackMessage,
+      listener: (BuildContext context, OrdersState state) {
+        final message = state.feedbackMessage;
+        if (message == null) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(message)),
+        );
+      },
+      child: BlocBuilder<OrdersBloc, OrdersState>(
       builder: (BuildContext context, OrdersState state) {
         final orders = state.orders
             .map(
@@ -37,7 +48,13 @@ class OrdersScreen extends StatelessWidget {
             const ScreenHeader(title: 'Zamówienia'),
             Expanded(
               child: RefreshIndicator(
-                onRefresh: () => context.read<OrdersCubit>().refreshAll(),
+                onRefresh: () {
+                  final bloc = context.read<OrdersBloc>();
+                  bloc.add(const OrdersRefreshAllRequested());
+                  return bloc.stream.firstWhere(
+                    (OrdersState s) => !s.isLoadingCart && !s.isLoadingOrders,
+                  );
+                },
                 child: ListView(
                   physics: const AlwaysScrollableScrollPhysics(),
                   padding: const EdgeInsets.all(16),
@@ -46,7 +63,11 @@ class OrdersScreen extends StatelessWidget {
                 isLoading: state.isLoadingCart,
                 cartItems: state.cartItems,
                 isRemovingItem: state.isRemovingItem,
-                onRemoveItem: (CartItem item) => _removeItem(context, item),
+                onRemoveItem: (CartItem item) {
+                  context.read<OrdersBloc>().add(
+                    OrdersRemoveItemRequested(item),
+                  );
+                },
                 onOpenCheckout: onOpenCheckout,
               ),
               const SizedBox(height: 32),
@@ -64,8 +85,9 @@ class OrdersScreen extends StatelessWidget {
                       child: Text(state.ordersError!, style: AppTypography.body),
                     ),
                     TextButton(
-                      onPressed: () =>
-                          context.read<OrdersCubit>().loadOrders(),
+                      onPressed: () => context.read<OrdersBloc>().add(
+                        const OrdersLoadOrdersRequested(),
+                      ),
                       child: const Text('Ponów'),
                     ),
                   ],
@@ -94,19 +116,8 @@ class OrdersScreen extends StatelessWidget {
           ],
         );
       },
+    ),
     );
-  }
-}
-
-Future<void> _removeItem(BuildContext context, CartItem item) async {
-  final err = await context.read<OrdersCubit>().removeItem(item);
-  if (!context.mounted) return;
-  if (err == null) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Usunięto z koszyka: ${item.name}')),
-    );
-  } else {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(err)));
   }
 }
 

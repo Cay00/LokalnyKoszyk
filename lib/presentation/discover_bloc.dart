@@ -5,6 +5,38 @@ import 'package:lokalny_koszyk/domain/repositories/cart_repository.dart';
 import 'package:lokalny_koszyk/domain/repositories/discover_repository.dart';
 import 'package:lokalny_koszyk/presentation/models/product_ui_model.dart';
 
+sealed class DiscoverEvent {
+  const DiscoverEvent();
+}
+
+final class DiscoverLoadProductsRequested extends DiscoverEvent {
+  const DiscoverLoadProductsRequested();
+}
+
+final class DiscoverAddToCartRequested extends DiscoverEvent {
+  const DiscoverAddToCartRequested(this.product);
+
+  final ProductUiModel product;
+}
+
+final class DiscoverFilterSelected extends DiscoverEvent {
+  const DiscoverFilterSelected(this.filter);
+
+  final String filter;
+}
+
+final class DiscoverCategoryToggled extends DiscoverEvent {
+  const DiscoverCategoryToggled(this.categoryId);
+
+  final String categoryId;
+}
+
+final class DiscoverToggleLikeRequested extends DiscoverEvent {
+  const DiscoverToggleLikeRequested(this.id);
+
+  final String id;
+}
+
 const _unset = Object();
 
 class DiscoverState {
@@ -17,6 +49,7 @@ class DiscoverState {
     required this.isLoadingProducts,
     required this.products,
     required this.productsError,
+    this.feedbackMessage,
   });
 
   factory DiscoverState.initial() => const DiscoverState(
@@ -38,6 +71,7 @@ class DiscoverState {
   final bool isLoadingProducts;
   final List<ProductUiModel> products;
   final String? productsError;
+  final String? feedbackMessage;
 
   List<ProductUiModel> get visibleProducts {
     List<ProductUiModel> list;
@@ -60,6 +94,19 @@ class DiscoverState {
     return list;
   }
 
+  List<DiscoverCategoryItem> get categoryItems => DiscoverBloc.categoryCatalog
+      .map(
+        (DiscoverCategoryEntry e) => DiscoverCategoryItem(
+          id: e.id,
+          icon: e.icon,
+          name: e.name,
+          count: products
+              .where((ProductUiModel p) => p.categoryId == e.id)
+              .length,
+        ),
+      )
+      .toList();
+
   DiscoverState copyWith({
     int? cartCount,
     String? activeFilter,
@@ -69,6 +116,7 @@ class DiscoverState {
     bool? isLoadingProducts,
     List<ProductUiModel>? products,
     String? productsError,
+    Object? feedbackMessage = _unset,
   }) {
     return DiscoverState(
       cartCount: cartCount ?? this.cartCount,
@@ -81,17 +129,26 @@ class DiscoverState {
       isLoadingProducts: isLoadingProducts ?? this.isLoadingProducts,
       products: products ?? this.products,
       productsError: productsError,
+      feedbackMessage: identical(feedbackMessage, _unset)
+          ? this.feedbackMessage
+          : feedbackMessage as String?,
     );
   }
 }
 
-class DiscoverCubit extends Cubit<DiscoverState> {
-  DiscoverCubit({
+class DiscoverBloc extends Bloc<DiscoverEvent, DiscoverState> {
+  DiscoverBloc({
     required DiscoverRepository discoverRepository,
     required CartRepository cartRepository,
   }) : _discoverRepository = discoverRepository,
        _cartRepository = cartRepository,
-       super(DiscoverState.initial());
+       super(DiscoverState.initial()) {
+    on<DiscoverLoadProductsRequested>(_onLoadProducts);
+    on<DiscoverAddToCartRequested>(_onAddToCart);
+    on<DiscoverFilterSelected>(_onFilterSelected);
+    on<DiscoverCategoryToggled>(_onCategoryToggled);
+    on<DiscoverToggleLikeRequested>(_onToggleLike);
+  }
 
   final DiscoverRepository _discoverRepository;
   final CartRepository _cartRepository;
@@ -212,20 +269,10 @@ class DiscoverCubit extends Cubit<DiscoverState> {
         ),
       ];
 
-  List<DiscoverCategoryItem> get categoryItems => categoryCatalog
-      .map(
-        (DiscoverCategoryEntry e) => DiscoverCategoryItem(
-          id: e.id,
-          icon: e.icon,
-          name: e.name,
-          count: state.products
-              .where((ProductUiModel p) => p.categoryId == e.id)
-              .length,
-        ),
-      )
-      .toList();
-
-  Future<void> loadProducts() async {
+  Future<void> _onLoadProducts(
+    DiscoverLoadProductsRequested event,
+    Emitter<DiscoverState> emit,
+  ) async {
     emit(state.copyWith(isLoadingProducts: true, productsError: null));
     try {
       final products = await _discoverRepository.getActiveProducts();
@@ -247,40 +294,62 @@ class DiscoverCubit extends Cubit<DiscoverState> {
     }
   }
 
-  Future<String?> addToCart(ProductUiModel product) async {
-    if (state.isAddingToCart) return null;
-    emit(state.copyWith(isAddingToCart: true));
+  Future<void> _onAddToCart(
+    DiscoverAddToCartRequested event,
+    Emitter<DiscoverState> emit,
+  ) async {
+    if (state.isAddingToCart) return;
+    emit(state.copyWith(isAddingToCart: true, feedbackMessage: null));
     try {
-      await _cartRepository.addToCart(productId: product.id);
-      emit(state.copyWith(cartCount: state.cartCount + 1));
-      return null;
+      await _cartRepository.addToCart(productId: event.product.id);
+      final nextCount = state.cartCount + 1;
+      emit(
+        state.copyWith(
+          cartCount: nextCount,
+          isAddingToCart: false,
+          feedbackMessage:
+              'Dodano do koszyka: ${event.product.name} (razem: $nextCount)',
+        ),
+      );
     } catch (e) {
-      return 'Nie udało się dodać do koszyka: $e';
-    } finally {
-      emit(state.copyWith(isAddingToCart: false));
+      emit(
+        state.copyWith(
+          isAddingToCart: false,
+          feedbackMessage: 'Nie udało się dodać do koszyka: $e',
+        ),
+      );
     }
   }
 
-  void setActiveFilter(String filter) {
-    emit(state.copyWith(activeFilter: filter));
+  void _onFilterSelected(
+    DiscoverFilterSelected event,
+    Emitter<DiscoverState> emit,
+  ) {
+    emit(state.copyWith(activeFilter: event.filter));
   }
 
-  void toggleCategory(String categoryId) {
+  void _onCategoryToggled(
+    DiscoverCategoryToggled event,
+    Emitter<DiscoverState> emit,
+  ) {
     emit(
       state.copyWith(
-        activeCategoryId: state.activeCategoryId == categoryId
+        activeCategoryId: state.activeCategoryId == event.categoryId
             ? null
-            : categoryId,
+            : event.categoryId,
       ),
     );
   }
 
-  void toggleLike(String id) {
+  void _onToggleLike(
+    DiscoverToggleLikeRequested event,
+    Emitter<DiscoverState> emit,
+  ) {
     final next = <String>{...state.liked};
-    if (next.contains(id)) {
-      next.remove(id);
+    if (next.contains(event.id)) {
+      next.remove(event.id);
     } else {
-      next.add(id);
+      next.add(event.id);
     }
     emit(state.copyWith(liked: next));
   }

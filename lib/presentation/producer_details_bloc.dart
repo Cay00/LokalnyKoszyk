@@ -5,6 +5,18 @@ import 'package:lokalny_koszyk/domain/models/product.dart';
 import 'package:lokalny_koszyk/domain/repositories/producer_details_repository.dart';
 import 'package:lokalny_koszyk/presentation/models/product_ui_model.dart';
 
+sealed class ProducerDetailsEvent {
+  const ProducerDetailsEvent();
+}
+
+final class ProducerDetailsLoadRequested extends ProducerDetailsEvent {
+  const ProducerDetailsLoadRequested();
+}
+
+final class ProducerDetailsToggleLikeRequested extends ProducerDetailsEvent {
+  const ProducerDetailsToggleLikeRequested();
+}
+
 class ProducerDetailsState {
   const ProducerDetailsState({
     required this.isLiked,
@@ -48,18 +60,25 @@ class ProducerDetailsState {
   }
 }
 
-class ProducerDetailsCubit extends Cubit<ProducerDetailsState> {
-  ProducerDetailsCubit({
+class ProducerDetailsBloc
+    extends Bloc<ProducerDetailsEvent, ProducerDetailsState> {
+  ProducerDetailsBloc({
     required ProducerDetailsRepository repository,
     required String? sellerId,
   }) : _repository = repository,
        _sellerId = sellerId,
-       super(ProducerDetailsState.initial());
+       super(ProducerDetailsState.initial()) {
+    on<ProducerDetailsLoadRequested>(_onLoad);
+    on<ProducerDetailsToggleLikeRequested>(_onToggleLike);
+  }
 
   final ProducerDetailsRepository _repository;
   final String? _sellerId;
 
-  Future<void> load() async {
+  Future<void> _onLoad(
+    ProducerDetailsLoadRequested event,
+    Emitter<ProducerDetailsState> emit,
+  ) async {
     final sellerId = _sellerId;
     if (sellerId == null || sellerId.isEmpty) {
       emit(
@@ -82,7 +101,8 @@ class ProducerDetailsCubit extends Cubit<ProducerDetailsState> {
           errorText: null,
         ),
       );
-      _loadDistanceLabelInBackground(data.profile);
+      final distanceLabel = await _repository.buildDistanceLabel(data.profile);
+      emit(state.copyWith(distanceLabel: distanceLabel));
     } catch (e) {
       emit(
         state.copyWith(
@@ -93,12 +113,10 @@ class ProducerDetailsCubit extends Cubit<ProducerDetailsState> {
     }
   }
 
-  Future<void> _loadDistanceLabelInBackground(ProducerProfile seller) async {
-    final distanceLabel = await _repository.buildDistanceLabel(seller);
-    emit(state.copyWith(distanceLabel: distanceLabel));
-  }
-
-  void toggleLike() {
+  void _onToggleLike(
+    ProducerDetailsToggleLikeRequested event,
+    Emitter<ProducerDetailsState> emit,
+  ) {
     emit(state.copyWith(isLiked: !state.isLiked));
   }
 

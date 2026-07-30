@@ -4,7 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:lokalny_koszyk/domain/models/producer_profile.dart';
 import 'package:lokalny_koszyk/domain/repositories/producer_details_repository.dart';
 import 'package:lokalny_koszyk/presentation/models/product_ui_model.dart';
-import 'package:lokalny_koszyk/presentation/producer_details_cubit.dart';
+import 'package:lokalny_koszyk/presentation/producer_details_bloc.dart';
 
 import '../../core/themes/app_theme.dart';
 import '../../widgets/common/default_screen.dart';
@@ -24,10 +24,10 @@ class ProducerDetailsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (BuildContext context) => ProducerDetailsCubit(
+      create: (BuildContext context) => ProducerDetailsBloc(
         repository: context.read<ProducerDetailsRepository>(),
         sellerId: sellerId,
-      )..load(),
+      )..add(const ProducerDetailsLoadRequested()),
       child: _ProducerDetailsBody(
         sellerId: sellerId,
         onBack: onBack,
@@ -54,7 +54,7 @@ class _ProducerDetailsBodyState extends State<_ProducerDetailsBody> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ProducerDetailsCubit, ProducerDetailsState>(
+    return BlocBuilder<ProducerDetailsBloc, ProducerDetailsState>(
       builder: (BuildContext context, ProducerDetailsState vmState) {
         final seller = vmState.seller;
         return DefaultScreen(
@@ -86,8 +86,9 @@ class _ProducerDetailsBodyState extends State<_ProducerDetailsBody> {
                         ),
                         const SizedBox(height: 12),
                         FilledButton(
-                          onPressed: () =>
-                              context.read<ProducerDetailsCubit>().load(),
+                          onPressed: () => context.read<ProducerDetailsBloc>().add(
+                            const ProducerDetailsLoadRequested(),
+                          ),
                           child: const Text('Ponów'),
                         ),
                       ],
@@ -137,8 +138,10 @@ class _ProducerDetailsBodyState extends State<_ProducerDetailsBody> {
                               right: 12,
                               child: InkWell(
                                 onTap: () => context
-                                    .read<ProducerDetailsCubit>()
-                                    .toggleLike(),
+                                    .read<ProducerDetailsBloc>()
+                                    .add(
+                                      const ProducerDetailsToggleLikeRequested(),
+                                    ),
                                 borderRadius: BorderRadius.circular(
                                   AppRadius.normal,
                                 ),

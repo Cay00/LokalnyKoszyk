@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lokalny_koszyk/presentation/models/product_ui_model.dart';
 import 'package:lokalny_koszyk/presentation/models/favorite_product_ui_model.dart';
-import 'package:lokalny_koszyk/presentation/favorites_cubit.dart';
+import 'package:lokalny_koszyk/presentation/favorites_bloc.dart';
 import 'package:lokalny_koszyk/screens/producer/producer_details_screen.dart';
 import 'package:lokalny_koszyk/screens/product/product_details_screen.dart';
 
@@ -26,7 +26,7 @@ class FavoritesScreen extends StatelessWidget {
         Expanded(
           child: Padding(
             padding: const EdgeInsets.all(16),
-            child: BlocBuilder<FavoritesCubit, FavoritesState>(
+            child: BlocBuilder<FavoritesBloc, FavoritesState>(
               builder: (BuildContext context, FavoritesState state) {
                 void openProductDetails(ProductUiModel product) {
                   final String? sid = product.sellerId?.trim();
@@ -90,8 +90,9 @@ class FavoritesScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 16),
                         FilledButton(
-                          onPressed: () =>
-                              context.read<FavoritesCubit>().load(),
+                          onPressed: () => context.read<FavoritesBloc>().add(
+                            const FavoritesLoadRequested(),
+                          ),
                           child: const Text('Ponów'),
                         ),
                       ],
@@ -111,7 +112,13 @@ class FavoritesScreen extends StatelessWidget {
                   );
                 }
                 return RefreshIndicator(
-                  onRefresh: () => context.read<FavoritesCubit>().load(),
+                  onRefresh: () {
+                    final bloc = context.read<FavoritesBloc>();
+                    bloc.add(const FavoritesLoadRequested());
+                    return bloc.stream.firstWhere(
+                      (FavoritesState s) => !s.isLoading,
+                    );
+                  },
                   child: ListView.separated(
                     padding: EdgeInsets.zero,
                     physics: const AlwaysScrollableScrollPhysics(),

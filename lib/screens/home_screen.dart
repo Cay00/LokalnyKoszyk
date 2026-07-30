@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:lokalny_koszyk/core/themes/app_theme.dart';
 import 'package:lokalny_koszyk/domain/models/seller.dart';
-import 'package:lokalny_koszyk/presentation/home_cubit.dart';
+import 'package:lokalny_koszyk/presentation/home_bloc.dart';
 import 'package:lokalny_koszyk/presentation/models/product_ui_model.dart';
 import 'package:lokalny_koszyk/widgets/common/search_bar.dart';
 import 'package:lokalny_koszyk/widgets/discover/discover_map_preview.dart';
@@ -30,7 +30,23 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<HomeCubit, HomeState>(
+    return BlocListener<HomeBloc, HomeState>(
+      listenWhen: (HomeState previous, HomeState current) =>
+          current.feedbackMessage != null &&
+          current.feedbackMessage != previous.feedbackMessage,
+      listener: (BuildContext context, HomeState state) {
+        final message = state.feedbackMessage;
+        if (message == null) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            duration: message.startsWith('Dodano')
+                ? const Duration(milliseconds: 900)
+                : const Duration(seconds: 4),
+            content: Text(message),
+          ),
+        );
+      },
+      child: BlocBuilder<HomeBloc, HomeState>(
       builder: (BuildContext context, HomeState state) {
         final sellers = state.nearbySellers;
         final unresolvedCount =
@@ -53,7 +69,9 @@ class HomeScreen extends StatelessWidget {
                   ? 'Nie udało się pobrać sprzedawców: ${state.sellersError}'
                   : null,
               accessHint: _buildAccessHintMessage(unresolvedCount),
-              onRetry: () => context.read<HomeCubit>().loadSellers(),
+              onRetry: () => context.read<HomeBloc>().add(
+                const HomeLoadSellersRequested(),
+              ),
               onOpenProducerDetails: onOpenProducerDetails,
             ),
             _FeaturedProductsSection(
@@ -61,31 +79,14 @@ class HomeScreen extends StatelessWidget {
               onOpenDetails: (ProductUiModel product) {
                 onOpenProductDetails?.call(product);
               },
-              onAddToCart: (ProductUiModel product) =>
-                  _addToCart(context, product),
+              onAddToCart: (ProductUiModel product) {
+                context.read<HomeBloc>().add(HomeAddToCartRequested(product));
+              },
             ),
           ],
         );
       },
-    );
-  }
-}
-
-Future<void> _addToCart(BuildContext context, ProductUiModel product) async {
-  final cubit = context.read<HomeCubit>();
-  final error = await cubit.addToCart(product);
-  if (!context.mounted) return;
-  final cartCount = cubit.state.cartCount;
-  if (error == null) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        duration: const Duration(milliseconds: 900),
-        content: Text('Dodano do koszyka: ${product.name} (razem: $cartCount)'),
-      ),
-    );
-  } else {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Nie udało się dodać do koszyka: $error')),
+    ),
     );
   }
 }

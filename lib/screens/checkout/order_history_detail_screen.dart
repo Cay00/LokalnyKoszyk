@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lokalny_koszyk/domain/models/order_details.dart';
-import 'package:lokalny_koszyk/presentation/order_history_detail_cubit.dart';
-import 'package:lokalny_koszyk/presentation/orders_cubit.dart';
+import 'package:lokalny_koszyk/presentation/order_history_detail_bloc.dart';
+import 'package:lokalny_koszyk/presentation/orders_bloc.dart';
 
 import '../../core/themes/app_theme.dart';
 import '../../widgets/common/screen_header.dart';
@@ -19,7 +19,7 @@ class OrderHistoryDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<OrderHistoryDetailCubit, OrderHistoryDetailState>(
+    return BlocBuilder<OrderHistoryDetailBloc, OrderHistoryDetailState>(
       builder: (BuildContext context, OrderHistoryDetailState state) {
         final order = state.order;
         final orderNumber = order?.orderNumber ?? '';

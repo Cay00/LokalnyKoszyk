@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:lokalny_koszyk/domain/repositories/product_details_repository.dart';
 import 'package:lokalny_koszyk/presentation/models/product_ui_model.dart';
-import 'package:lokalny_koszyk/presentation/product_details_cubit.dart';
+import 'package:lokalny_koszyk/presentation/product_details_bloc.dart';
 import 'package:lokalny_koszyk/screens/producer/producer_tile.dart';
 
 import '../../core/themes/app_theme.dart';
@@ -28,10 +28,10 @@ class ProductDetailsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (BuildContext context) => ProductDetailsCubit(
+      create: (BuildContext context) => ProductDetailsBloc(
         repository: context.read<ProductDetailsRepository>(),
         product: product,
-      )..initialize(),
+      )..add(const ProductDetailsStarted()),
       child: _ProductDetailsBody(
         product: product,
         onBack: onBack,
@@ -64,28 +64,14 @@ class _ProductDetailsBody extends StatelessWidget {
   }
 
   Future<void> _addToCart(BuildContext context) async {
-    final cubit = context.read<ProductDetailsCubit>();
-    final err = await cubit.addToCart();
-    if (!context.mounted) return;
-    final qty = cubit.state.selectedQuantity;
-    if (err == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Dodano do koszyka: ${product.name} x$qty'),
-        ),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(err)),
-      );
-    }
+    context.read<ProductDetailsBloc>().add(
+      const ProductDetailsAddToCartRequested(),
+    );
   }
 
-  Future<void> _onFavoriteTap(BuildContext context) async {
-    final message = await context.read<ProductDetailsCubit>().toggleFavorite();
-    if (message == null || !context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
+  void _onFavoriteTap(BuildContext context) {
+    context.read<ProductDetailsBloc>().add(
+      const ProductDetailsToggleFavoriteRequested(),
     );
   }
 
@@ -99,7 +85,18 @@ class _ProductDetailsBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ProductDetailsCubit, ProductDetailsState>(
+    return BlocListener<ProductDetailsBloc, ProductDetailsState>(
+      listenWhen: (ProductDetailsState previous, ProductDetailsState current) =>
+          current.feedbackMessage != null &&
+          current.feedbackMessage != previous.feedbackMessage,
+      listener: (BuildContext context, ProductDetailsState state) {
+        final message = state.feedbackMessage;
+        if (message == null) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(message)),
+        );
+      },
+      child: BlocBuilder<ProductDetailsBloc, ProductDetailsState>(
       builder: (BuildContext context, ProductDetailsState vmState) {
         final _LocalProductDetails details =
             _detailsById[product.id] ?? _fallbackDetails;
@@ -244,8 +241,10 @@ class _ProductDetailsBody extends StatelessWidget {
                         child: IconButton(
                           onPressed: vmState.selectedQuantity > 1
                               ? () => context
-                                    .read<ProductDetailsCubit>()
-                                    .decreaseQuantity()
+                                    .read<ProductDetailsBloc>()
+                                    .add(
+                                      const ProductDetailsDecreaseQuantityRequested(),
+                                    )
                               : null,
                           icon: Icon(
                             Icons.remove,
@@ -283,8 +282,10 @@ class _ProductDetailsBody extends StatelessWidget {
                         ),
                         child: IconButton(
                           onPressed: () => context
-                              .read<ProductDetailsCubit>()
-                              .increaseQuantity(),
+                              .read<ProductDetailsBloc>()
+                              .add(
+                                const ProductDetailsIncreaseQuantityRequested(),
+                              ),
                           icon: const Icon(
                             Icons.add,
                             size: 16,
@@ -447,6 +448,7 @@ class _ProductDetailsBody extends StatelessWidget {
           onBack: onBack,
         );
       },
+    ),
     );
   }
 }
