@@ -53,7 +53,7 @@ class ProfileScreen extends StatelessWidget {
       ),
       children: <Widget>[
         Container(
-          padding: const EdgeInsets.fromLTRB(16, 32, 16, 48),
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 48),
           decoration: const BoxDecoration(
             gradient: LinearGradient(
               colors: <Color>[AppColors.accent, AppColors.accent],

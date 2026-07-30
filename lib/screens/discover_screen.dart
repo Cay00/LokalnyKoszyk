@@ -178,7 +178,6 @@ class _CategoriesSection extends StatelessWidget {
             },
           ),
         ),
-        const SizedBox(height: 16),
       ],
     );
   }

@@ -85,7 +85,7 @@ class ProductCard extends StatelessWidget {
                 ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(
-                    _edgePad,
+                    16,
                     _edgePad,
                     _edgePad,
                     0,
