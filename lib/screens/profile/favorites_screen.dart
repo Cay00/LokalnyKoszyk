@@ -21,7 +21,7 @@ class FavoritesScreen extends StatelessWidget {
       title: 'Ulubione',
       onBack: onBack,
       body: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
         child: BlocBuilder<FavoritesBloc, FavoritesState>(
           builder: (BuildContext context, FavoritesState state) {
             void openProductDetails(ProductUiModel product) {

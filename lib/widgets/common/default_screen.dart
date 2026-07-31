@@ -32,12 +32,13 @@ class DefaultScreen extends StatelessWidget {
   /// Gdy `false` — tylko 16px na dole.
   final bool showBottomNavPadding;
 
-  /// Padding treści scrolla: boki/góra + clearance bottom nav na dole.
+  /// Padding treści scrolla: boki + clearance bottom nav na dole.
+  /// Góra bez paddingu — odstęp zapewnia dolny padding headera.
   /// Wołaj z dowolnego kontekstu (także przy budowie `body` poza [MediaQuery]).
   static EdgeInsets bodyPadding(
     BuildContext context, {
     double left = 16,
-    double top = 16,
+    double top = 0,
     double right = 16,
   }) {
     return EdgeInsets.fromLTRB(

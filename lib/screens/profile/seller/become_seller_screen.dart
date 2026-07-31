@@ -277,7 +277,7 @@ class _BecomeSellerScreenState extends State<BecomeSellerScreen> {
       title: 'Zostań sprzedawcą',
       onBack: widget.onBack,
       body: SingleChildScrollView(
-        padding: DefaultScreen.bodyPadding(context, top: 12),
+        padding: DefaultScreen.bodyPadding(context),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

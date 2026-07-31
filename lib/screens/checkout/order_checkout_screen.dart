@@ -77,7 +77,7 @@ class OrderCheckoutScreen extends StatelessWidget {
                         ),
                       )
                     : ListView(
-                        padding: DefaultScreen.bodyPadding(context, top: 12),
+                        padding: DefaultScreen.bodyPadding(context),
                         children: <Widget>[
                           ...items.map((item) {
                             return Container(

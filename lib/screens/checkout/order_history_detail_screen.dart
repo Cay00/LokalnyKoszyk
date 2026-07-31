@@ -52,7 +52,7 @@ class OrderHistoryDetailScreen extends StatelessWidget {
                       ),
                     )
                   : ListView(
-                      padding: DefaultScreen.bodyPadding(context, top: 12),
+                      padding: DefaultScreen.bodyPadding(context),
                       children: <Widget>[
                         Container(
                           padding: const EdgeInsets.all(12),
