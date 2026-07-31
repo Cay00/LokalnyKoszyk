@@ -7,7 +7,8 @@ import 'screen_header.dart';
 class DefaultScreen extends StatelessWidget {
   const DefaultScreen({
     super.key,
-    required this.title,
+    this.title,
+    this.header,
     this.message,
     this.body,
     this.onBack,
@@ -15,9 +16,14 @@ class DefaultScreen extends StatelessWidget {
   }) : assert(
          message != null || body != null,
          'Provide either message or body for DefaultScreen.',
+       ),
+       assert(
+         header != null || title != null,
+         'Provide either title or header for DefaultScreen.',
        );
 
-  final String title;
+  final String? title;
+  final Widget? header;
   final String? message;
   final Widget? body;
   final VoidCallback? onBack;
@@ -68,12 +74,13 @@ class DefaultScreen extends StatelessWidget {
     // Dolny inset idzie do MediaQuery → scroll używa [bodyPadding].
     return Column(
       children: <Widget>[
-        ScreenHeader(
-          title: title,
-          leading: onBack == null
-              ? null
-              : ScreenHeaderBackButton(onPressed: onBack),
-        ),
+        header ??
+            ScreenHeader(
+              title: title!,
+              leading: onBack == null
+                  ? null
+                  : ScreenHeaderBackButton(onPressed: onBack),
+            ),
         Expanded(
           child: MediaQuery(
             data: MediaQuery.of(context).copyWith(

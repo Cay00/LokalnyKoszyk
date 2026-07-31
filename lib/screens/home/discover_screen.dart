@@ -4,7 +4,7 @@ import 'package:lokalny_koszyk/presentation/discover_bloc.dart';
 import 'package:lokalny_koszyk/presentation/models/product_ui_model.dart';
 import 'package:lokalny_koszyk/widgets/discover/category_tile.dart';
 import 'package:lokalny_koszyk/widgets/discover/discover_fulfillment_toggle.dart';
-import 'package:lokalny_koszyk/widgets/discover/discover_sort_filter_bar.dart';
+import 'package:lokalny_koszyk/widgets/discover/discover_header.dart';
 import 'package:lokalny_koszyk/screens/product/product_card.dart';
 import 'package:lokalny_koszyk/widgets/common/default_screen.dart';
 import 'package:lokalny_koszyk/widgets/common/section_header.dart';
@@ -45,7 +45,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
         builder: (BuildContext context, DiscoverState state) {
           final visibleProducts = state.visibleProducts;
           return DefaultScreen(
-            title: 'Sklep',
+            header: const DiscoverHeader(),
             body: ListView(
               padding: DefaultScreen.bodyPadding(
                 context,
@@ -75,10 +75,6 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                       DiscoverCategoryToggled(categoryId),
                     );
                   },
-                ),
-                const Padding(
-                  padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
-                  child: DiscoverSortFilterBar(),
                 ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),

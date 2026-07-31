@@ -27,19 +27,25 @@ class AppTypography {
 
   static TextStyle get normal => GoogleFonts.inter(
     fontSize: 14,
-    fontWeight: FontWeight.w400,
+    fontWeight: FontWeight.normal,
+    color: AppColors.textPrimary,
+  );
+
+  static TextStyle get normalBold => GoogleFonts.inter(
+    fontSize: 14,
+    fontWeight: FontWeight.bold,
     color: AppColors.textPrimary,
   );
 
   static TextStyle get caption => GoogleFonts.inter(
     fontSize: 12,
-    fontWeight: FontWeight.w400,
+    fontWeight: FontWeight.normal,
     color: AppColors.textPrimary,
   );
 
   static TextStyle get tinyCaption => GoogleFonts.inter(
     fontSize: 10,
-    fontWeight: FontWeight.w400,
+    fontWeight: FontWeight.normal,
     color: AppColors.textSecondary,
   );
 }
