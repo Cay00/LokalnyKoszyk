@@ -96,8 +96,7 @@ class ProductCard extends StatelessWidget {
                     children: [
                       Text(
                         name,
-                        style: AppTypography.normal.copyWith(
-                          fontWeight: FontWeight.bold,
+                        style: AppTypography.header.copyWith(
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
