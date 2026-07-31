@@ -17,7 +17,7 @@ import 'package:lokalny_koszyk/widgets/app_bottom_navigation_bar.dart';
 import 'package:lokalny_koszyk/screens/checkout/order_checkout_screen.dart';
 import 'package:lokalny_koszyk/screens/checkout/order_history_detail_screen.dart';
 import 'package:lokalny_koszyk/screens/checkout/orders_screen.dart';
-import 'package:lokalny_koszyk/screens/discover_screen.dart';
+import 'package:lokalny_koszyk/screens/home/discover_screen.dart';
 import 'package:lokalny_koszyk/screens/producer/producer_details_screen.dart';
 import 'package:lokalny_koszyk/screens/product/product_details_screen.dart';
 import 'package:lokalny_koszyk/screens/profile/addresses_screen.dart';

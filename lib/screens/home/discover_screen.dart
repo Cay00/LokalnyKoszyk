@@ -4,11 +4,12 @@ import 'package:lokalny_koszyk/presentation/discover_bloc.dart';
 import 'package:lokalny_koszyk/presentation/models/product_ui_model.dart';
 import 'package:lokalny_koszyk/widgets/discover/category_tile.dart';
 import 'package:lokalny_koszyk/widgets/discover/discover_fulfillment_toggle.dart';
+import 'package:lokalny_koszyk/widgets/discover/discover_sort_filter_bar.dart';
 import 'package:lokalny_koszyk/screens/product/product_card.dart';
 import 'package:lokalny_koszyk/widgets/common/default_screen.dart';
 import 'package:lokalny_koszyk/widgets/common/section_header.dart';
 
-import '../core/themes/app_theme.dart';
+import '../../core/themes/app_theme.dart';
 
 class DiscoverScreen extends StatefulWidget {
   const DiscoverScreen({super.key, this.onOpenProductDetails});
@@ -54,13 +55,17 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
               ),
               children: <Widget>[
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
                   child: DiscoverFulfillmentToggle(
                     value: _fulfillmentMode,
                     onChanged: (DiscoverFulfillmentMode mode) {
                       setState(() => _fulfillmentMode = mode);
                     },
                   ),
+                ),
+                const Padding(
+                  padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
+                  child: _PromoBanner(),
                 ),
                 _CategoriesSection(
                   categories: state.categoryItems,
@@ -70,6 +75,10 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                       DiscoverCategoryToggled(categoryId),
                     );
                   },
+                ),
+                const Padding(
+                  padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
+                  child: DiscoverSortFilterBar(),
                 ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
@@ -134,6 +143,31 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+class _PromoBanner extends StatelessWidget {
+  const _PromoBanner();
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 136,
+      width: double.infinity,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: const Color(0xFFD9D9D9),
+          borderRadius: BorderRadius.circular(AppRadius.normal),
+        ),
+        child: Align(
+          alignment: Alignment.topLeft,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text('Sezon wiosenny!', style: AppTypography.header),
+          ),
+        ),
       ),
     );
   }
