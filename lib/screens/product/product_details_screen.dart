@@ -8,7 +8,7 @@ import 'package:lokalny_koszyk/screens/producer/producer_tile.dart';
 
 import '../../core/themes/app_theme.dart';
 import '../../widgets/common/default_screen.dart';
-import '../../widgets/common/primary_action_button.dart';
+import '../../widgets/common/screen_header.dart';
 import '../../widgets/common/section_header.dart';
 
 class ProductDetailsScreen extends StatelessWidget {
@@ -103,6 +103,27 @@ class _ProductDetailsBody extends StatelessWidget {
 
         return DefaultScreen(
           title: 'Szczegóły produktu',
+          actions: <Widget>[
+            ScreenHeaderButton(
+              onPressed: vmState.favoriteBusy || vmState.isFavorite == null
+                  ? null
+                  : () => _onFavoriteTap(context),
+              splash: false,
+              child: SvgPicture.asset(
+                vmState.isFavorite == true
+                    ? 'assets/icons/heart-fill.svg'
+                    : 'assets/icons/heart.svg',
+                width: 24,
+                height: 24,
+                colorFilter: ColorFilter.mode(
+                  vmState.isFavorite == true
+                      ? Colors.redAccent
+                      : AppColors.textPrimary,
+                  BlendMode.srcIn,
+                ),
+              ),
+            ),
+          ],
           body: SingleChildScrollView(
             padding: DefaultScreen.bodyPadding(context),
             child: Column(
@@ -117,61 +138,16 @@ class _ProductDetailsBody extends StatelessWidget {
                     borderRadius: BorderRadius.circular(AppRadius.normal),
                     border: Border.all(color: AppColors.background),
                   ),
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: <Widget>[
-                      Positioned.fill(
-                        child: Image.asset(
-                          'assets/images/food_default.png',
-                          fit: BoxFit.cover,
-                          alignment: Alignment.center,
-                          errorBuilder:
-                              (
-                                BuildContext context,
-                                Object error,
-                                StackTrace? stackTrace,
-                              ) => ColoredBox(color: product.bgColor),
-                        ),
-                      ),
-                      Positioned(
-                        top: 12,
-                        right: 12,
-                        child: InkWell(
-                          onTap: vmState.favoriteBusy
-                              ? null
-                              : () => _onFavoriteTap(context),
-                          borderRadius: BorderRadius.circular(AppRadius.normal),
-                          child: Container(
-                            width: 32,
-                            height: 32,
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.85),
-                              shape: BoxShape.circle,
-                            ),
-                            alignment: Alignment.center,
-                            child: Opacity(
-                              opacity: vmState.isFavorite == null ||
-                                      vmState.favoriteBusy
-                                  ? 0.55
-                                  : 1,
-                              child: SvgPicture.asset(
-                                vmState.isFavorite == true
-                                    ? 'assets/icons/heart-fill.svg'
-                                    : 'assets/icons/heart.svg',
-                                width: 16,
-                                height: 16,
-                                colorFilter: ColorFilter.mode(
-                                  vmState.isFavorite == true
-                                      ? Colors.redAccent
-                                      : AppColors.accent,
-                                  BlendMode.srcIn,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+                  child: Image.asset(
+                    'assets/images/food_default.png',
+                    fit: BoxFit.cover,
+                    alignment: Alignment.center,
+                    errorBuilder:
+                        (
+                          BuildContext context,
+                          Object error,
+                          StackTrace? stackTrace,
+                        ) => ColoredBox(color: product.bgColor),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -219,94 +195,59 @@ class _ProductDetailsBody extends StatelessWidget {
                   style: AppTypography.caption,
                 ),
                 const SizedBox(height: 8),
-                Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: AppColors.white,
-                    borderRadius: BorderRadius.circular(AppRadius.normal),
-                    border: Border.all(color: AppColors.background),
-                  ),
-                  child: Row(
-                    children: <Widget>[
-                      Container(
-                        decoration: BoxDecoration(
-                          color: vmState.selectedQuantity > 1
-                              ? AppColors.accent
-                              : AppColors.background,
-                          borderRadius: const BorderRadius.only(
-                            topLeft: Radius.circular(AppRadius.normal),
-                            bottomLeft: Radius.circular(AppRadius.normal),
-                          ),
-                        ),
-                        child: IconButton(
-                          onPressed: vmState.selectedQuantity > 1
-                              ? () => context
-                                    .read<ProductDetailsBloc>()
-                                    .add(
-                                      const ProductDetailsDecreaseQuantityRequested(),
-                                    )
-                              : null,
-                          icon: Icon(
-                            Icons.remove,
-                            size: 16,
-                            color: vmState.selectedQuantity > 1
-                                ? AppColors.white
-                                : AppColors.textSecondary,
-                          ),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
-                          ),
-                          constraints: const BoxConstraints(),
-                        ),
+                Row(
+                  children: <Widget>[
+                    _QuantityCircleButton(
+                      icon: Icons.remove,
+                      backgroundColor: Colors.transparent,
+                      showBorder: true,
+                      onPressed: vmState.selectedQuantity > 1
+                          ? () => context.read<ProductDetailsBloc>().add(
+                                const ProductDetailsDecreaseQuantityRequested(),
+                              )
+                          : null,
+                    ),
+                    SizedBox(
+                      width: 40,
+                      child: Text(
+                        '${vmState.selectedQuantity}',
+                        textAlign: TextAlign.center,
+                        style: AppTypography.header,
                       ),
-                      Expanded(
-                        child: Center(
-                          child: Text(
-                            '${vmState.selectedQuantity}',
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.textPrimary,
-                            ),
-                          ),
-                        ),
-                      ),
-                      Container(
-                        decoration: const BoxDecoration(
-                          color: AppColors.accent,
-                          borderRadius: BorderRadius.only(
-                            topRight: Radius.circular(AppRadius.normal),
-                            bottomRight: Radius.circular(AppRadius.normal),
-                          ),
-                        ),
-                        child: IconButton(
-                          onPressed: () => context
-                              .read<ProductDetailsBloc>()
-                              .add(
+                    ),
+                    _QuantityCircleButton(
+                      icon: Icons.add,
+                      backgroundColor: AppColors.accent,
+                      showBorder: false,
+                      onPressed: vmState.selectedQuantity < 99
+                          ? () => context.read<ProductDetailsBloc>().add(
                                 const ProductDetailsIncreaseQuantityRequested(),
-                              ),
-                          icon: const Icon(
-                            Icons.add,
-                            size: 16,
-                            color: AppColors.white,
+                              )
+                          : null,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: SizedBox(
+                        height: 50,
+                        child: ElevatedButton(
+                          onPressed: vmState.isAddingToCart
+                              ? null
+                              : () => _addToCart(context),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.accent,
+                            foregroundColor: AppColors.textPrimary,
+                            elevation: 0,
+                            padding: EdgeInsets.zero,
+                            shape: const StadiumBorder(),
                           ),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
+                          child: Text(
+                            'Dodaj do koszyka',
+                            style: AppTypography.header,
                           ),
-                          constraints: const BoxConstraints(),
                         ),
                       ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 8),
-                PrimaryActionButton(
-                  label: 'Dodaj do koszyka',
-                  onPressed: vmState.isAddingToCart
-                      ? null
-                      : () => _addToCart(context),
+                    ),
+                  ],
                 ),
             const SizedBox(height: 24),
             const SectionHeader(title: 'Opis'),
@@ -397,45 +338,11 @@ class _ProductDetailsBody extends StatelessWidget {
             const SizedBox(height: 24),
             const SectionHeader(title: 'Warunki przechowywania'),
             const SizedBox(height: 8),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: <Widget>[
-                if (details.requiresColdStorage) ...<Widget>[
-                  SvgPicture.asset(
-                    'assets/icons/snowflake.svg',
-                    width: 20,
-                    height: 20,
-                    colorFilter: const ColorFilter.mode(
-                      AppColors.accent,
-                      BlendMode.srcIn,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      'Wymaga przechowywania w warunkach chłodzonych',
-                      style: AppTypography.normal,
-                    ),
-                  ),
-                ] else ...<Widget>[
-                  SvgPicture.asset(
-                    'assets/icons/snowflake.svg',
-                    width: 20,
-                    height: 20,
-                    colorFilter: const ColorFilter.mode(
-                      AppColors.accent,
-                      BlendMode.srcIn,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      'Nie wymaga przechowywania w warunkach chłodzonych',
-                      style: AppTypography.normal,
-                    ),
-                  ),
-                ],
-              ],
+            Text(
+              details.requiresColdStorage
+                  ? 'Wymaga przechowywania w warunkach chłodzonych'
+                  : 'Nie wymaga przechowywania w warunkach chłodzonych',
+              style: AppTypography.normal,
             ),
             const SizedBox(height: 8),
             Text(
@@ -449,6 +356,47 @@ class _ProductDetailsBody extends StatelessWidget {
         );
       },
     ),
+    );
+  }
+}
+
+class _QuantityCircleButton extends StatelessWidget {
+  const _QuantityCircleButton({
+    required this.icon,
+    required this.backgroundColor,
+    required this.onPressed,
+    this.showBorder = true,
+  });
+
+  final IconData icon;
+  final Color backgroundColor;
+  final VoidCallback? onPressed;
+  final bool showBorder;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 50,
+      height: 50,
+      child: Material(
+        color: backgroundColor,
+        shape: CircleBorder(
+          side: showBorder
+              ? const BorderSide(color: AppColors.textPrimary)
+              : BorderSide.none,
+        ),
+        child: InkWell(
+          onTap: onPressed,
+          customBorder: const CircleBorder(),
+          child: Icon(
+            icon,
+            size: 22,
+            color: onPressed != null
+                ? AppColors.textPrimary
+                : AppColors.textSecondary,
+          ),
+        ),
+      ),
     );
   }
 }
@@ -490,17 +438,15 @@ class _MonthAvailabilityGrid extends StatelessWidget {
                   padding: EdgeInsets.only(right: col < 3 ? 8 : 0),
                   child: DecoratedBox(
                     decoration: BoxDecoration(
-                      color: active ? AppColors.accent : AppColors.background,
-                      borderRadius: BorderRadius.circular(AppRadius.sm),
-                      border: Border.all(
-                        color: active ? AppColors.accent : AppColors.background,
-                      ),
+                      color: active ? AppColors.accent : Colors.transparent,
+                      borderRadius: BorderRadius.circular(25),
+                      border: Border.all(color: AppColors.accent),
                     ),
                     child: Material(
                       color: Colors.transparent,
                       child: InkWell(
                         onTap: () {},
-                        borderRadius: BorderRadius.circular(AppRadius.sm),
+                        borderRadius: BorderRadius.circular(25),
                         child: Padding(
                           padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 2),
                           child: Center(
@@ -510,11 +456,7 @@ class _MonthAvailabilityGrid extends StatelessWidget {
                                 _polishMonthLabels[month - 1],
                                 textAlign: TextAlign.center,
                                 maxLines: 1,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: active ? FontWeight.w600 : FontWeight.w500,
-                                  color: active ? AppColors.white : AppColors.textSecondary,
-                                ),
+                                style: AppTypography.tinyCaptionDark,
                               ),
                             ),
                           ),

@@ -48,6 +48,12 @@ class AppTypography {
     fontWeight: FontWeight.normal,
     color: AppColors.textSecondary,
   );
+
+  static TextStyle get tinyCaptionDark => GoogleFonts.inter(
+    fontSize: 10,
+    fontWeight: FontWeight.normal,
+    color: AppColors.textPrimary,
+  );
 }
 
 class AppRadius {

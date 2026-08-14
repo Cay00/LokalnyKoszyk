@@ -12,6 +12,7 @@ class DefaultScreen extends StatelessWidget {
     this.message,
     this.body,
     this.onBack,
+    this.actions = const <Widget>[],
     this.showBottomNavPadding = true,
   }) : assert(
          message != null || body != null,
@@ -27,6 +28,7 @@ class DefaultScreen extends StatelessWidget {
   final String? message;
   final Widget? body;
   final VoidCallback? onBack;
+  final List<Widget> actions;
 
   /// Gdy `true` (domyślnie) — dolny inset scrolla = clearance wiszącego bottom nav.
   /// Gdy `false` — tylko 16px na dole.
@@ -81,6 +83,7 @@ class DefaultScreen extends StatelessWidget {
               leading: onBack == null
                   ? null
                   : ScreenHeaderBackButton(onPressed: onBack),
+              actions: actions,
             ),
         Expanded(
           child: MediaQuery(

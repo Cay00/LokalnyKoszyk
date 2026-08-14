@@ -8,6 +8,8 @@ import 'package:lokalny_koszyk/presentation/producer_details_bloc.dart';
 
 import '../../core/themes/app_theme.dart';
 import '../../widgets/common/default_screen.dart';
+import '../../widgets/common/screen_header.dart';
+import '../../widgets/common/segmented_toggle.dart';
 import '../product/product_details_screen.dart';
 import '../product/product_tile_small.dart';
 
@@ -59,6 +61,39 @@ class _ProducerDetailsBodyState extends State<_ProducerDetailsBody> {
         final seller = vmState.seller;
         return DefaultScreen(
           title: 'Sprzedawca',
+          actions: <Widget>[
+            ScreenHeaderButton(
+              onPressed: null,
+              splash: false,
+              child: SvgPicture.asset(
+                'assets/icons/share-network.svg',
+                width: 24,
+                height: 24,
+                colorFilter: const ColorFilter.mode(
+                  AppColors.textPrimary,
+                  BlendMode.srcIn,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            ScreenHeaderButton(
+              onPressed: () => context.read<ProducerDetailsBloc>().add(
+                const ProducerDetailsToggleLikeRequested(),
+              ),
+              splash: false,
+              child: SvgPicture.asset(
+                vmState.isLiked
+                    ? 'assets/icons/heart-fill.svg'
+                    : 'assets/icons/heart.svg',
+                width: 24,
+                height: 24,
+                colorFilter: ColorFilter.mode(
+                  vmState.isLiked ? Colors.redAccent : AppColors.textPrimary,
+                  BlendMode.srcIn,
+                ),
+              ),
+            ),
+          ],
           body: vmState.isLoading
               ? const Center(child: CircularProgressIndicator())
               : vmState.errorText != null
@@ -133,323 +168,307 @@ class _ProducerDetailsBodyState extends State<_ProducerDetailsBody> {
                                     StackTrace? stackTrace,
                                   ) => const SizedBox.shrink(),
                             ),
-                            Positioned(
-                              top: 12,
-                              right: 12,
-                              child: InkWell(
-                                onTap: () => context
-                                    .read<ProducerDetailsBloc>()
-                                    .add(
-                                      const ProducerDetailsToggleLikeRequested(),
-                                    ),
-                                borderRadius: BorderRadius.circular(
-                                  AppRadius.normal,
-                                ),
-                                child: Container(
-                                  width: 32,
-                                  height: 32,
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.85),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  alignment: Alignment.center,
-                                  child: SvgPicture.asset(
-                                    vmState.isLiked
-                                        ? 'assets/icons/heart-fill.svg'
-                                        : 'assets/icons/heart.svg',
-                                    width: 16,
-                                    height: 16,
-                                    colorFilter: ColorFilter.mode(
-                                      vmState.isLiked
-                                          ? Colors.redAccent
-                                          : AppColors.accent,
-                                      BlendMode.srcIn,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
                           ],
                         ),
                       ),
-                  const SizedBox(height: 16),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Container(
-                        width: 86,
-                        height: 86,
-                        decoration: BoxDecoration(
-                          color: AppColors.background,
-                          borderRadius: BorderRadius.circular(AppRadius.normal),
-                          border: Border.all(color: AppColors.background),
-                        ),
-                        clipBehavior: Clip.antiAlias,
-                        child: Stack(
-                          fit: StackFit.expand,
-                          children: <Widget>[
-                            Center(
-                              child: SvgPicture.asset(
-                                'assets/icons/farm.svg',
-                                width: 36,
-                                height: 36,
-                                colorFilter: const ColorFilter.mode(
-                                  AppColors.accent,
-                                  BlendMode.srcIn,
-                                ),
+                      const SizedBox(height: 16),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Container(
+                            width: 86,
+                            height: 86,
+                            decoration: BoxDecoration(
+                              color: AppColors.background,
+                              borderRadius: BorderRadius.circular(
+                                AppRadius.normal,
                               ),
+                              border: Border.all(color: AppColors.background),
                             ),
-                            Image.asset(
-                              'assets/images/farm_logo.png',
-                              fit: BoxFit.cover,
-                              errorBuilder:
-                                  (BuildContext context, Object error, StackTrace? stackTrace) =>
-                                      const SizedBox.shrink(),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
+                            clipBehavior: Clip.antiAlias,
+                            child: Stack(
+                              fit: StackFit.expand,
                               children: <Widget>[
-                                Flexible(
-                                  child: Text(
-                                    seller?.name ?? 'Sprzedawca',
-                                    style: const TextStyle(
-                                      fontSize: 22,
-                                      fontWeight: FontWeight.w700,
-                                      color: AppColors.textPrimary,
-                                    ),
-                                  ),
-                                ),
-                                if (seller?.isVerified == true) ...<Widget>[
-                                  const SizedBox(width: 8),
-                                  SvgPicture.asset(
-                                    'assets/icons/seal-check-fill.svg',
-                                    width: 18,
-                                    height: 18,
+                                Center(
+                                  child: SvgPicture.asset(
+                                    'assets/icons/farm.svg',
+                                    width: 36,
+                                    height: 36,
                                     colorFilter: const ColorFilter.mode(
                                       AppColors.accent,
                                       BlendMode.srcIn,
                                     ),
                                   ),
-                                ],
+                                ),
+                                Image.asset(
+                                  'assets/images/farm_logo.png',
+                                  fit: BoxFit.cover,
+                                  errorBuilder:
+                                      (
+                                        BuildContext context,
+                                        Object error,
+                                        StackTrace? stackTrace,
+                                      ) => const SizedBox.shrink(),
+                                ),
                               ],
                             ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Odległość: ${vmState.distanceLabel}',
-                              style: const TextStyle(
-                                fontSize: 14,
-                                color: AppColors.textSecondary,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Row(
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: <Widget>[
-                                SvgPicture.asset(
-                                  'assets/icons/star-fill.svg',
-                                  width: 16,
-                                  height: 16,
-                                  colorFilter: const ColorFilter.mode(
-                                    AppColors.accent,
-                                    BlendMode.srcIn,
-                                  ),
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: <Widget>[
+                                    Flexible(
+                                      child: Text(
+                                        seller?.name ?? 'Sprzedawca',
+                                        style: const TextStyle(
+                                          fontSize: 22,
+                                          fontWeight: FontWeight.w700,
+                                          color: AppColors.textPrimary,
+                                        ),
+                                      ),
+                                    ),
+                                    if (seller?.isVerified == true) ...<Widget>[
+                                      const SizedBox(width: 8),
+                                      SvgPicture.asset(
+                                        'assets/icons/seal-check-fill.svg',
+                                        width: 18,
+                                        height: 18,
+                                        colorFilter: const ColorFilter.mode(
+                                          AppColors.accent,
+                                          BlendMode.srcIn,
+                                        ),
+                                      ),
+                                    ],
+                                  ],
                                 ),
-                                const SizedBox(width: 6),
-                                const Text(
-                                  'brak ocen',
-                                  style: TextStyle(
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Odległość: ${vmState.distanceLabel}',
+                                  style: const TextStyle(
                                     fontSize: 14,
                                     color: AppColors.textSecondary,
                                   ),
                                 ),
+                                const SizedBox(height: 4),
+                                Row(
+                                  children: <Widget>[
+                                    SvgPicture.asset(
+                                      'assets/icons/star-fill.svg',
+                                      width: 16,
+                                      height: 16,
+                                      colorFilter: const ColorFilter.mode(
+                                        AppColors.accent,
+                                        BlendMode.srcIn,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    const Text(
+                                      'brak ocen',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: AppColors.textSecondary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ],
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: AppColors.white,
-                      borderRadius: BorderRadius.circular(AppRadius.normal),
-                      border: Border.all(color: AppColors.background),
-                    ),
-                    clipBehavior: Clip.antiAlias,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Padding(
-                          padding: const EdgeInsets.all(4),
-                          child: Row(
+                      const SizedBox(height: 16),
+                      SegmentedToggle<_InfoSection>(
+                        value: _selectedInfoSection,
+                        onChanged: (_InfoSection section) {
+                          setState(() => _selectedInfoSection = section);
+                        },
+                        options: const <SegmentedToggleOption<_InfoSection>>[
+                          SegmentedToggleOption<_InfoSection>(
+                            value: _InfoSection.address,
+                            label: 'Adres',
+                            iconAsset: 'assets/icons/map-pin-area.svg',
+                          ),
+                          SegmentedToggleOption<_InfoSection>(
+                            value: _InfoSection.contact,
+                            label: 'Kontakt',
+                            iconAsset: 'assets/icons/chat-circle-dots.svg',
+                          ),
+                          SegmentedToggleOption<_InfoSection>(
+                            value: _InfoSection.payments,
+                            label: 'Płatność',
+                            iconAsset: 'assets/icons/hand-coins.svg',
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      SizedBox(
+                        height: 120,
+                        width: double.infinity,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 8,
+                            horizontal: 16,
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: <Widget>[
-                              _buildInfoTabButton(
-                                label: 'Adres',
-                                section: _InfoSection.address,
+                              Text(
+                                _selectedInfoSection.title,
+                                style: AppTypography.header,
                               ),
-                              _buildInfoTabButton(
-                                label: 'Kontakt',
-                                section: _InfoSection.contact,
-                              ),
-                              _buildInfoTabButton(
-                                label: 'Płatność',
-                                section: _InfoSection.payments,
+                              const SizedBox(height: 8),
+                              Text(
+                                _selectedInfoSection.contentForSeller(seller),
+                                style: AppTypography.normal,
                               ),
                             ],
                           ),
                         ),
-                        Container(height: 1, color: AppColors.background),
-                        SizedBox(
-                          height: 120,
-                          width: double.infinity,
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 8,
-                              horizontal: 16,
-                            ),
-                            child: Column(
+                      ),
+                      const SizedBox(height: 24),
+                      IgnorePointer(
+                        child: Container(
+                          height: 66,
+                          decoration: BoxDecoration(
+                            color: AppColors.white,
+                            borderRadius: BorderRadius.circular(25),
+                          ),
+                          child: Row(
+                            children: <Widget>[
+                              const SizedBox(width: 8),
+                              Container(
+                                width: 50,
+                                height: 50,
+                                decoration: const BoxDecoration(
+                                  color: AppColors.background,
+                                  shape: BoxShape.circle,
+                                ),
+                                alignment: Alignment.center,
+                                child: SvgPicture.asset(
+                                  'assets/icons/star-fill.svg',
+                                  width: 24,
+                                  height: 24,
+                                  colorFilter: const ColorFilter.mode(
+                                    AppColors.textPrimary,
+                                    BlendMode.srcIn,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  'Opinie użytkowników: 18',
+                                  style: AppTypography.normal,
+                                ),
+                              ),
+                              SvgPicture.asset(
+                                'assets/icons/caret-right.svg',
+                                width: 24,
+                                height: 24,
+                                colorFilter: const ColorFilter.mode(
+                                  AppColors.textPrimary,
+                                  BlendMode.srcIn,
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      Text(
+                        'Opis',
+                        style: AppTypography.header,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        (seller?.description ?? '').isEmpty
+                            ? 'Ten sprzedawca nie uzupełnił jeszcze opisu.'
+                            : seller!.description,
+                        style: AppTypography.normal,
+                      ),
+                      const SizedBox(height: 24),
+                      Text(
+                        'Jakość i certyfikaty',
+                        style: AppTypography.header,
+                      ),
+                      const SizedBox(height: 8),
+                      ...() {
+                        final certs = _qualityAndCertificatesForSeller(seller);
+                        return certs.asMap().entries.map((entry) {
+                          final bool isLast = entry.key == certs.length - 1;
+                          return Padding(
+                            padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
+                            child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: <Widget>[
                                 Text(
-                                  _selectedInfoSection.title,
-                                  style: AppTypography.header,
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  _selectedInfoSection.contentForSeller(seller),
+                                  '• ',
                                   style: AppTypography.normal,
+                                ),
+                                Expanded(
+                                  child: Text(
+                                    entry.value,
+                                    style: AppTypography.normal,
+                                  ),
                                 ),
                               ],
                             ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  Text(
-                    'Opis',
-                    style: AppTypography.header,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    (seller?.description ?? '').isEmpty
-                        ? 'Ten sprzedawca nie uzupełnił jeszcze opisu.'
-                        : seller!.description,
-                    style: AppTypography.normal,
-                  ),
-                  const SizedBox(height: 24),
-                  Text(
-                    'Jakość i certyfikaty',
-                    style: AppTypography.header,
-                  ),
-                  const SizedBox(height: 8),
-                  ...() {
-                    final certs = _qualityAndCertificatesForSeller(seller);
-                    return certs.asMap().entries.map((entry) {
-                      final bool isLast = entry.key == certs.length - 1;
-                      return Padding(
-                        padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            Text(
-                              '• ',
-                              style: AppTypography.normal,
-                            ),
-                            Expanded(
-                              child: Text(
-                                entry.value,
-                                style: AppTypography.normal,
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    });
-                  }(),
-                  const SizedBox(height: 24),
-                  Text(
-                    'Wszystkie produkty',
-                    style: AppTypography.header,
-                  ),
-                  const SizedBox(height: 12),
-                  if (vmState.products.isEmpty)
-                    Text(
-                      'Ten sprzedawca nie ma aktywnych produktów.',
-                      style: AppTypography.normal,
-                    )
-                  else
-                    ...vmState.products.asMap().entries.map((entry) {
-                      final bool isLast =
-                          entry.key == vmState.products.length - 1;
-                      final ProductUiModel product = entry.value;
-                      return ProductTileSmall(
-                        name: product.name,
-                        distance: product.distance,
-                        priceWithUnitLabel: product.pricePerOfferLabel,
-                        verified: seller?.isVerified == true,
-                        margin: EdgeInsets.only(bottom: isLast ? 0 : 8),
-                        onTap: () {
-                          Navigator.of(context).push(
-                            PageRouteBuilder<void>(
-                              pageBuilder: (_, _, _) => ProductDetailsScreen(
-                                product: product,
-                                onBack: () => Navigator.of(context).pop(),
-                                openedFromSeller: true,
-                              ),
-                              transitionDuration: Duration.zero,
-                              reverseTransitionDuration: Duration.zero,
-                            ),
                           );
-                        },
-                      );
-                    }),
-                ],
-              ),
-            ),
+                        });
+                      }(),
+                      const SizedBox(height: 24),
+                      Text(
+                        'Wszystkie produkty',
+                        style: AppTypography.header,
+                      ),
+                      const SizedBox(height: 12),
+                      if (vmState.products.isEmpty)
+                        Text(
+                          'Ten sprzedawca nie ma aktywnych produktów.',
+                          style: AppTypography.normal,
+                        )
+                      else
+                        ...vmState.products.asMap().entries.map((entry) {
+                          final bool isLast =
+                              entry.key == vmState.products.length - 1;
+                          final ProductUiModel product = entry.value;
+                          return ProductTileSmall(
+                            name: product.name,
+                            distance: product.distance,
+                            priceWithUnitLabel: product.pricePerOfferLabel,
+                            verified: seller?.isVerified == true,
+                            margin: EdgeInsets.only(bottom: isLast ? 0 : 8),
+                            onTap: () {
+                              Navigator.of(context).push(
+                                PageRouteBuilder<void>(
+                                  pageBuilder: (_, _, _) =>
+                                      ProductDetailsScreen(
+                                        product: product,
+                                        onBack: () =>
+                                            Navigator.of(context).pop(),
+                                        openedFromSeller: true,
+                                      ),
+                                  transitionDuration: Duration.zero,
+                                  reverseTransitionDuration: Duration.zero,
+                                ),
+                              );
+                            },
+                          );
+                        }),
+                    ],
+                  ),
+                ),
           onBack: widget.onBack,
         );
       },
     );
   }
 
-  Widget _buildInfoTabButton({
-    required String label,
-    required _InfoSection section,
-  }) {
-    final bool isSelected = _selectedInfoSection == section;
-    return Expanded(
-      child: InkWell(
-        onTap: () => setState(() => _selectedInfoSection = section),
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          decoration: BoxDecoration(
-            color: isSelected ? AppColors.accent : Colors.transparent,
-            borderRadius: BorderRadius.circular(AppRadius.md),
-          ),
-          alignment: Alignment.center,
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: isSelected ? AppColors.white : AppColors.textSecondary,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 }
 
 enum _InfoSection {

@@ -3,8 +3,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:lokalny_koszyk/presentation/models/product_ui_model.dart';
 
 import '../../core/themes/app_theme.dart';
-import '../../widgets/common/product_info_chip.dart';
-import '../../widgets/common/primary_action_button.dart';
 
 typedef ProductData = ProductUiModel;
 
@@ -20,12 +18,18 @@ class ProductTile extends StatelessWidget {
   final VoidCallback onOpenDetails;
   final VoidCallback onAddToCart;
 
+  static const double _height = 114;
+  static const double _edgePad = 8;
+  static const double _addButtonSize = 38;
+  static const double _addIconSize = 24;
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onOpenDetails,
       child: Container(
         width: double.infinity,
+        height: _height,
         decoration: BoxDecoration(
           color: AppColors.white,
           borderRadius: BorderRadius.circular(AppRadius.normal),
@@ -35,17 +39,16 @@ class ProductTile extends StatelessWidget {
           border: Border.all(color: AppColors.background),
         ),
         clipBehavior: Clip.antiAlias,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Stack(
           children: <Widget>[
-            Container(
-              height: 160,
-              width: double.infinity,
-              color: product.bgColor,
-              child: Stack(
-                fit: StackFit.expand,
-                children: <Widget>[
-                  Positioned.fill(
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                SizedBox(
+                  width: _height,
+                  height: _height,
+                  child: ColoredBox(
+                    color: product.bgColor,
                     child: Image.asset(
                       'assets/images/food_default.png',
                       fit: BoxFit.cover,
@@ -58,96 +61,72 @@ class ProductTile extends StatelessWidget {
                           ) => const SizedBox.shrink(),
                     ),
                   ),
-                ],
-              ),
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                      12,
+                      16,
+                      _edgePad + _addButtonSize,
+                      16,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: <Widget>[
+                        Text(
+                          product.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTypography.normalBold,
+                        ),
+                        Text(
+                          product.producer,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTypography.caption,
+                        ),
+                        Text(
+                          product.sizeLabel,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTypography.tinyCaption,
+                        ),
+                        Text(
+                          product.priceLabel,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTypography.header,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: <Widget>[
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            Text(
-                              product.name,
-                              style: AppTypography.header,
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              product.producer,
-                              style: AppTypography.caption,
-                            ),
-                          ],
-                        ),
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: <Widget>[
-                          Text(
-                            product.pricePerOfferLabel,
-                            textAlign: TextAlign.right,
-                            style: AppTypography.header,
-                          ),
-                          if (!product.hasKnownDbUnit &&
-                              product.unit.trim().isNotEmpty) ...<Widget>[
-                            const SizedBox(height: 2),
-                            Text(product.unit, style: AppTypography.caption),
-                          ],
-                        ],
-                      ),
-                    ],
+            Positioned(
+              right: _edgePad,
+              bottom: _edgePad,
+              child: GestureDetector(
+                onTap: onAddToCart,
+                child: Container(
+                  width: _addButtonSize,
+                  height: _addButtonSize,
+                  decoration: const BoxDecoration(
+                    color: AppColors.accent,
+                    shape: BoxShape.circle,
                   ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: <Widget>[
-                      ProductInfoChip(
-                        text: product.distance,
-                        iconAsset: 'assets/icons/map-pin-area.svg',
-                      ),
-                      const SizedBox(width: 8),
-                      ProductInfoChip(
-                        text: product.season,
-                        iconAsset: 'assets/icons/calendar-check.svg',
-                      ),
-                      const Spacer(),
-                      SvgPicture.asset(
-                        'assets/icons/star-fill.svg',
-                        width: 12,
-                        height: 12,
-                        colorFilter: const ColorFilter.mode(
-                          AppColors.accent,
-                          BlendMode.srcIn,
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        product.rating,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        '(${product.reviews})',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                    ],
+                  alignment: Alignment.center,
+                  child: SvgPicture.asset(
+                    'assets/icons/basket.svg',
+                    width: _addIconSize,
+                    height: _addIconSize,
+                    colorFilter: const ColorFilter.mode(
+                      AppColors.textPrimary,
+                      BlendMode.srcIn,
+                    ),
                   ),
-                  const SizedBox(height: 16),
-                  PrimaryActionButton(
-                    label: 'Dodaj do koszyka',
-                    onPressed: onAddToCart,
-                  ),
-                ],
+                ),
               ),
             ),
           ],

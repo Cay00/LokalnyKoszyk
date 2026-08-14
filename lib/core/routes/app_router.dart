@@ -295,6 +295,7 @@ class FavoritesTab extends StatelessWidget {
     return BlocProvider(
       create: (context) => FavoritesBloc(
         watchedProductsRepository: context.read<WatchedProductsRepository>(),
+        cartRepository: context.read<CartRepository>(),
       )..add(const FavoritesLoadRequested()),
       child: Navigator(
         key: navigatorKey,

@@ -55,10 +55,12 @@ class ScreenHeaderButton extends StatelessWidget {
     super.key,
     required this.child,
     this.onPressed,
+    this.splash = true,
   });
 
   final Widget child;
   final VoidCallback? onPressed;
+  final bool splash;
 
   @override
   Widget build(BuildContext context) {
@@ -68,6 +70,10 @@ class ScreenHeaderButton extends StatelessWidget {
       child: InkWell(
         onTap: onPressed,
         borderRadius: BorderRadius.circular(25),
+        splashFactory: splash ? null : NoSplash.splashFactory,
+        overlayColor: splash
+            ? null
+            : const WidgetStatePropertyAll<Color>(Colors.transparent),
         child: SizedBox(
           width: 50,
           height: 50,

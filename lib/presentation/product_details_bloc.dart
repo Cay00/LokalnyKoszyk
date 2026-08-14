@@ -189,6 +189,7 @@ class ProductDetailsBloc
     ProductDetailsIncreaseQuantityRequested event,
     Emitter<ProductDetailsState> emit,
   ) {
+    if (state.selectedQuantity >= 99) return;
     emit(state.copyWith(selectedQuantity: state.selectedQuantity + 1));
   }
 
