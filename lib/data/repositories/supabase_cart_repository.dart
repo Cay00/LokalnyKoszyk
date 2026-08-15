@@ -1,5 +1,7 @@
+import 'package:lokalny_koszyk/core/formatting/entity_keys.dart';
 import 'package:lokalny_koszyk/core/formatting/pennies.dart';
 import 'package:lokalny_koszyk/core/supabase/profile_bootstrap.dart';
+import 'package:lokalny_koszyk/core/supabase/seller_public_lookup.dart';
 import 'package:lokalny_koszyk/domain/models/cart_item.dart';
 import 'package:lokalny_koszyk/domain/models/place_order_result.dart';
 import 'package:lokalny_koszyk/domain/repositories/cart_repository.dart';
@@ -61,13 +63,26 @@ class SupabaseCartRepository implements CartRepository {
         .from(_cartItemsTable)
         .select(
           'id, quantity, product_id, unit_price_gross, '
-          'products(name, unit, currency)',
+          'products(name, unit, currency, seller_id, package_size)',
         )
         .eq('cart_id', cartId)
         .order('id', ascending: true);
 
-    return (rows as List<dynamic>).map<CartItem>((dynamic row) {
-      final map = Map<String, dynamic>.from(row as Map);
+    final parsedRows = (rows as List<dynamic>)
+        .map((dynamic row) => Map<String, dynamic>.from(row as Map))
+        .toList();
+
+    final sellerRawIds = <String>{};
+    for (final map in parsedRows) {
+      final productMap = map['products'] == null
+          ? const <String, dynamic>{}
+          : Map<String, dynamic>.from(map['products'] as Map);
+      final raw = (productMap['seller_id'] ?? '').toString().trim();
+      if (raw.isNotEmpty) sellerRawIds.add(raw);
+    }
+    final sellerByNorm = await fetchSellerPublicByIds(sellerRawIds);
+
+    return parsedRows.map<CartItem>((Map<String, dynamic> map) {
       final productMap = map['products'] == null
           ? const <String, dynamic>{}
           : Map<String, dynamic>.from(map['products'] as Map);
@@ -76,6 +91,12 @@ class SupabaseCartRepository implements CartRepository {
       final price = plnFromPennies(unitGrosze);
       final unit = (productMap['unit'] ?? '').toString();
       final currency = (productMap['currency'] ?? 'PLN').toString();
+      final sellerIdRaw = (productMap['seller_id'] ?? '').toString().trim();
+      final seller = sellerByNorm[normalizeUuidKey(sellerIdRaw)];
+      final sellerName = (seller?.name.trim().isNotEmpty ?? false)
+          ? seller!.name
+          : 'Sprzedawca';
+      final unitKey = unit.trim().toLowerCase();
       return CartItem(
         id: (map['id'] ?? '').toString(),
         productId: (map['product_id'] ?? '').toString(),
@@ -84,6 +105,10 @@ class SupabaseCartRepository implements CartRepository {
         currency: currency,
         quantity: quantity,
         price: price,
+        sellerId: sellerIdRaw.isEmpty ? null : sellerIdRaw,
+        producer: sellerName,
+        unitKey: unitKey.isEmpty ? null : unitKey,
+        packageQuantity: (productMap['package_size'] as num?)?.toDouble(),
       );
     }).toList();
   }

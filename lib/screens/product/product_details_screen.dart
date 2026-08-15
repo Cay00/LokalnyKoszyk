@@ -10,6 +10,8 @@ import 'package:lokalny_koszyk/screens/producer/producer_tile.dart';
 import '../../core/themes/app_theme.dart';
 import '../../widgets/common/app_notification.dart';
 import '../../widgets/common/default_screen.dart';
+import '../../widgets/common/primary_action_button.dart';
+import '../../widgets/common/quantity_selector.dart';
 import '../../widgets/common/screen_header.dart';
 import '../../widgets/common/section_header.dart';
 
@@ -198,54 +200,22 @@ class _ProductDetailsBody extends StatelessWidget {
                 const SizedBox(height: 8),
                 Row(
                   children: <Widget>[
-                    _QuantityCircleButton(
-                      icon: Icons.remove,
-                      backgroundColor: Colors.transparent,
-                      showBorder: true,
-                      onPressed: vmState.selectedQuantity > 1
-                          ? () => context.read<ProductDetailsBloc>().add(
-                                const ProductDetailsDecreaseQuantityRequested(),
-                              )
-                          : null,
-                    ),
-                    SizedBox(
-                      width: 40,
-                      child: Text(
-                        '${vmState.selectedQuantity}',
-                        textAlign: TextAlign.center,
-                        style: AppTypography.header,
-                      ),
-                    ),
-                    _QuantityCircleButton(
-                      icon: Icons.add,
-                      backgroundColor: AppColors.accent,
-                      showBorder: false,
-                      onPressed: vmState.selectedQuantity < 99
-                          ? () => context.read<ProductDetailsBloc>().add(
-                                const ProductDetailsIncreaseQuantityRequested(),
-                              )
-                          : null,
+                    QuantitySelector(
+                      quantity: vmState.selectedQuantity,
+                      onDecrease: () => context.read<ProductDetailsBloc>().add(
+                            const ProductDetailsDecreaseQuantityRequested(),
+                          ),
+                      onIncrease: () => context.read<ProductDetailsBloc>().add(
+                            const ProductDetailsIncreaseQuantityRequested(),
+                          ),
                     ),
                     const SizedBox(width: 8),
                     Expanded(
-                      child: SizedBox(
-                        height: 50,
-                        child: ElevatedButton(
-                          onPressed: vmState.isAddingToCart
-                              ? null
-                              : () => _addToCart(context),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.accent,
-                            foregroundColor: AppColors.textPrimary,
-                            elevation: 0,
-                            padding: EdgeInsets.zero,
-                            shape: const StadiumBorder(),
-                          ),
-                          child: Text(
-                            'Dodaj do koszyka',
-                            style: AppTypography.header,
-                          ),
-                        ),
+                      child: PrimaryActionButton(
+                        label: 'Dodaj do koszyka',
+                        onPressed: vmState.isAddingToCart
+                            ? null
+                            : () => _addToCart(context),
                       ),
                     ),
                   ],
@@ -357,47 +327,6 @@ class _ProductDetailsBody extends StatelessWidget {
         );
       },
     ),
-    );
-  }
-}
-
-class _QuantityCircleButton extends StatelessWidget {
-  const _QuantityCircleButton({
-    required this.icon,
-    required this.backgroundColor,
-    required this.onPressed,
-    this.showBorder = true,
-  });
-
-  final IconData icon;
-  final Color backgroundColor;
-  final VoidCallback? onPressed;
-  final bool showBorder;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 50,
-      height: 50,
-      child: Material(
-        color: backgroundColor,
-        shape: CircleBorder(
-          side: showBorder
-              ? const BorderSide(color: AppColors.textPrimary)
-              : BorderSide.none,
-        ),
-        child: InkWell(
-          onTap: onPressed,
-          customBorder: const CircleBorder(),
-          child: Icon(
-            icon,
-            size: 22,
-            color: onPressed != null
-                ? AppColors.textPrimary
-                : AppColors.textSecondary,
-          ),
-        ),
-      ),
     );
   }
 }

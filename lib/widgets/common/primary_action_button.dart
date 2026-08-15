@@ -20,8 +20,9 @@ class PrimaryActionButton extends StatelessWidget {
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.accent,
-          foregroundColor: AppColors.white,
+          foregroundColor: AppColors.textPrimary,
+          disabledBackgroundColor: AppColors.textTertiary,
+          disabledForegroundColor: AppColors.textPrimary,
           shape: const StadiumBorder(),
           padding: EdgeInsets.zero,
           elevation: 0,
@@ -30,10 +31,22 @@ class PrimaryActionButton extends StatelessWidget {
           splashFactory: NoSplash.splashFactory,
           minimumSize: Size.zero,
           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        ).copyWith(
+          backgroundColor: WidgetStateProperty.resolveWith((
+            Set<WidgetState> states,
+          ) {
+            if (states.contains(WidgetState.disabled)) {
+              return AppColors.textTertiary;
+            }
+            if (states.contains(WidgetState.pressed)) {
+              return AppColors.accentAction;
+            }
+            return AppColors.accent;
+          }),
         ),
         child: Text(
           label,
-          style: AppTypography.header.copyWith(color: AppColors.white),
+          style: AppTypography.header.copyWith(color: AppColors.textPrimary),
         ),
       ),
     );

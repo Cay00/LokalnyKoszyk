@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/themes/app_theme.dart';
+import '../app_bottom_navigation_bar.dart';
 
 void showAppNotification(
   BuildContext context,
@@ -16,7 +17,12 @@ void showAppNotification(
       behavior: SnackBarBehavior.floating,
       elevation: 0,
       padding: const EdgeInsets.all(16),
-      margin: const EdgeInsets.all(16),
+      margin: EdgeInsets.fromLTRB(
+        AppBottomNavigationBar.outerPadding,
+        AppBottomNavigationBar.outerPadding,
+        AppBottomNavigationBar.outerPadding,
+        AppBottomNavigationBar.notificationBottomMargin(context),
+      ),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.normal),
       ),

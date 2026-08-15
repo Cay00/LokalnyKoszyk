@@ -61,7 +61,7 @@ class DiscoverState {
       .map(
         (DiscoverCategoryEntry e) => DiscoverCategoryItem(
           id: e.id,
-          icon: e.icon,
+          iconAsset: e.iconAsset,
           name: e.name,
           count: products
               .where((ProductUiModel p) => p.categoryId == e.id)
@@ -112,107 +112,107 @@ class DiscoverBloc extends Bloc<DiscoverEvent, DiscoverState> {
       <DiscoverCategoryEntry>[
         DiscoverCategoryEntry(
           id: 'b15939e0-21af-4a14-86fa-d8ee547a07cb',
-          icon: '🥕',
+          iconAsset: 'assets/categories/carrot.svg',
           name: 'Warzywa',
         ),
         DiscoverCategoryEntry(
           id: '5a4aaa6c-4e4e-4ac3-9a4a-250f9ce56ebb',
-          icon: '🍎',
+          iconAsset: 'assets/categories/cherries.svg',
           name: 'Owoce',
         ),
         DiscoverCategoryEntry(
           id: '411e440c-c826-427b-b6dc-78088aae9da4',
-          icon: '🥚',
+          iconAsset: 'assets/categories/egg.svg',
           name: 'Jaja',
         ),
         DiscoverCategoryEntry(
           id: '0b354b99-6e49-442d-8feb-4f00084f4b7a',
-          icon: '🥛',
+          iconAsset: 'assets/categories/cow.svg',
           name: 'Nabiał',
         ),
         DiscoverCategoryEntry(
           id: '8a2dfe1b-c628-4d26-99fa-94e9db6c90f7',
-          icon: '🧀',
+          iconAsset: 'assets/categories/cheese.svg',
           name: 'Sery',
         ),
         DiscoverCategoryEntry(
           id: '8d60ba57-27d0-4311-858f-2bebf56bf3b1',
-          icon: '🥩',
+          iconAsset: 'assets/categories/fork-knife.svg',
           name: 'Mięso',
         ),
         DiscoverCategoryEntry(
           id: '23a2267c-a836-4e6e-b6fa-204583df71c2',
-          icon: '🥓',
+          iconAsset: 'assets/categories/fork-knife.svg',
           name: 'Wędliny',
         ),
         DiscoverCategoryEntry(
           id: '138d5676-9db7-4008-b960-ef69c9d782ac',
-          icon: '🍞',
+          iconAsset: 'assets/categories/bread.svg',
           name: 'Pieczywo',
         ),
         DiscoverCategoryEntry(
           id: 'f3d9f5d1-95c8-4cd3-bcd4-698b4298a22c',
-          icon: '🥐',
+          iconAsset: 'assets/categories/cake.svg',
           name: 'Wypieki',
         ),
         DiscoverCategoryEntry(
           id: '8b65af09-63a9-457f-853b-aa6d523b3085',
-          icon: '🌿',
+          iconAsset: 'assets/categories/pepper.svg',
           name: 'Zioła',
         ),
         DiscoverCategoryEntry(
           id: '54c9b906-4298-413f-8feb-1ef722c86f08',
-          icon: '🐟',
+          iconAsset: 'assets/categories/fish.svg',
           name: 'Ryby',
         ),
         DiscoverCategoryEntry(
           id: '1ed9ab83-ba5f-4c34-b553-88f4616c5994',
-          icon: '🌾',
+          iconAsset: 'assets/categories/feather.svg',
           name: 'Mąki i kasze',
         ),
         DiscoverCategoryEntry(
           id: 'd0e76040-0704-43e6-ac87-593e4d3ffa61',
-          icon: '🍯',
+          iconAsset: 'assets/categories/bug-beetle.svg',
           name: 'Miody',
         ),
         DiscoverCategoryEntry(
           id: '749b3717-19aa-4deb-baec-624060817ee8',
-          icon: '🫒',
+          iconAsset: 'assets/categories/drop.svg',
           name: 'Oleje i octy',
         ),
         DiscoverCategoryEntry(
           id: 'c0d151a7-c635-4a30-ac02-c2eec2a905a4',
-          icon: '🥫',
+          iconAsset: 'assets/categories/jar-label.svg',
           name: 'Przetwory',
         ),
         DiscoverCategoryEntry(
           id: 'db3be1cb-1a43-4481-b253-9a0e9ccc3bfb',
-          icon: '🥒',
+          iconAsset: 'assets/categories/jar-label.svg',
           name: 'Kiszonki',
         ),
         DiscoverCategoryEntry(
           id: '5d538dbd-0d63-4142-b540-6097953d9078',
-          icon: '🧃',
+          iconAsset: 'assets/categories/beer-bottle.svg',
           name: 'Soki i napoje',
         ),
         DiscoverCategoryEntry(
           id: 'c39b5581-4ef2-4be9-b42b-6acb6b63ae79',
-          icon: '🌶️',
+          iconAsset: 'assets/categories/pepper.svg',
           name: 'Przyprawy',
         ),
         DiscoverCategoryEntry(
           id: 'd4aaac87-9c19-45f7-ac9e-2ba568ca208f',
-          icon: '🍱',
+          iconAsset: 'assets/categories/oven.svg',
           name: 'Dania gotowe',
         ),
         DiscoverCategoryEntry(
           id: '0af8b69d-b4ed-4b3c-8d40-28687e474793',
-          icon: '🧺',
+          iconAsset: 'assets/categories/paint-brush-household.svg',
           name: 'Rękodzieło',
         ),
         DiscoverCategoryEntry(
           id: 'bb86fb2d-7b8e-4dc4-b22d-0c7dd011a7e4',
-          icon: '🪴',
+          iconAsset: 'assets/categories/potted-plant.svg',
           name: 'Rośliny i ogród',
         ),
       ];
@@ -283,25 +283,25 @@ class DiscoverBloc extends Bloc<DiscoverEvent, DiscoverState> {
 class DiscoverCategoryEntry {
   const DiscoverCategoryEntry({
     required this.id,
-    required this.icon,
+    required this.iconAsset,
     required this.name,
   });
 
   final String id;
-  final String icon;
+  final String iconAsset;
   final String name;
 }
 
 class DiscoverCategoryItem {
   const DiscoverCategoryItem({
     required this.id,
-    required this.icon,
+    required this.iconAsset,
     required this.name,
     required this.count,
   });
 
   final String id;
-  final String icon;
+  final String iconAsset;
   final String name;
   final int count;
 }

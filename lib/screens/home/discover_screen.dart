@@ -199,7 +199,7 @@ class _CategoriesSection extends StatelessWidget {
               final DiscoverCategoryItem category = categories[index];
               final bool active = activeCategoryId == category.id;
               return CategoryTile(
-                icon: category.icon,
+                iconAsset: category.iconAsset,
                 name: category.name,
                 count: category.count,
                 active: active,

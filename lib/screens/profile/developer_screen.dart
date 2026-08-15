@@ -11,6 +11,7 @@ import 'package:lokalny_koszyk/widgets/common/add_to_cart_icon_button.dart';
 import 'package:lokalny_koszyk/widgets/common/app_notification.dart';
 import 'package:lokalny_koszyk/widgets/common/default_screen.dart';
 import 'package:lokalny_koszyk/widgets/common/primary_action_button.dart';
+import 'package:lokalny_koszyk/widgets/common/quantity_selector.dart';
 import 'package:lokalny_koszyk/widgets/common/product_info_chip.dart';
 import 'package:lokalny_koszyk/widgets/common/screen_header.dart';
 import 'package:lokalny_koszyk/widgets/common/section_header.dart';
@@ -65,18 +66,40 @@ class _DeveloperScreenState extends State<DeveloperScreen> {
     oldPrice: '39,90',
   );
 
-  static const List<({String id, String icon, String name, int count})>
-  _sampleCategories = <({String id, String icon, String name, int count})>[
-    (id: 'warzywa', icon: '🥕', name: 'Warzywa', count: 18),
-    (id: 'owoce', icon: '🍎', name: 'Owoce', count: 12),
-    (id: 'nabial', icon: '🥛', name: 'Nabiał', count: 9),
-    (id: 'pieczywo', icon: '🍞', name: 'Pieczywo', count: 7),
-  ];
+  static const List<({String id, String iconAsset, String name, int count})>
+  _sampleCategories =
+      <({String id, String iconAsset, String name, int count})>[
+        (
+          id: 'warzywa',
+          iconAsset: 'assets/categories/carrot.svg',
+          name: 'Warzywa',
+          count: 18,
+        ),
+        (
+          id: 'owoce',
+          iconAsset: 'assets/categories/potted-plant.svg',
+          name: 'Owoce',
+          count: 12,
+        ),
+        (
+          id: 'nabial',
+          iconAsset: 'assets/categories/cow.svg',
+          name: 'Nabiał',
+          count: 9,
+        ),
+        (
+          id: 'pieczywo',
+          iconAsset: 'assets/categories/bread.svg',
+          name: 'Pieczywo',
+          count: 7,
+        ),
+      ];
 
   String _segment = 'adres';
   DiscoverFulfillmentMode _fulfillmentMode = DiscoverFulfillmentMode.delivery;
   String _activeCategoryId = 'warzywa';
   int _navIndex = 0;
+  int _quantity = 1;
 
   Widget _productImage() {
     return Image.asset(
@@ -218,7 +241,7 @@ class _DeveloperScreenState extends State<DeveloperScreen> {
                   for (final category in _sampleCategories) ...<Widget>[
                     Expanded(
                       child: CategoryTile(
-                        icon: category.icon,
+                        iconAsset: category.iconAsset,
                         name: category.name,
                         count: category.count,
                         active: _activeCategoryId == category.id,
@@ -314,9 +337,20 @@ class _DeveloperScreenState extends State<DeveloperScreen> {
           ),
           _ComponentPreview(
             name: 'AddToCartIconButton',
-            child: const Align(
+            child: Align(
               alignment: Alignment.centerLeft,
-              child: AddToCartIconButton(),
+              child: AddToCartIconButton(onPressed: () {}),
+            ),
+          ),
+          _ComponentPreview(
+            name: 'QuantitySelector',
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: QuantitySelector(
+                quantity: _quantity,
+                onIncrease: () => setState(() => _quantity++),
+                onDecrease: () => setState(() => _quantity--),
+              ),
             ),
           ),
           _ComponentPreview(

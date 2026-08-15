@@ -24,6 +24,14 @@ class AppBottomNavigationBar extends StatelessWidget {
         MediaQuery.viewPaddingOf(context).bottom;
   }
 
+  /// Dół floating notification: 16 px nad górną krawędzią bara.
+  ///
+  /// Bar: [outerPadding] pod spodem + [height] + safe area.
+  /// Nad barem kolejne [outerPadding] (16).
+  static double notificationBottomMargin(BuildContext context) {
+    return contentBottomPadding(context);
+  }
+
   static const List<({String assetPath, String label})> _navItems = [
     (assetPath: 'assets/icons/house.svg', label: 'Sklep'),
     (assetPath: 'assets/icons/basket.svg', label: 'Koszyk'),

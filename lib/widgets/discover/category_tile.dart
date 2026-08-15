@@ -1,17 +1,18 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:lokalny_koszyk/core/themes/app_theme.dart';
 
 class CategoryTile extends StatelessWidget {
   const CategoryTile({
     super.key,
-    required this.icon,
+    required this.iconAsset,
     required this.name,
     required this.count,
     required this.active,
     required this.onTap,
   });
 
-  final String icon;
+  final String iconAsset;
   final String name;
   final int count;
   final bool active;
@@ -33,9 +34,14 @@ class CategoryTile extends StatelessWidget {
               color: active ? AppColors.accent : AppColors.white,
               shape: BoxShape.circle,
             ),
-            child: Text(
-              icon,
-              style: const TextStyle(fontSize: 24, height: 1),
+            child: SvgPicture.asset(
+              iconAsset,
+              width: 24,
+              height: 24,
+              colorFilter: const ColorFilter.mode(
+                AppColors.textSecondary,
+                BlendMode.srcIn,
+              ),
             ),
           ),
           const SizedBox(height: 8),

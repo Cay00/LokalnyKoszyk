@@ -8,9 +8,11 @@ class AppColors {
   static const Color white = Color(0xFFFFFFFF);
   static const Color background = Color(0xFFF1F1F1);
   static const Color accent = Color(0xFFB4DB4A);
+  static const Color accentAction = Color(0xFF9EC532);
   static const Color surface = Color(0xFFFFFFFF);
   static const Color textPrimary = Color(0xFF1A1A18);
   static const Color textSecondary = Color(0xFF4A4A42);
+  static const Color textTertiary = Color(0xFFD9D9D9);
   static const Color error = Color(0xFFE53935);
 }
 

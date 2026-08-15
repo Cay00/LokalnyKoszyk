@@ -28,6 +28,18 @@ final class OrdersRemoveItemRequested extends OrdersEvent {
   final CartItem item;
 }
 
+final class OrdersAddToCartRequested extends OrdersEvent {
+  const OrdersAddToCartRequested(this.productId);
+
+  final String productId;
+}
+
+final class OrdersSellerSelectionToggled extends OrdersEvent {
+  const OrdersSellerSelectionToggled(this.sellerKey);
+
+  final String sellerKey;
+}
+
 class OrdersState {
   const OrdersState({
     required this.isLoadingCart,
@@ -35,6 +47,7 @@ class OrdersState {
     required this.isLoadingOrders,
     required this.cartItems,
     required this.orders,
+    this.unselectedSellerKeys = const <String>{},
     this.ordersError,
     this.feedbackMessage,
   });
@@ -53,7 +66,20 @@ class OrdersState {
   final String? ordersError;
   final List<CartItem> cartItems;
   final List<OrderSummary> orders;
+  final Set<String> unselectedSellerKeys;
   final String? feedbackMessage;
+
+  bool isSellerSelected(String sellerKey) =>
+      !unselectedSellerKeys.contains(sellerKey);
+
+  List<CartItem> get selectedCartItems => cartItems
+      .where((CartItem item) => isSellerSelected(item.sellerKey))
+      .toList();
+
+  double get selectedProductsTotal => selectedCartItems.fold<double>(
+    0,
+    (double sum, CartItem item) => sum + item.lineTotal,
+  );
 
   OrdersState copyWith({
     bool? isLoadingCart,
@@ -62,6 +88,7 @@ class OrdersState {
     String? ordersError,
     List<CartItem>? cartItems,
     List<OrderSummary>? orders,
+    Set<String>? unselectedSellerKeys,
     Object? feedbackMessage = _unset,
   }) {
     return OrdersState(
@@ -71,6 +98,8 @@ class OrdersState {
       ordersError: ordersError,
       cartItems: cartItems ?? this.cartItems,
       orders: orders ?? this.orders,
+      unselectedSellerKeys:
+          unselectedSellerKeys ?? this.unselectedSellerKeys,
       feedbackMessage: identical(feedbackMessage, _unset)
           ? this.feedbackMessage
           : feedbackMessage as String?,
@@ -91,6 +120,8 @@ class OrdersBloc extends Bloc<OrdersEvent, OrdersState> {
     on<OrdersLoadOrdersRequested>(_onLoadOrders);
     on<OrdersRefreshAllRequested>(_onRefreshAll);
     on<OrdersRemoveItemRequested>(_onRemoveItem);
+    on<OrdersAddToCartRequested>(_onAddToCart);
+    on<OrdersSellerSelectionToggled>(_onSellerSelectionToggled);
   }
 
   final CartRepository _cartRepository;
@@ -171,6 +202,39 @@ class OrdersBloc extends Bloc<OrdersEvent, OrdersState> {
         ),
       );
     }
+  }
+
+  Future<void> _onAddToCart(
+    OrdersAddToCartRequested event,
+    Emitter<OrdersState> emit,
+  ) async {
+    try {
+      await _cartRepository.addToCart(productId: event.productId);
+      final items = await _cartRepository.getCartItemsForCurrentUser();
+      emit(
+        state.copyWith(
+          cartItems: items,
+          feedbackMessage: 'Dodano do koszyka',
+        ),
+      );
+    } catch (e) {
+      emit(
+        state.copyWith(
+          feedbackMessage: 'Nie udało się dodać do koszyka: $e',
+        ),
+      );
+    }
+  }
+
+  void _onSellerSelectionToggled(
+    OrdersSellerSelectionToggled event,
+    Emitter<OrdersState> emit,
+  ) {
+    final next = Set<String>.from(state.unselectedSellerKeys);
+    if (!next.add(event.sellerKey)) {
+      next.remove(event.sellerKey);
+    }
+    emit(state.copyWith(unselectedSellerKeys: next));
   }
 }
 

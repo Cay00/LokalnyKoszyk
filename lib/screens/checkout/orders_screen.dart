@@ -1,14 +1,19 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:lokalny_koszyk/core/themes/app_theme.dart';
 import 'package:lokalny_koszyk/domain/models/cart_item.dart';
 import 'package:lokalny_koszyk/domain/models/order_summary.dart';
+import 'package:lokalny_koszyk/presentation/models/product_ui_model.dart';
 import 'package:lokalny_koszyk/presentation/orders_bloc.dart';
+import 'package:lokalny_koszyk/screens/producer/producer_details_screen.dart';
+import 'package:lokalny_koszyk/screens/product/product_details_screen.dart';
+import 'package:lokalny_koszyk/screens/product/product_tile.dart';
+import 'package:lokalny_koszyk/widgets/app_bottom_navigation_bar.dart';
+import 'package:lokalny_koszyk/widgets/common/app_notification.dart';
 import 'package:lokalny_koszyk/widgets/common/default_screen.dart';
+import 'package:lokalny_koszyk/widgets/common/primary_action_button.dart';
 import 'package:lokalny_koszyk/widgets/common/section_header.dart';
-
-import '../../core/themes/app_theme.dart';
-import '../../widgets/common/app_notification.dart';
 
 class OrdersScreen extends StatelessWidget {
   const OrdersScreen({super.key, this.onOpenCheckout, this.onOpenOrderDetails});
@@ -28,312 +33,344 @@ class OrdersScreen extends StatelessWidget {
         showAppNotification(context, message);
       },
       child: BlocBuilder<OrdersBloc, OrdersState>(
-      builder: (BuildContext context, OrdersState state) {
-        final orders = state.orders
-            .map(
-              (OrderSummary order) => _OrderItem(
-                id: order.id,
-                orderNumber: order.orderNumber,
-                status: orderStatusLabel(order.rawStatus),
-                date: formatOrderDate(order.createdAt),
-                total: formatMoney(order.totalAmount, order.currency),
-                color: orderStatusColor(order.rawStatus),
-                iconAsset: orderStatusIcon(order.rawStatus),
-              ),
-            )
-            .toList();
-        return DefaultScreen(
-          title: 'Koszyk',
-          body: RefreshIndicator(
-            onRefresh: () {
-              final bloc = context.read<OrdersBloc>();
-              bloc.add(const OrdersRefreshAllRequested());
-              return bloc.stream.firstWhere(
-                (OrdersState s) => !s.isLoadingCart && !s.isLoadingOrders,
-              );
-            },
-            child: ListView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: DefaultScreen.bodyPadding(context),
+        builder: (BuildContext context, OrdersState state) {
+          final orders = state.orders
+              .map(
+                (OrderSummary order) => _OrderItem(
+                  id: order.id,
+                  orderNumber: order.orderNumber,
+                  status: orderStatusLabel(order.rawStatus),
+                  date: formatOrderDate(order.createdAt),
+                  total: formatMoney(order.totalAmount, order.currency),
+                  color: orderStatusColor(order.rawStatus),
+                  iconAsset: orderStatusIcon(order.rawStatus),
+                ),
+              )
+              .toList();
+          final cartItems = state.cartItems;
+          final hasCartItems = cartItems.isNotEmpty;
+          final productsTotal = state.selectedProductsTotal;
+          const deliveryFrom = 0.0;
+          final totalWithDelivery = productsTotal + deliveryFrom;
+
+          return DefaultScreen(
+            title: 'Koszyk',
+            showBottomNavPadding: !hasCartItems,
+            body: Column(
               children: <Widget>[
-                _CartSummaryCard(
-                  isLoading: state.isLoadingCart,
-                  cartItems: state.cartItems,
-                  isRemovingItem: state.isRemovingItem,
-                  onRemoveItem: (CartItem item) {
-                    context.read<OrdersBloc>().add(
-                      OrdersRemoveItemRequested(item),
-                    );
-                  },
-                  onOpenCheckout: onOpenCheckout,
-                ),
-                const SizedBox(height: 32),
-                const SectionHeader(
-                  title: 'Historia zamówień',
-                  actionLabel: 'Wszystkie',
-                ),
-                const SizedBox(height: 16),
-                if (state.isLoadingOrders)
-                  const Center(child: CircularProgressIndicator())
-                else if (state.ordersError != null)
-                  Row(
-                    children: <Widget>[
-                      Expanded(
-                        child: Text(
-                          state.ordersError!,
-                          style: AppTypography.normal,
+                Expanded(
+                  child: RefreshIndicator(
+                    onRefresh: () {
+                      final bloc = context.read<OrdersBloc>();
+                      bloc.add(const OrdersRefreshAllRequested());
+                      return bloc.stream.firstWhere(
+                        (OrdersState s) =>
+                            !s.isLoadingCart && !s.isLoadingOrders,
+                      );
+                    },
+                    child: ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: DefaultScreen.bodyPadding(
+                        context,
+                      ).copyWith(bottom: hasCartItems ? 16 : null),
+                      children: <Widget>[
+                        if (state.isLoadingCart)
+                          const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 16),
+                            child: Center(child: CircularProgressIndicator()),
+                          )
+                        else if (!hasCartItems)
+                          Text(
+                            'Brak produktów w koszyku.',
+                            style: AppTypography.normal,
+                          )
+                        else
+                          ..._sellerSections(context, state, cartItems),
+                        const SizedBox(height: 16),
+                        const SectionHeader(
+                          title: 'Historia zamówień',
+                          actionLabel: 'Wszystkie',
                         ),
-                      ),
-                      TextButton(
-                        onPressed: () => context.read<OrdersBloc>().add(
-                          const OrdersLoadOrdersRequested(),
-                        ),
-                        child: const Text('Ponów'),
-                      ),
-                    ],
-                  )
-                else if (orders.isEmpty)
-                  Text(
-                    'Brak złożonych zamówień dla tego konta.',
-                    style: AppTypography.normal,
-                  )
-                else
-                  ...orders.asMap().entries.map((entry) {
-                    final int index = entry.key;
-                    final _OrderItem order = entry.value;
-                    return _OrderHistoryTile(
-                      order: order,
-                      withBottomSpacing: index < orders.length - 1,
-                      onTap: onOpenOrderDetails != null
-                          ? () => onOpenOrderDetails!(order.id)
-                          : null,
-                    );
-                  }),
+                        const SizedBox(height: 16),
+                        if (state.isLoadingOrders)
+                          const Center(child: CircularProgressIndicator())
+                        else if (state.ordersError != null)
+                          Row(
+                            children: <Widget>[
+                              Expanded(
+                                child: Text(
+                                  state.ordersError!,
+                                  style: AppTypography.normal,
+                                ),
+                              ),
+                              TextButton(
+                                onPressed: () => context.read<OrdersBloc>().add(
+                                  const OrdersLoadOrdersRequested(),
+                                ),
+                                child: const Text('Ponów'),
+                              ),
+                            ],
+                          )
+                        else if (orders.isEmpty)
+                          Text(
+                            'Brak złożonych zamówień dla tego konta.',
+                            style: AppTypography.normal,
+                          )
+                        else
+                          ...orders.asMap().entries.map((entry) {
+                            final int index = entry.key;
+                            final _OrderItem order = entry.value;
+                            return _OrderHistoryTile(
+                              order: order,
+                              withBottomSpacing: index < orders.length - 1,
+                              onTap: onOpenOrderDetails != null
+                                  ? () => onOpenOrderDetails!(order.id)
+                                  : null,
+                            );
+                          }),
+                      ],
+                    ),
+                  ),
+                ),
+                if (hasCartItems)
+                  _CartTotalsBar(
+                    productsTotal: productsTotal,
+                    deliveryFrom: deliveryFrom,
+                    totalWithDelivery: totalWithDelivery,
+                    onBuyNow: state.selectedCartItems.isEmpty
+                        ? null
+                        : onOpenCheckout,
+                  ),
               ],
             ),
-          ),
-        );
-      },
-    ),
+          );
+        },
+      ),
     );
   }
-}
 
-class _CartSummaryCard extends StatelessWidget {
-  const _CartSummaryCard({
-    required this.isLoading,
-    required this.cartItems,
-    required this.isRemovingItem,
-    required this.onRemoveItem,
-    this.onOpenCheckout,
-  });
+  List<Widget> _sellerSections(
+    BuildContext context,
+    OrdersState state,
+    List<CartItem> items,
+  ) {
+    final groups = <String, List<CartItem>>{};
+    final names = <String, String>{};
+    final order = <String>[];
+    for (final item in items) {
+      final key = item.sellerKey;
+      if (!groups.containsKey(key)) {
+        order.add(key);
+        groups[key] = <CartItem>[];
+        names[key] = item.sellerDisplayName;
+      }
+      groups[key]!.add(item);
+    }
 
-  final bool isLoading;
-  final List<CartItem> cartItems;
-  final bool isRemovingItem;
-  final ValueChanged<CartItem> onRemoveItem;
-  final VoidCallback? onOpenCheckout;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: <Color>[AppColors.accent, AppColors.accent],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(AppRadius.normal),
-      ),
-      child: Column(
-        children: <Widget>[
-          Row(
-            children: <Widget>[
-              const Expanded(
-                child: Text(
-                  'Koszyk',
-                  style: TextStyle(
-                    color: AppColors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
+    final widgets = <Widget>[];
+    for (int i = 0; i < order.length; i++) {
+      final key = order[i];
+      final sellerItems = groups[key]!;
+      final selected = state.isSellerSelected(key);
+      if (i > 0) widgets.add(const SizedBox(height: 32));
+      widgets.add(
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: <Widget>[
+            _SellerIncludeButton(
+              selected: selected,
+              onTap: () => context.read<OrdersBloc>().add(
+                OrdersSellerSelectionToggled(key),
               ),
-              Text(
-                '${cartItems.length} produkty',
-                style: const TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 12,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          if (isLoading)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 8),
-              child: CircularProgressIndicator(color: AppColors.white),
-            )
-          else if (cartItems.isEmpty)
-            const Text(
-              'Brak produktów w koszyku.',
-              style: TextStyle(color: AppColors.white, fontSize: 13),
-            )
-          else ...<Widget>[
-            ...cartItems.map((item) {
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: _CartLineItem(
-                  name: item.name,
-                  qty: '${item.quantity} ${item.unit}',
-                  price: _formatMoney(item.lineTotal, item.currency),
-                  onRemove: isRemovingItem ? null : () => onRemoveItem(item),
-                ),
-              );
-            }),
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.only(top: 8),
-              decoration: const BoxDecoration(
-                border: Border(top: BorderSide(color: Color(0x40FFFFFF))),
-              ),
-              child: Row(
-                children: <Widget>[
-                  const Expanded(
-                    child: Text(
-                      'Razem',
-                      style: TextStyle(
-                        color: AppColors.textPrimary,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ),
-                  Text(
-                    _formatMoney(
-                      cartItems.fold<double>(
-                        0,
-                        (sum, item) => sum + item.lineTotal,
-                      ),
-                      cartItems.first.currency,
-                    ),
-                    style: const TextStyle(
-                      color: AppColors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(names[key]!, style: AppTypography.header),
             ),
           ],
-          const SizedBox(height: 8),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: cartItems.isEmpty ? null : onOpenCheckout,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.accent,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppRadius.normal),
-                ),
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                elevation: 0,
-              ),
-              child: const Text(
-                'Przejdź do zamówienia',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-              ),
-            ),
+        ),
+      );
+      widgets.add(const SizedBox(height: 16));
+      for (int j = 0; j < sellerItems.length; j++) {
+        if (j > 0) widgets.add(const SizedBox(height: 8));
+        final item = sellerItems[j];
+        final product = _productFromCartItem(item);
+        widgets.add(
+          ProductTile(
+            product: product,
+            onOpenDetails: () => _openProductDetails(context, product),
+            onAddToCart: () {
+              context.read<OrdersBloc>().add(
+                OrdersAddToCartRequested(item.productId),
+              );
+            },
           ),
-        ],
+        );
+      }
+    }
+    return widgets;
+  }
+
+  void _openProductDetails(BuildContext context, ProductUiModel product) {
+    final String? sid = product.sellerId?.trim();
+    final bool hasSeller = sid != null && sid.isNotEmpty;
+    Navigator.of(context).push(
+      PageRouteBuilder<void>(
+        pageBuilder: (_, _, _) => ProductDetailsScreen(
+          product: product,
+          onBack: () => Navigator.of(context).pop(),
+          onOpenProducerDetails: hasSeller
+              ? () {
+                  Navigator.of(context).push(
+                    PageRouteBuilder<void>(
+                      pageBuilder: (_, _, _) => ProducerDetailsScreen(
+                        sellerId: sid,
+                        onBack: () => Navigator.of(context).pop(),
+                      ),
+                      transitionDuration: Duration.zero,
+                      reverseTransitionDuration: Duration.zero,
+                    ),
+                  );
+                }
+              : null,
+        ),
+        transitionDuration: Duration.zero,
+        reverseTransitionDuration: Duration.zero,
       ),
     );
   }
 }
 
-class _CartLineItem extends StatelessWidget {
-  const _CartLineItem({
-    required this.name,
-    required this.qty,
-    required this.price,
-    this.onRemove,
+class _SellerIncludeButton extends StatelessWidget {
+  const _SellerIncludeButton({
+    required this.selected,
+    required this.onTap,
   });
 
-  final String name;
-  final String qty;
-  final String price;
-  final VoidCallback? onRemove;
+  final bool selected;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      decoration: BoxDecoration(
-        color: const Color(0x14FFFFFF),
-        borderRadius: BorderRadius.circular(AppRadius.md),
-      ),
-      child: Row(
-        children: <Widget>[
-          ClipRRect(
-            borderRadius: BorderRadius.circular(AppRadius.sm),
-            child: SizedBox(
-              width: 40,
-              height: 40,
-              child: Image.asset(
-                'assets/images/food_default.png',
-                fit: BoxFit.cover,
-                errorBuilder:
-                    (
-                      BuildContext context,
-                      Object error,
-                      StackTrace? stackTrace,
-                    ) => const ColoredBox(color: Color(0x33FFFFFF)),
-              ),
-            ),
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: SizedBox(
+        width: 24,
+        height: 24,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: selected ? AppColors.accent : Colors.transparent,
+            border: selected
+                ? null
+                : Border.all(color: AppColors.textSecondary, width: 2),
+            borderRadius: BorderRadius.circular(4),
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(
-                  name,
-                  style: const TextStyle(color: AppColors.white, fontSize: 14),
-                ),
-                Text(
-                  qty,
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 12,
+          child: selected
+              ? Center(
+                  child: SvgPicture.asset(
+                    'assets/icons/check.svg',
+                    width: 16,
+                    height: 16,
+                    colorFilter: const ColorFilter.mode(
+                      AppColors.textPrimary,
+                      BlendMode.srcIn,
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ),
-          Text(
-            price,
-            style: const TextStyle(color: AppColors.white, fontSize: 14),
-          ),
-          const SizedBox(width: 8),
-          InkWell(
-            onTap: onRemove,
-            child: const Icon(
-              Icons.delete_outline,
-              color: AppColors.white,
-              size: 20,
-            ),
-          ),
-        ],
+                )
+              : null,
+        ),
       ),
     );
   }
 }
 
-String _formatMoney(double value, String currency) {
-  final formatted = value.toStringAsFixed(2).replaceAll('.', ',');
-  return '$formatted $currency';
+ProductUiModel _productFromCartItem(CartItem item) {
+  return ProductUiModel(
+    id: item.productId,
+    name: item.name,
+    producer: item.sellerDisplayName,
+    price: item.price.toStringAsFixed(2).replaceAll('.', ','),
+    unit: '/ ${item.unit.replaceAll('_', ' ')}',
+    distance: '',
+    rating: '',
+    reviews: '',
+    bgColor: AppColors.background,
+    sellerId: item.sellerId,
+    unitKey: item.unitKey,
+    packageQuantity: item.packageQuantity,
+  );
+}
+
+class _CartTotalsBar extends StatelessWidget {
+  const _CartTotalsBar({
+    required this.productsTotal,
+    required this.deliveryFrom,
+    required this.totalWithDelivery,
+    this.onBuyNow,
+  });
+
+  final double productsTotal;
+  final double deliveryFrom;
+  final double totalWithDelivery;
+  final VoidCallback? onBuyNow;
+
+  @override
+  Widget build(BuildContext context) {
+    return ColoredBox(
+      color: AppColors.accent.withValues(alpha: 0.25),
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(
+          16,
+          16,
+          16,
+          AppBottomNavigationBar.contentBottomPadding(context),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            _CartTotalsLine(
+              label: 'Wartość produktów',
+              value: _formatZl(productsTotal),
+            ),
+            const SizedBox(height: 16),
+            _CartTotalsLine(
+              label: 'Dostawa od',
+              value: _formatZl(deliveryFrom),
+            ),
+            const SizedBox(height: 16),
+            _CartTotalsLine(
+              label: 'Razem',
+              value: _formatZl(totalWithDelivery),
+            ),
+            const SizedBox(height: 16),
+            PrimaryActionButton(label: 'Kup teraz', onPressed: onBuyNow),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CartTotalsLine extends StatelessWidget {
+  const _CartTotalsLine({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: <Widget>[
+        Expanded(child: Text(label, style: AppTypography.normal)),
+        Text(value, style: AppTypography.header),
+      ],
+    );
+  }
+}
+
+String _formatZl(double value) {
+  return '${value.toStringAsFixed(2).replaceAll('.', ',')} zł';
 }
 
 class _OrderHistoryTile extends StatelessWidget {
@@ -383,10 +420,7 @@ class _OrderHistoryTile extends StatelessWidget {
                         'Zamówienie ${order.orderNumber}',
                         style: AppTypography.header,
                       ),
-                      Text(
-                        order.date,
-                        style: AppTypography.caption,
-                      ),
+                      Text(order.date, style: AppTypography.caption),
                     ],
                   ),
                 ),
@@ -413,16 +447,8 @@ class _OrderHistoryTile extends StatelessWidget {
             const SizedBox(height: 8),
             Row(
               children: <Widget>[
-                Expanded(
-                  child: Text(
-                    'Łącznie',
-                    style: AppTypography.caption,
-                  ),
-                ),
-                Text(
-                  order.total,
-                  style: AppTypography.header,
-                ),
+                Expanded(child: Text('Łącznie', style: AppTypography.caption)),
+                Text(order.total, style: AppTypography.header),
               ],
             ),
           ],
