@@ -8,6 +8,7 @@ import 'package:lokalny_koszyk/presentation/product_details_bloc.dart';
 import 'package:lokalny_koszyk/screens/producer/producer_tile.dart';
 
 import '../../core/themes/app_theme.dart';
+import '../../widgets/common/app_notification.dart';
 import '../../widgets/common/default_screen.dart';
 import '../../widgets/common/screen_header.dart';
 import '../../widgets/common/section_header.dart';
@@ -94,9 +95,7 @@ class _ProductDetailsBody extends StatelessWidget {
       listener: (BuildContext context, ProductDetailsState state) {
         final message = state.feedbackMessage;
         if (message == null) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(message)),
-        );
+        showAppNotification(context, message);
       },
       child: BlocBuilder<ProductDetailsBloc, ProductDetailsState>(
       builder: (BuildContext context, ProductDetailsState vmState) {

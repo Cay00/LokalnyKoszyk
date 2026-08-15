@@ -7,6 +7,7 @@ import 'package:lokalny_koszyk/screens/product/product_details_screen.dart';
 import 'package:lokalny_koszyk/screens/product/product_tile.dart';
 
 import '../../core/themes/app_theme.dart';
+import '../../widgets/common/app_notification.dart';
 import '../../widgets/common/default_screen.dart';
 
 class FavoritesScreen extends StatelessWidget {
@@ -28,9 +29,7 @@ class FavoritesScreen extends StatelessWidget {
           listener: (BuildContext context, FavoritesState state) {
             final String? message = state.feedbackMessage;
             if (message == null) return;
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(message)),
-            );
+            showAppNotification(context, message);
           },
           child: BlocBuilder<FavoritesBloc, FavoritesState>(
             builder: (BuildContext context, FavoritesState state) {

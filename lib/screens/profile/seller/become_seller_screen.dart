@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:lokalny_koszyk/core/supabase/supabase_client.dart';
 import 'package:lokalny_koszyk/core/themes/app_theme.dart';
+import 'package:lokalny_koszyk/widgets/common/app_notification.dart';
 import 'package:lokalny_koszyk/widgets/common/default_screen.dart';
 
 class BecomeSellerScreen extends StatefulWidget {
@@ -104,10 +105,9 @@ class _BecomeSellerScreenState extends State<BecomeSellerScreen> {
   Future<void> _submit() async {
     final userId = supabase.auth.currentUser?.id;
     if (userId == null || userId.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Zaloguj się, aby zarejestrować konto sprzedawcy.'),
-        ),
+      showAppNotification(
+        context,
+        'Zaloguj się, aby zarejestrować konto sprzedawcy.',
       );
       return;
     }
@@ -123,12 +123,9 @@ class _BecomeSellerScreenState extends State<BecomeSellerScreen> {
         city.isEmpty ||
         postal.isEmpty ||
         country.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Uzupełnij nazwę sprzedawcy oraz adres, miasto, kod i kraj lokalizacji.',
-          ),
-        ),
+      showAppNotification(
+        context,
+        'Uzupełnij nazwę sprzedawcy oraz adres, miasto, kod i kraj lokalizacji.',
       );
       return;
     }
@@ -141,10 +138,9 @@ class _BecomeSellerScreenState extends State<BecomeSellerScreen> {
       latitude = double.tryParse(latText.replaceAll(',', '.'));
       longitude = double.tryParse(lonText.replaceAll(',', '.'));
       if (latitude == null || longitude == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Szerokość i długość geograficzną podaj jako liczby (np. 52.23, 21.01).'),
-          ),
+        showAppNotification(
+          context,
+          'Szerokość i długość geograficzną podaj jako liczby (np. 52.23, 21.01).',
         );
         return;
       }
@@ -178,8 +174,9 @@ class _BecomeSellerScreenState extends State<BecomeSellerScreen> {
       });
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Konto sprzedawcy i lokalizacja zostały zapisane.')),
+      showAppNotification(
+        context,
+        'Konto sprzedawcy i lokalizacja zostały zapisane.',
       );
       Navigator.of(context).pop();
     } on PostgrestException catch (e) {
@@ -187,14 +184,10 @@ class _BecomeSellerScreenState extends State<BecomeSellerScreen> {
       final message = e.code == '23505'
           ? 'Masz już konto sprzedawcy powiązane z tym profilem.'
           : 'Nie udało się zapisać: ${e.message}';
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message)),
-      );
+      showAppNotification(context, message);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Nie udało się zapisać: $e')),
-      );
+      showAppNotification(context, 'Nie udało się zapisać: $e');
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }

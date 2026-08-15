@@ -11,6 +11,7 @@ class AppColors {
   static const Color surface = Color(0xFFFFFFFF);
   static const Color textPrimary = Color(0xFF1A1A18);
   static const Color textSecondary = Color(0xFF4A4A42);
+  static const Color error = Color(0xFFE53935);
 }
 
 class AppTypography {
@@ -130,6 +131,16 @@ class AppTheme {
         unselectedLabelStyle: AppTypography.caption,
         showUnselectedLabels: false,
         elevation: 0,
+      ),
+      snackBarTheme: SnackBarThemeData(
+        backgroundColor: AppColors.accent,
+        contentTextStyle: AppTypography.normal,
+        behavior: SnackBarBehavior.floating,
+        elevation: 0,
+        insetPadding: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.normal),
+        ),
       ),
     );
   }

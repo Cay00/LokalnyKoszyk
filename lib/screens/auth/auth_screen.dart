@@ -1,10 +1,57 @@
-﻿import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
+﻿import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'package:lokalny_koszyk/core/supabase/auth_error_message.dart';
 import 'package:lokalny_koszyk/core/supabase/profile_bootstrap.dart';
 import 'package:lokalny_koszyk/core/supabase/supabase_client.dart';
 import 'package:lokalny_koszyk/core/themes/app_theme.dart';
+import 'package:lokalny_koszyk/widgets/common/app_notification.dart';
+
+const int _minPasswordLength = 8;
+
+const String _passwordAllowedChars =
+    'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+    '!@#\$%^&*()_+-=[]{}|;:,.<>/?`~\\\'"';
+
+final RegExp _emailPattern = RegExp(
+  r'^[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$',
+);
+
+bool _isValidEmail(String email) => _emailPattern.hasMatch(email);
+
+bool _hasAllowedPasswordChars(String password) {
+  for (int i = 0; i < password.length; i++) {
+    if (!_passwordAllowedChars.contains(password[i])) return false;
+  }
+  return true;
+}
+
+class _PasswordCharsFormatter extends TextInputFormatter {
+  const _PasswordCharsFormatter();
+
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final StringBuffer filtered = StringBuffer();
+    for (int i = 0; i < newValue.text.length; i++) {
+      final String char = newValue.text[i];
+      if (_passwordAllowedChars.contains(char)) {
+        filtered.write(char);
+      }
+    }
+    final String next = filtered.toString();
+    if (next == newValue.text) return newValue;
+    return TextEditingValue(
+      text: next,
+      selection: TextSelection.collapsed(offset: next.length),
+    );
+  }
+}
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -19,8 +66,18 @@ class _AuthScreenState extends State<AuthScreen> {
   final _passwordController = TextEditingController();
   final _repeatPasswordController = TextEditingController();
 
-  bool _isLogin = true;
+  bool _isLogin = false;
   bool _loading = false;
+  bool _submitAttempted = false;
+
+  static const double _fieldHeight = 50;
+  static const double _fieldRadius = 25;
+  static const double _fieldGap = 16;
+  static const double _sectionGap = 24;
+
+  static final TextStyle _modeLinkStyle = AppTypography.normal.copyWith(
+    fontSize: 16,
+  );
 
   @override
   void dispose() {
@@ -37,8 +94,22 @@ class _AuthScreenState extends State<AuthScreen> {
     final password = _passwordController.text;
     final repeatPassword = _repeatPasswordController.text;
 
-    if (email.isEmpty || password.isEmpty) {
-      _showSnack('Uzupełnij email i hasło');
+    if (email.isEmpty) {
+      _showSnack('Uzupełnij email');
+      return;
+    }
+    if (!_isValidEmail(email)) {
+      _showSnack('Podaj poprawny adres email');
+      return;
+    }
+    if (password.length < _minPasswordLength) {
+      setState(() => _submitAttempted = true);
+      return;
+    }
+    if (!_hasAllowedPasswordChars(password)) {
+      _showSnack(
+        'Hasło może zawierać tylko litery, cyfry i znaki specjalne',
+      );
       return;
     }
 
@@ -86,26 +157,84 @@ class _AuthScreenState extends State<AuthScreen> {
           if (!mounted) return;
           if (res.session == null) {
             _showSnack(
-              'Konto utworzone. Sprawdź email (potwierdzenie może być wymagane).',
+              'Konto utworzone. Sprawdź email.',
             );
           }
         }
       }
     } on AuthException catch (e) {
       if (!mounted) return;
-      _showSnack(e.message);
+      _showSnack(
+        polishAuthError(
+          e,
+          fallback: _isLogin
+              ? 'Nie udało się zalogować. Spróbuj ponownie.'
+              : 'Nie udało się zarejestrować. Spróbuj ponownie.',
+        ),
+      );
     } catch (e) {
       if (!mounted) return;
-      _showSnack('Błąd: $e');
+      _showSnack(
+        polishAuthError(
+          e,
+          fallback: _isLogin
+              ? 'Nie udało się zalogować. Spróbuj ponownie.'
+              : 'Nie udało się zarejestrować. Spróbuj ponownie.',
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _forgotPassword() async {
+    final email = _emailController.text.trim();
+    if (email.isEmpty) {
+      _showSnack('Podaj email, aby zresetować hasło');
+      return;
+    }
+    if (!_isValidEmail(email)) {
+      _showSnack('Podaj poprawny adres email');
+      return;
+    }
+
+    setState(() => _loading = true);
+    try {
+      await supabase.auth.resetPasswordForEmail(email);
+      if (!mounted) return;
+      _showSnack('Jeśli konto istnieje, wyślemy link do resetu hasła.');
+    } on AuthException catch (e) {
+      if (!mounted) return;
+      _showSnack(
+        polishAuthError(
+          e,
+          fallback: 'Nie udało się wysłać linku. Spróbuj ponownie.',
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      _showSnack(
+        polishAuthError(
+          e,
+          fallback: 'Nie udało się wysłać linku. Spróbuj ponownie.',
+        ),
+      );
     } finally {
       if (mounted) setState(() => _loading = false);
     }
   }
 
   void _showSnack(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg)),
-    );
+    showAppNotification(context, msg);
+  }
+
+  void _toggleMode() {
+    setState(() {
+      _isLogin = !_isLogin;
+      _submitAttempted = false;
+      _passwordController.clear();
+      _repeatPasswordController.clear();
+    });
   }
 
   Future<void> _fastLogin() async {
@@ -120,187 +249,334 @@ class _AuthScreenState extends State<AuthScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final title = _isLogin ? 'Logowanie' : 'Rejestracja';
-    final action = _isLogin ? 'Zaloguj' : 'Utwórz konto';
-    final switchLabel = _isLogin
-        ? 'Nie masz konta? Zarejestruj się'
-        : 'Masz konto? Zaloguj się';
-
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 420),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: AutofillGroup(
               child: Column(
+                mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
-                  const SizedBox(height: 8),
-                  Text(
-                    title,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.textPrimary,
+                    if (!_isLogin) ...[
+                      _AuthField(
+                        key: const ValueKey<String>('auth-name'),
+                        controller: _nameController,
+                        hint: 'Imię',
+                        keyboardType: TextInputType.name,
+                        textInputAction: TextInputAction.next,
+                        autofillHints: const [AutofillHints.name],
+                      ),
+                      const SizedBox(height: _fieldGap),
+                    ],
+                    _AuthField(
+                      key: const ValueKey<String>('auth-email'),
+                      controller: _emailController,
+                      hint: 'Email',
+                      keyboardType: TextInputType.emailAddress,
+                      textInputAction: TextInputAction.next,
+                      autofillHints: const [AutofillHints.email],
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Supabase Auth',
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: AppColors.textSecondary,
+                    const SizedBox(height: _fieldGap),
+                    _AuthField(
+                      key: const ValueKey<String>('auth-password'),
+                      controller: _passwordController,
+                      hint: 'Hasło',
+                      isPassword: true,
+                      minLength: _minPasswordLength,
+                      forceShowLengthError: _submitAttempted,
+                      textInputAction: _isLogin
+                          ? TextInputAction.done
+                          : TextInputAction.next,
+                      autofillHints: const [AutofillHints.password],
+                      onSubmitted: _isLogin && !_loading
+                          ? (_) => _submit()
+                          : null,
                     ),
-                  ),
-                  const SizedBox(height: 32),
-                  if (!_isLogin) ...[
-                    _Field(
-                      controller: _nameController,
-                      label: 'Imię',
-                      autofillHints: const [AutofillHints.name],
-                    ),
-                    const SizedBox(height: 16),
-                  ],
-                  _Field(
-                    controller: _emailController,
-                    label: 'Email',
-                    keyboardType: TextInputType.emailAddress,
-                    autofillHints: const [AutofillHints.email],
-                  ),
-                  const SizedBox(height: 16),
-                  _Field(
-                    controller: _passwordController,
-                    label: 'Hasło',
-                    obscureText: true,
-                    autofillHints: const [AutofillHints.password],
-                  ),
-                  if (!_isLogin) ...[
-                    const SizedBox(height: 16),
-                    _Field(
-                      controller: _repeatPasswordController,
-                      label: 'Powtórz hasło',
-                      obscureText: true,
-                      autofillHints: const [AutofillHints.newPassword],
-                    ),
-                  ],
-                  const SizedBox(height: 16),
-                  FilledButton(
-                    onPressed: _loading ? null : _submit,
-                    style: FilledButton.styleFrom(
-                      backgroundColor: AppColors.accent,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(AppRadius.normal),
+                    if (!_isLogin) ...[
+                      const SizedBox(height: _fieldGap),
+                      _AuthField(
+                        key: const ValueKey<String>('auth-repeat-password'),
+                        controller: _repeatPasswordController,
+                        hint: 'Powtórz hasło',
+                        isPassword: true,
+                        minLength: _minPasswordLength,
+                        textInputAction: TextInputAction.done,
+                        autofillHints: const [AutofillHints.newPassword],
+                        onSubmitted: _loading ? null : (_) => _submit(),
+                      ),
+                    ],
+                    if (_isLogin) ...[
+                      const SizedBox(height: _fieldGap),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: _AuthTextAction(
+                          label: 'Nie pamiętam hasła',
+                          style: AppTypography.normal,
+                          onPressed: _loading ? null : _forgotPassword,
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: _sectionGap),
+                    SizedBox(
+                      height: _fieldHeight,
+                      width: double.infinity,
+                      child: FilledButton(
+                        onPressed: _loading ? null : _submit,
+                        style: FilledButton.styleFrom(
+                          backgroundColor: AppColors.accent,
+                          foregroundColor: AppColors.textPrimary,
+                          disabledBackgroundColor: AppColors.accent.withValues(
+                            alpha: 0.6,
+                          ),
+                          padding: EdgeInsets.zero,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(_fieldRadius),
+                          ),
+                        ),
+                        child: _loading
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: AppColors.textPrimary,
+                                ),
+                              )
+                            : Text(
+                                _isLogin ? 'Zaloguj się' : 'Zarejestruj się',
+                                style: AppTypography.header,
+                              ),
                       ),
                     ),
-                    child: _loading
-                        ? const SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: AppColors.white,
-                            ),
-                          )
-                        : Text(
-                            action,
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
+                    const SizedBox(height: _sectionGap),
+                    Center(
+                      child: _AuthTextAction(
+                        label: _isLogin ? 'Zarejestruj się' : 'Zaloguj się',
+                        style: _modeLinkStyle,
+                        onPressed: _loading ? null : _toggleMode,
+                      ),
+                    ),
+                    if (kDebugMode) ...[
+                      const SizedBox(height: _sectionGap),
+                      SizedBox(
+                        height: _fieldHeight,
+                        width: double.infinity,
+                        child: OutlinedButton(
+                          onPressed: _loading ? null : _fastLogin,
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppColors.accent,
+                            padding: EdgeInsets.zero,
+                            side: const BorderSide(color: AppColors.accent),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(_fieldRadius),
                             ),
                           ),
-                  ),
-                  if (kDebugMode && _isLogin) ...[
-                    const SizedBox(height: 16),
-                    OutlinedButton(
-                      onPressed: _loading ? null : _fastLogin,
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(AppRadius.normal),
+                          child: Text(
+                            'FastLogin',
+                            style: AppTypography.header.copyWith(
+                              color: AppColors.accent,
+                            ),
+                          ),
                         ),
                       ),
-                      child: const Text(
-                        'FastLogin',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.accent,
-                        ),
-                      ),
-                    ),
+                    ],
                   ],
-                  const SizedBox(height: 8),
-                  TextButton(
-                    onPressed: _loading
-                        ? null
-                        : () {
-                            setState(() => _isLogin = !_isLogin);
-                            _passwordController.clear();
-                            _repeatPasswordController.clear();
-                          },
-                    child: Text(
-                      switchLabel,
-                      style: const TextStyle(
-                        color: AppColors.accent,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
           ),
         ),
-      ),
-    );
+      );
   }
 }
 
-class _Field extends StatelessWidget {
-  const _Field({
-    required this.controller,
+class _AuthTextAction extends StatelessWidget {
+  const _AuthTextAction({
     required this.label,
-    this.keyboardType,
-    this.obscureText = false,
-    this.autofillHints,
+    required this.style,
+    required this.onPressed,
   });
 
-  final TextEditingController controller;
   final String label;
-  final TextInputType? keyboardType;
-  final bool obscureText;
-  final List<String>? autofillHints;
+  final TextStyle style;
+  final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
-      controller: controller,
-      keyboardType: keyboardType,
-      obscureText: obscureText,
-      autofillHints: autofillHints,
-      decoration: InputDecoration(
-        labelText: label,
-        filled: true,
-        fillColor: AppColors.white,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadius.normal),
-          borderSide: BorderSide(color: AppColors.background),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadius.normal),
-          borderSide: BorderSide(color: AppColors.background),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadius.normal),
-          borderSide: const BorderSide(color: AppColors.accent, width: 1.4),
-        ),
+    return GestureDetector(
+      onTap: onPressed,
+      behavior: HitTestBehavior.opaque,
+      child: Text(
+        label,
+        textAlign: TextAlign.center,
+        style: style,
       ),
     );
   }
 }
 
+class _AuthField extends StatefulWidget {
+  const _AuthField({
+    super.key,
+    required this.controller,
+    required this.hint,
+    this.keyboardType,
+    this.isPassword = false,
+    this.minLength,
+    this.forceShowLengthError = false,
+    this.autofillHints,
+    this.textInputAction,
+    this.onSubmitted,
+  });
+
+  final TextEditingController controller;
+  final String hint;
+  final TextInputType? keyboardType;
+  final bool isPassword;
+  final int? minLength;
+  final bool forceShowLengthError;
+  final List<String>? autofillHints;
+  final TextInputAction? textInputAction;
+  final ValueChanged<String>? onSubmitted;
+
+  @override
+  State<_AuthField> createState() => _AuthFieldState();
+}
+
+class _AuthFieldState extends State<_AuthField> {
+  bool _obscured = true;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.controller.addListener(_onChanged);
+  }
+
+  @override
+  void didUpdateWidget(_AuthField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.controller != widget.controller) {
+      oldWidget.controller.removeListener(_onChanged);
+      widget.controller.addListener(_onChanged);
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.controller.removeListener(_onChanged);
+    super.dispose();
+  }
+
+  void _onChanged() => setState(() {});
+
+  bool get _tooShort {
+    final int? minLength = widget.minLength;
+    if (minLength == null) return false;
+    final int length = widget.controller.text.length;
+    if (length >= minLength) return false;
+    return length > 0 || widget.forceShowLengthError;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bool obscureText = widget.isPassword && _obscured;
+    final bool tooShort = _tooShort;
+    final TextStyle fieldStyle = AppTypography.normal.copyWith(
+      height: 1,
+      leadingDistribution: TextLeadingDistribution.even,
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Material(
+          color: AppColors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(_AuthScreenState._fieldRadius),
+            side: tooShort
+                ? const BorderSide(color: AppColors.error)
+                : BorderSide.none,
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: SizedBox(
+            height: _AuthScreenState._fieldHeight,
+            child: Stack(
+              children: <Widget>[
+                Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    20,
+                    0,
+                    widget.isPassword ? 52 : 20,
+                    0,
+                  ),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: TextField(
+                      controller: widget.controller,
+                      keyboardType: widget.keyboardType,
+                      obscureText: obscureText,
+                      autofillHints: widget.autofillHints,
+                      textInputAction: widget.textInputAction,
+                      onSubmitted: widget.onSubmitted,
+                      inputFormatters: widget.isPassword
+                          ? const <TextInputFormatter>[_PasswordCharsFormatter()]
+                          : null,
+                      maxLines: 1,
+                      style: fieldStyle,
+                      strutStyle: const StrutStyle(
+                        fontSize: 14,
+                        height: 1,
+                        leading: 0,
+                        forceStrutHeight: true,
+                      ),
+                      cursorColor: AppColors.textPrimary,
+                      decoration: InputDecoration.collapsed(
+                        hintText: widget.hint,
+                        hintStyle: fieldStyle.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                if (widget.isPassword)
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 16),
+                      child: GestureDetector(
+                        onTap: () => setState(() => _obscured = !_obscured),
+                        behavior: HitTestBehavior.opaque,
+                        child: SvgPicture.asset(
+                          _obscured
+                              ? 'assets/icons/eye-slash.svg'
+                              : 'assets/icons/eye.svg',
+                          width: 24,
+                          height: 24,
+                          colorFilter: const ColorFilter.mode(
+                            AppColors.textSecondary,
+                            BlendMode.srcIn,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+        if (tooShort) ...[
+          const SizedBox(height: 8),
+          Text(
+            'Wartość za krótka',
+            style: AppTypography.caption.copyWith(color: AppColors.error),
+          ),
+        ],
+      ],
+    );
+  }
+}

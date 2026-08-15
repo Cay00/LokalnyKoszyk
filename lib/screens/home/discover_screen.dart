@@ -10,6 +10,7 @@ import 'package:lokalny_koszyk/widgets/common/default_screen.dart';
 import 'package:lokalny_koszyk/widgets/common/section_header.dart';
 
 import '../../core/themes/app_theme.dart';
+import '../../widgets/common/app_notification.dart';
 
 class DiscoverScreen extends StatefulWidget {
   const DiscoverScreen({super.key, this.onOpenProductDetails});
@@ -32,13 +33,12 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
       listener: (BuildContext context, DiscoverState state) {
         final message = state.feedbackMessage;
         if (message == null) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            duration: message.startsWith('Dodano')
-                ? const Duration(milliseconds: 900)
-                : const Duration(seconds: 4),
-            content: Text(message),
-          ),
+        showAppNotification(
+          context,
+          message,
+          duration: message.startsWith('Dodano')
+              ? const Duration(milliseconds: 900)
+              : const Duration(seconds: 4),
         );
       },
       child: BlocBuilder<DiscoverBloc, DiscoverState>(

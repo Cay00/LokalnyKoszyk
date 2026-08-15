@@ -2,6 +2,7 @@
 
 import 'package:lokalny_koszyk/core/supabase/supabase_client.dart';
 import 'package:lokalny_koszyk/core/themes/app_theme.dart';
+import 'package:lokalny_koszyk/widgets/common/app_notification.dart';
 
 class AddProductScreen extends StatefulWidget {
   const AddProductScreen({super.key});
@@ -138,16 +139,16 @@ class _AddProductScreenState extends State<AddProductScreen> {
         price == null ||
         quantity == null ||
         stock == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Uzupełnij wszystkie wymagane pola produktu.')),
+      showAppNotification(
+        context,
+        'Uzupełnij wszystkie wymagane pola produktu.',
       );
       return;
     }
     if (userId == null || userId.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Brak zalogowanego użytkownika. Zaloguj się ponownie.'),
-        ),
+      showAppNotification(
+        context,
+        'Brak zalogowanego użytkownika. Zaloguj się ponownie.',
       );
       return;
     }
@@ -155,12 +156,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
     final sellerRecordId = await _sellerRecordIdForCurrentUser();
     if (!mounted) return;
     if (sellerRecordId == null || sellerRecordId.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Najpierw zarejestruj konto sprzedawcy (Profil → Zostań sprzedawcą).',
-          ),
-        ),
+      showAppNotification(
+        context,
+        'Najpierw zarejestruj konto sprzedawcy (Profil → Zostań sprzedawcą).',
       );
       return;
     }
@@ -189,9 +187,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
       });
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Produkt dodany do tabeli $_tableName.')),
-      );
+      showAppNotification(context, 'Produkt dodany do tabeli $_tableName.');
       Navigator.of(context).pop();
     } catch (e) {
       if (!mounted) return;
@@ -199,9 +195,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
       final userMessage = message.contains('invalid input syntax for type uuid')
           ? 'Błąd UUID: sprawdź category_id (i ewentualnie inne pola referencyjne).'
           : 'Nie udało się dodać produktu: $e';
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(userMessage)),
-      );
+      showAppNotification(context, userMessage);
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }

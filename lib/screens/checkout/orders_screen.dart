@@ -8,6 +8,7 @@ import 'package:lokalny_koszyk/widgets/common/default_screen.dart';
 import 'package:lokalny_koszyk/widgets/common/section_header.dart';
 
 import '../../core/themes/app_theme.dart';
+import '../../widgets/common/app_notification.dart';
 
 class OrdersScreen extends StatelessWidget {
   const OrdersScreen({super.key, this.onOpenCheckout, this.onOpenOrderDetails});
@@ -24,9 +25,7 @@ class OrdersScreen extends StatelessWidget {
       listener: (BuildContext context, OrdersState state) {
         final message = state.feedbackMessage;
         if (message == null) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(message)),
-        );
+        showAppNotification(context, message);
       },
       child: BlocBuilder<OrdersBloc, OrdersState>(
       builder: (BuildContext context, OrdersState state) {

@@ -3,6 +3,7 @@
 import 'package:lokalny_koszyk/core/supabase/supabase_client.dart';
 import 'package:lokalny_koszyk/core/themes/app_theme.dart';
 import 'package:lokalny_koszyk/screens/profile/seller/become_seller_screen.dart';
+import 'package:lokalny_koszyk/widgets/common/app_notification.dart';
 import 'package:lokalny_koszyk/widgets/common/default_screen.dart';
 
 class SellerPanelScreen extends StatefulWidget {
@@ -178,9 +179,7 @@ class _SellerPanelScreenState extends State<SellerPanelScreen> {
 
     final name = nameCtrl.text.trim();
     if (name.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Nazwa sprzedawcy jest wymagana.')),
-      );
+      showAppNotification(context, 'Nazwa sprzedawcy jest wymagana.');
       return;
     }
 
@@ -191,9 +190,7 @@ class _SellerPanelScreenState extends State<SellerPanelScreen> {
       final d = _locationDrafts[i];
       final err = d.validateOrNull();
       if (err != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Lokalizacja ${i + 1}: $err')),
-        );
+        showAppNotification(context, 'Lokalizacja ${i + 1}: $err');
         return;
       }
     }
@@ -224,16 +221,12 @@ class _SellerPanelScreenState extends State<SellerPanelScreen> {
       }
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Zapisano zmiany.')),
-      );
+      showAppNotification(context, 'Zapisano zmiany.');
       _cancelEdit();
       await _load();
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Nie udało się zapisać: $e')),
-      );
+      showAppNotification(context, 'Nie udało się zapisać: $e');
     } finally {
       if (mounted) setState(() => _saving = false);
     }

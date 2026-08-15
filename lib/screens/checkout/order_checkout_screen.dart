@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lokalny_koszyk/presentation/checkout_bloc.dart';
 
 import '../../core/themes/app_theme.dart';
+import '../../widgets/common/app_notification.dart';
 import '../../widgets/common/default_screen.dart';
 
 class OrderCheckoutScreen extends StatelessWidget {
@@ -19,9 +20,7 @@ class OrderCheckoutScreen extends StatelessWidget {
       listener: (BuildContext context, CheckoutState state) {
         final message = state.feedbackMessage;
         if (message == null) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(message)),
-        );
+        showAppNotification(context, message);
       },
       child: BlocBuilder<CheckoutBloc, CheckoutState>(
         builder: (BuildContext context, CheckoutState state) {
