@@ -1,9 +1,6 @@
 ﻿import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:lokalny_koszyk/core/themes/app_theme.dart';
-import 'package:lokalny_koszyk/domain/models/watched_product.dart';
 import 'package:lokalny_koszyk/domain/repositories/cart_repository.dart';
 import 'package:lokalny_koszyk/domain/repositories/watched_products_repository.dart';
-import 'package:lokalny_koszyk/presentation/models/favorite_product_ui_model.dart';
 import 'package:lokalny_koszyk/presentation/models/product_ui_model.dart';
 
 sealed class FavoritesEvent {
@@ -32,13 +29,13 @@ class FavoritesState {
 
   factory FavoritesState.initial() => FavoritesState(
     isLoading: true,
-    items: const <FavoriteProductUiModel>[],
+    items: const <ProductUiModel>[],
     isSignedIn: false,
     errorText: null,
   );
 
   final bool isLoading;
-  final List<FavoriteProductUiModel> items;
+  final List<ProductUiModel> items;
   final bool isSignedIn;
   final bool isAddingToCart;
   final String? errorText;
@@ -46,7 +43,7 @@ class FavoritesState {
 
   FavoritesState copyWith({
     bool? isLoading,
-    List<FavoriteProductUiModel>? items,
+    List<ProductUiModel>? items,
     bool? isSignedIn,
     bool? isAddingToCart,
     String? errorText,
@@ -86,7 +83,7 @@ class FavoritesBloc extends Bloc<FavoritesEvent, FavoritesState> {
         state.copyWith(
           isLoading: false,
           isSignedIn: false,
-          items: const <FavoriteProductUiModel>[],
+          items: const <ProductUiModel>[],
           errorText: null,
         ),
       );
@@ -100,7 +97,7 @@ class FavoritesBloc extends Bloc<FavoritesEvent, FavoritesState> {
       emit(
         state.copyWith(
           isLoading: false,
-          items: list.map(_mapToUi).toList(),
+          items: list.map(ProductUiModel.fromDomain).toList(),
           errorText: null,
         ),
       );
@@ -108,7 +105,7 @@ class FavoritesBloc extends Bloc<FavoritesEvent, FavoritesState> {
       emit(
         state.copyWith(
           isLoading: false,
-          items: const <FavoriteProductUiModel>[],
+          items: const <ProductUiModel>[],
           errorText: 'Nie udało się wczytać listy: $e',
         ),
       );
@@ -137,30 +134,5 @@ class FavoritesBloc extends Bloc<FavoritesEvent, FavoritesState> {
         ),
       );
     }
-  }
-
-  FavoriteProductUiModel _mapToUi(WatchedProduct item) {
-    return FavoriteProductUiModel(
-      sellerVerified: item.sellerVerified,
-      product: ProductUiModel(
-        id: item.id,
-        name: item.name,
-        producer: item.producer,
-        price: item.price,
-        unit: item.unit,
-        distance: item.distance,
-        season: item.season,
-        rating: item.rating,
-        reviews: item.reviews,
-        emoji: '🧺',
-        tag: 'LOKALNE',
-        bgColor: AppColors.background,
-        tagColor: AppColors.accent,
-        sellerId: item.sellerId,
-        unitKey: item.unitKey,
-        packageQuantity: item.packageQuantity,
-        categoryId: item.categoryId,
-      ),
-    );
   }
 }

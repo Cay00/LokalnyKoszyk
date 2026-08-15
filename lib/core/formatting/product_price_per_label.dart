@@ -37,23 +37,6 @@ extension ProductUnitParsing on ProductUnit {
   }
 }
 
-extension ProductUnitDisplay on ProductUnit {
-  String get defaultLabel {
-    switch (this) {
-      case ProductUnit.piece:
-        return 'szt.';
-      case ProductUnit.kilogram:
-        return 'kg';
-      case ProductUnit.gram:
-        return 'g';
-      case ProductUnit.liter:
-        return 'l';
-      case ProductUnit.milliliter:
-        return 'ml';
-    }
-  }
-}
-
 String formatAmountPl(num value) {
   final d = value.toDouble();
 

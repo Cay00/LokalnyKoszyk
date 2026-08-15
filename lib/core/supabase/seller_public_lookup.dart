@@ -68,3 +68,38 @@ Future<Map<String, SellerPublicInfo>> fetchSellerPublicByIds(
 
   return byNorm;
 }
+
+/// Nazwa sprzedawcy, gdy etykieta na produkcie jest jeszcze placeholderem.
+Future<String?> resolveSellerDisplayName({
+  required String productId,
+  required String? sellerId,
+  required String currentProducerLabel,
+}) async {
+  final label = currentProducerLabel.trim();
+  if (label.isNotEmpty &&
+      label != 'Sprzedawca' &&
+      !label.startsWith('Sprzedawca ·')) {
+    return null;
+  }
+
+  var rawSid = sellerId?.trim() ?? '';
+  if (rawSid.isEmpty) {
+    final pid = productId.trim();
+    if (pid.isEmpty) return null;
+    try {
+      final row = await supabase
+          .from('products')
+          .select('seller_id')
+          .eq('product_id', pid)
+          .maybeSingle();
+      rawSid = (row?['seller_id'] ?? '').toString().trim();
+    } catch (_) {
+      return null;
+    }
+  }
+  if (rawSid.isEmpty) return null;
+
+  final byNorm = await fetchSellerPublicByIds({rawSid});
+  final name = byNorm[normalizeUuidKey(rawSid)]?.name.trim() ?? '';
+  return name.isEmpty ? null : name;
+}

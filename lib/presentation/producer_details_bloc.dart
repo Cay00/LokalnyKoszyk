@@ -1,7 +1,5 @@
 ﻿import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:lokalny_koszyk/core/themes/app_theme.dart';
 import 'package:lokalny_koszyk/domain/models/producer_profile.dart';
-import 'package:lokalny_koszyk/domain/models/product.dart';
 import 'package:lokalny_koszyk/domain/repositories/producer_details_repository.dart';
 import 'package:lokalny_koszyk/presentation/models/product_ui_model.dart';
 
@@ -96,7 +94,7 @@ class ProducerDetailsBloc
       emit(
         state.copyWith(
           seller: data.profile,
-          products: data.products.map(_toProductData).toList(),
+          products: data.products.map(ProductUiModel.fromDomain).toList(),
           isLoading: false,
           errorText: null,
         ),
@@ -118,27 +116,5 @@ class ProducerDetailsBloc
     Emitter<ProducerDetailsState> emit,
   ) {
     emit(state.copyWith(isLiked: !state.isLiked));
-  }
-
-  ProductUiModel _toProductData(Product product) {
-    return ProductUiModel(
-      id: product.id,
-      name: product.name,
-      producer: product.producer,
-      price: product.price,
-      unit: product.unit,
-      distance: product.distance,
-      season: product.season,
-      rating: product.rating,
-      reviews: product.reviews,
-      emoji: '🧺',
-      tag: 'LOKALNE',
-      bgColor: AppColors.background,
-      tagColor: AppColors.accent,
-      sellerId: product.sellerId,
-      unitKey: product.unitKey,
-      packageQuantity: product.packageQuantity,
-      categoryId: product.categoryId,
-    );
   }
 }

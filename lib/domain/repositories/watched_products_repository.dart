@@ -1,4 +1,4 @@
-import 'package:lokalny_koszyk/domain/models/watched_product.dart';
+import 'package:lokalny_koszyk/domain/models/product.dart';
 
 abstract class WatchedProductsRepository {
   bool get isUserSignedIn;
@@ -9,5 +9,5 @@ abstract class WatchedProductsRepository {
 
   Future<void> removeFavoriteForCurrentUser(String productId);
 
-  Future<List<WatchedProduct>> fetchProductsForCurrentUser();
+  Future<List<Product>> fetchProductsForCurrentUser();
 }

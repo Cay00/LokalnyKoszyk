@@ -4,13 +4,11 @@ import 'package:lokalny_koszyk/data/repositories/supabase_cart_repository.dart';
 import 'package:lokalny_koszyk/data/repositories/supabase_discover_repository.dart';
 import 'package:lokalny_koszyk/data/repositories/supabase_orders_repository.dart';
 import 'package:lokalny_koszyk/data/repositories/supabase_producer_details_repository.dart';
-import 'package:lokalny_koszyk/data/repositories/supabase_product_details_repository.dart';
 import 'package:lokalny_koszyk/data/repositories/supabase_watched_products_repository.dart';
 import 'package:lokalny_koszyk/domain/repositories/cart_repository.dart';
 import 'package:lokalny_koszyk/domain/repositories/discover_repository.dart';
 import 'package:lokalny_koszyk/domain/repositories/orders_repository.dart';
 import 'package:lokalny_koszyk/domain/repositories/producer_details_repository.dart';
-import 'package:lokalny_koszyk/domain/repositories/product_details_repository.dart';
 import 'package:lokalny_koszyk/domain/repositories/watched_products_repository.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -27,10 +25,6 @@ class AppRepositories extends MultiRepositoryProvider {
           RepositoryProvider<CartRepository>(
             create: (context) =>
                 SupabaseCartRepository(context.read<SupabaseClient>()),
-          ),
-          RepositoryProvider<ProductDetailsRepository>(
-            create: (context) =>
-                SupabaseProductDetailsRepository(context.read<SupabaseClient>()),
           ),
           RepositoryProvider<ProducerDetailsRepository>(
             create: (context) => SupabaseProducerDetailsRepository(

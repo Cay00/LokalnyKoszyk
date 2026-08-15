@@ -1,6 +1,4 @@
 ﻿import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:lokalny_koszyk/core/themes/app_theme.dart';
-import 'package:lokalny_koszyk/domain/models/product.dart';
 import 'package:lokalny_koszyk/domain/repositories/cart_repository.dart';
 import 'package:lokalny_koszyk/domain/repositories/discover_repository.dart';
 import 'package:lokalny_koszyk/presentation/models/product_ui_model.dart';
@@ -25,19 +23,11 @@ final class DiscoverCategoryToggled extends DiscoverEvent {
   final String categoryId;
 }
 
-final class DiscoverToggleLikeRequested extends DiscoverEvent {
-  const DiscoverToggleLikeRequested(this.id);
-
-  final String id;
-}
-
 const _unset = Object();
 
 class DiscoverState {
   const DiscoverState({
-    required this.cartCount,
     required this.activeCategoryId,
-    required this.liked,
     required this.isAddingToCart,
     required this.isLoadingProducts,
     required this.products,
@@ -46,18 +36,14 @@ class DiscoverState {
   });
 
   factory DiscoverState.initial() => const DiscoverState(
-    cartCount: 0,
     activeCategoryId: null,
-    liked: <String>{},
     isAddingToCart: false,
     isLoadingProducts: true,
     products: <ProductUiModel>[],
     productsError: null,
   );
 
-  final int cartCount;
   final String? activeCategoryId;
-  final Set<String> liked;
   final bool isAddingToCart;
   final bool isLoadingProducts;
   final List<ProductUiModel> products;
@@ -85,9 +71,7 @@ class DiscoverState {
       .toList();
 
   DiscoverState copyWith({
-    int? cartCount,
     Object? activeCategoryId = _unset,
-    Set<String>? liked,
     bool? isAddingToCart,
     bool? isLoadingProducts,
     List<ProductUiModel>? products,
@@ -95,11 +79,9 @@ class DiscoverState {
     Object? feedbackMessage = _unset,
   }) {
     return DiscoverState(
-      cartCount: cartCount ?? this.cartCount,
       activeCategoryId: identical(activeCategoryId, _unset)
           ? this.activeCategoryId
           : activeCategoryId as String?,
-      liked: liked ?? this.liked,
       isAddingToCart: isAddingToCart ?? this.isAddingToCart,
       isLoadingProducts: isLoadingProducts ?? this.isLoadingProducts,
       products: products ?? this.products,
@@ -121,7 +103,6 @@ class DiscoverBloc extends Bloc<DiscoverEvent, DiscoverState> {
     on<DiscoverLoadProductsRequested>(_onLoadProducts);
     on<DiscoverAddToCartRequested>(_onAddToCart);
     on<DiscoverCategoryToggled>(_onCategoryToggled);
-    on<DiscoverToggleLikeRequested>(_onToggleLike);
   }
 
   final DiscoverRepository _discoverRepository;
@@ -246,7 +227,7 @@ class DiscoverBloc extends Bloc<DiscoverEvent, DiscoverState> {
       emit(
         state.copyWith(
           isLoadingProducts: false,
-          products: products.map(_toUi).toList(),
+          products: products.map(ProductUiModel.fromDomain).toList(),
           productsError: null,
         ),
       );
@@ -269,13 +250,10 @@ class DiscoverBloc extends Bloc<DiscoverEvent, DiscoverState> {
     emit(state.copyWith(isAddingToCart: true, feedbackMessage: null));
     try {
       await _cartRepository.addToCart(productId: event.product.id);
-      final nextCount = state.cartCount + 1;
       emit(
         state.copyWith(
-          cartCount: nextCount,
           isAddingToCart: false,
-          feedbackMessage:
-              'Dodano do koszyka: ${event.product.name} (razem: $nextCount)',
+          feedbackMessage: 'Dodano do koszyka: ${event.product.name}',
         ),
       );
     } catch (e) {
@@ -298,41 +276,6 @@ class DiscoverBloc extends Bloc<DiscoverEvent, DiscoverState> {
             ? null
             : event.categoryId,
       ),
-    );
-  }
-
-  void _onToggleLike(
-    DiscoverToggleLikeRequested event,
-    Emitter<DiscoverState> emit,
-  ) {
-    final next = <String>{...state.liked};
-    if (next.contains(event.id)) {
-      next.remove(event.id);
-    } else {
-      next.add(event.id);
-    }
-    emit(state.copyWith(liked: next));
-  }
-
-  ProductUiModel _toUi(Product product) {
-    return ProductUiModel(
-      id: product.id,
-      name: product.name,
-      producer: product.producer,
-      price: product.price,
-      unit: product.unit,
-      distance: product.distance,
-      season: product.season,
-      rating: product.rating,
-      reviews: product.reviews,
-      emoji: '🧺',
-      tag: 'LOKALNE',
-      bgColor: AppColors.background,
-      tagColor: AppColors.accent,
-      sellerId: product.sellerId,
-      unitKey: product.unitKey,
-      packageQuantity: product.packageQuantity,
-      categoryId: product.categoryId,
     );
   }
 }

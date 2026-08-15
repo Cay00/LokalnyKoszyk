@@ -1,7 +1,8 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:lokalny_koszyk/domain/repositories/product_details_repository.dart';
+import 'package:lokalny_koszyk/domain/repositories/cart_repository.dart';
+import 'package:lokalny_koszyk/domain/repositories/watched_products_repository.dart';
 import 'package:lokalny_koszyk/presentation/models/product_ui_model.dart';
 import 'package:lokalny_koszyk/presentation/product_details_bloc.dart';
 import 'package:lokalny_koszyk/screens/producer/producer_tile.dart';
@@ -29,7 +30,8 @@ class ProductDetailsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (BuildContext context) => ProductDetailsBloc(
-        repository: context.read<ProductDetailsRepository>(),
+        watchedProductsRepository: context.read<WatchedProductsRepository>(),
+        cartRepository: context.read<CartRepository>(),
         product: product,
       )..add(const ProductDetailsStarted()),
       child: _ProductDetailsBody(

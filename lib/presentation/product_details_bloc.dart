@@ -1,5 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:lokalny_koszyk/domain/repositories/product_details_repository.dart';
+import 'package:lokalny_koszyk/core/supabase/seller_public_lookup.dart';
+import 'package:lokalny_koszyk/domain/repositories/cart_repository.dart';
+import 'package:lokalny_koszyk/domain/repositories/watched_products_repository.dart';
 import 'package:lokalny_koszyk/presentation/models/product_ui_model.dart';
 
 sealed class ProductDetailsEvent {
@@ -78,9 +80,11 @@ const _unset = Object();
 class ProductDetailsBloc
     extends Bloc<ProductDetailsEvent, ProductDetailsState> {
   ProductDetailsBloc({
-    required ProductDetailsRepository repository,
+    required WatchedProductsRepository watchedProductsRepository,
+    required CartRepository cartRepository,
     required ProductUiModel product,
-  }) : _repository = repository,
+  }) : _watchedProductsRepository = watchedProductsRepository,
+       _cartRepository = cartRepository,
        _product = product,
        super(ProductDetailsState.initial()) {
     on<ProductDetailsStarted>(_onStarted);
@@ -90,7 +94,8 @@ class ProductDetailsBloc
     on<ProductDetailsDecreaseQuantityRequested>(_onDecreaseQuantity);
   }
 
-  final ProductDetailsRepository _repository;
+  final WatchedProductsRepository _watchedProductsRepository;
+  final CartRepository _cartRepository;
   final ProductUiModel _product;
 
   Future<void> _onStarted(
@@ -107,7 +112,9 @@ class ProductDetailsBloc
       emit(state.copyWith(isFavorite: false));
       return;
     }
-    final liked = await _repository.isFavoriteForCurrentUser(pid);
+    final liked = await _watchedProductsRepository.isFavoriteForCurrentUser(
+      pid,
+    );
     emit(state.copyWith(isFavorite: liked));
   }
 
@@ -116,7 +123,7 @@ class ProductDetailsBloc
     Emitter<ProductDetailsState> emit,
   ) async {
     if (state.favoriteBusy || state.isFavorite == null) return;
-    if (!_repository.isUserSignedIn) {
+    if (!_watchedProductsRepository.isUserSignedIn) {
       emit(
         state.copyWith(
           feedbackMessage: 'Zaloguj się, aby dodać produkt do ulubionych.',
@@ -129,11 +136,18 @@ class ProductDetailsBloc
 
     emit(state.copyWith(favoriteBusy: true, feedbackMessage: null));
     try {
-      final next = await _repository.toggleFavoriteForCurrentUser(
-        productId: pid,
-        currentlyFavorite: state.isFavorite == true,
+      final currentlyFavorite = state.isFavorite == true;
+      if (currentlyFavorite) {
+        await _watchedProductsRepository.removeFavoriteForCurrentUser(pid);
+      } else {
+        await _watchedProductsRepository.addFavoriteForCurrentUser(pid);
+      }
+      emit(
+        state.copyWith(
+          isFavorite: !currentlyFavorite,
+          favoriteBusy: false,
+        ),
       );
-      emit(state.copyWith(isFavorite: next, favoriteBusy: false));
     } catch (e) {
       emit(
         state.copyWith(
@@ -147,7 +161,7 @@ class ProductDetailsBloc
   Future<void> _loadSellerNameIfNeeded(
     Emitter<ProductDetailsState> emit,
   ) async {
-    final name = await _repository.resolveSellerName(
+    final name = await resolveSellerDisplayName(
       productId: _product.id,
       sellerId: _product.sellerId,
       currentProducerLabel: _product.producer,
@@ -165,7 +179,7 @@ class ProductDetailsBloc
     emit(state.copyWith(isAddingToCart: true, feedbackMessage: null));
     final qty = state.selectedQuantity;
     try {
-      await _repository.addToCart(
+      await _cartRepository.addToCart(
         productId: _product.id,
         quantityToAdd: qty,
       );

@@ -1,7 +1,6 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lokalny_koszyk/presentation/models/product_ui_model.dart';
-import 'package:lokalny_koszyk/presentation/models/favorite_product_ui_model.dart';
 import 'package:lokalny_koszyk/presentation/favorites_bloc.dart';
 import 'package:lokalny_koszyk/screens/producer/producer_details_screen.dart';
 import 'package:lokalny_koszyk/screens/product/product_details_screen.dart';
@@ -138,8 +137,7 @@ class FavoritesScreen extends StatelessWidget {
                   separatorBuilder: (BuildContext context, int index) =>
                       const SizedBox(height: 8),
                   itemBuilder: (BuildContext context, int index) {
-                    final FavoriteProductUiModel row = state.items[index];
-                    final ProductUiModel product = row.product;
+                    final ProductUiModel product = state.items[index];
                     return ProductTile(
                       product: product,
                       onOpenDetails: () => openProductDetails(product),

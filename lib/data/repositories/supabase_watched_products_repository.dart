@@ -1,8 +1,8 @@
 import 'package:lokalny_koszyk/core/formatting/entity_keys.dart';
-import 'package:lokalny_koszyk/core/formatting/pennies.dart';
 import 'package:lokalny_koszyk/core/supabase/profile_bootstrap.dart';
 import 'package:lokalny_koszyk/core/supabase/seller_public_lookup.dart';
-import 'package:lokalny_koszyk/domain/models/watched_product.dart';
+import 'package:lokalny_koszyk/data/product_from_row.dart';
+import 'package:lokalny_koszyk/domain/models/product.dart';
 import 'package:lokalny_koszyk/domain/repositories/watched_products_repository.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -74,10 +74,10 @@ class SupabaseWatchedProductsRepository implements WatchedProductsRepository {
   }
 
   @override
-  Future<List<WatchedProduct>> fetchProductsForCurrentUser() async {
+  Future<List<Product>> fetchProductsForCurrentUser() async {
     final user = _supabase.auth.currentUser;
     if (user == null || user.id.isEmpty) {
-      return const <WatchedProduct>[];
+      return const <Product>[];
     }
 
     await ProfileBootstrap.ensureRowForAuthUser(user);
@@ -90,7 +90,7 @@ class SupabaseWatchedProductsRepository implements WatchedProductsRepository {
         .order('created_at', ascending: false);
 
     if (junction is! List<dynamic> || junction.isEmpty) {
-      return const <WatchedProduct>[];
+      return const <Product>[];
     }
 
     final orderedIds = <String>[];
@@ -102,7 +102,7 @@ class SupabaseWatchedProductsRepository implements WatchedProductsRepository {
       seen.add(id);
       orderedIds.add(id);
     }
-    if (orderedIds.isEmpty) return const <WatchedProduct>[];
+    if (orderedIds.isEmpty) return const <Product>[];
 
     final productRows = await _supabase
         .from('products')
@@ -125,50 +125,23 @@ class SupabaseWatchedProductsRepository implements WatchedProductsRepository {
     }
     final sellerByNorm = await fetchSellerPublicByIds(sellerRawIds);
 
-    final byId = <String, WatchedProduct>{};
+    final byId = <String, Product>{};
     for (final map in rows) {
       final id = (map['product_id'] ?? '').toString().trim();
       if (id.isEmpty) continue;
 
       final sellerIdRaw = (map['seller_id'] ?? '').toString().trim();
-      final sellerKey = normalizeUuidKey(sellerIdRaw);
-      final pick = sellerByNorm[sellerKey];
-      final sellerVerified = pick?.isVerified == true;
+      final pick = sellerByNorm[normalizeUuidKey(sellerIdRaw)];
       final sellerName = (pick?.name.trim().isNotEmpty ?? false)
           ? pick!.name
           : 'Sprzedawca';
-      final priceGrosze = parsePennies(map['price_gross_amount']);
-      final ratingNum = (map['average_rating'] as num?)?.toDouble() ?? 0;
-      final reviewsCount = (map['reviews_count'] as num?)?.toInt() ?? 0;
-      final rawUnit = (map['unit'] ?? '').toString();
-      final unitKey = rawUnit.trim().toLowerCase();
-      final qty = (map['package_size'] as num?)?.toDouble();
-      final rawCategoryId = map['category_id']?.toString().trim();
-      final categoryId = rawCategoryId == null || rawCategoryId.isEmpty
-          ? null
-          : rawCategoryId;
 
-      byId[id] = WatchedProduct(
-        id: id,
-        name: (map['name'] ?? 'Produkt').toString(),
-        producer: sellerName,
-        price: plnCommaStringFromPennies(priceGrosze),
-        unit: '/ ${rawUnit.replaceAll('_', ' ')}',
-        distance: '',
-        season: 'Cały rok',
-        rating: ratingNum.toStringAsFixed(1),
-        reviews: reviewsCount.toString(),
-        sellerVerified: sellerVerified,
-        sellerId: sellerIdRaw.isEmpty ? null : sellerIdRaw,
-        unitKey: unitKey.isEmpty ? null : unitKey,
-        packageQuantity: qty,
-        categoryId: categoryId,
-      );
+      byId[id] = productFromSupabaseRow(map, producer: sellerName);
     }
 
     return orderedIds
         .map((String id) => byId[id])
-        .whereType<WatchedProduct>()
+        .whereType<Product>()
         .toList();
   }
 }

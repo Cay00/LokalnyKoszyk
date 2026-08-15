@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lokalny_koszyk/core/formatting/product_price_per_label.dart';
+import 'package:lokalny_koszyk/core/themes/app_theme.dart';
+import 'package:lokalny_koszyk/domain/models/product.dart';
 
 class ProductUiModel {
   const ProductUiModel({
@@ -9,18 +11,32 @@ class ProductUiModel {
     required this.price,
     required this.unit,
     required this.distance,
-    required this.season,
     required this.rating,
     required this.reviews,
-    required this.emoji,
-    required this.tag,
     required this.bgColor,
-    required this.tagColor,
     this.sellerId,
     this.unitKey,
     this.packageQuantity,
     this.categoryId,
   });
+
+  factory ProductUiModel.fromDomain(Product product) {
+    return ProductUiModel(
+      id: product.id,
+      name: product.name,
+      producer: product.producer,
+      price: product.price,
+      unit: product.unit,
+      distance: product.distance,
+      rating: product.rating,
+      reviews: product.reviews,
+      bgColor: AppColors.background,
+      sellerId: product.sellerId,
+      unitKey: product.unitKey,
+      packageQuantity: product.packageQuantity,
+      categoryId: product.categoryId,
+    );
+  }
 
   final String id;
   final String name;
@@ -28,13 +44,9 @@ class ProductUiModel {
   final String price;
   final String unit;
   final String distance;
-  final String season;
   final String rating;
   final String reviews;
-  final String emoji;
-  final String tag;
   final Color bgColor;
-  final Color tagColor;
   final String? sellerId;
   final String? unitKey;
   final double? packageQuantity;

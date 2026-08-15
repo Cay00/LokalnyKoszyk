@@ -6,7 +6,6 @@ class Product {
     required this.price,
     required this.unit,
     required this.distance,
-    required this.season,
     required this.rating,
     required this.reviews,
     this.sellerId,
@@ -21,7 +20,6 @@ class Product {
   final String price;
   final String unit;
   final String distance;
-  final String season;
   final String rating;
   final String reviews;
   final String? sellerId;

@@ -1,8 +1,8 @@
 import 'package:geolocator/geolocator.dart';
 import 'package:lokalny_koszyk/core/formatting/entity_keys.dart';
-import 'package:lokalny_koszyk/core/formatting/pennies.dart';
 import 'package:lokalny_koszyk/core/supabase/nested_row.dart';
 import 'package:lokalny_koszyk/core/supabase/seller_public_lookup.dart';
+import 'package:lokalny_koszyk/data/product_from_row.dart';
 import 'package:lokalny_koszyk/domain/models/producer_profile.dart';
 import 'package:lokalny_koszyk/domain/models/product.dart';
 import 'package:lokalny_koszyk/domain/repositories/producer_details_repository.dart';
@@ -117,31 +117,16 @@ class SupabaseProducerDetailsRepository implements ProducerDetailsRepository {
         .isFilter('deleted_at', null)
         .order('created_at', ascending: false);
 
-    final products = (productRows as List<dynamic>).map<Product>((dynamic row) {
-      final map = Map<String, dynamic>.from(row as Map);
-      final priceGrosze = parsePennies(map['price_gross_amount']);
-      final ratingNum = (map['average_rating'] as num?)?.toDouble() ?? 0;
-      final reviewsCount = (map['reviews_count'] as num?)?.toInt() ?? 0;
-      final rawUnit = (map['unit'] ?? '').toString();
-      final unitKey = rawUnit.trim().toLowerCase();
-      final qty = (map['package_size'] as num?)?.toDouble();
-      final rawCategoryId = map['category_id']?.toString().trim();
-
-      return Product(
-        id: (map['product_id'] ?? '').toString(),
-        name: (map['name'] ?? 'Produkt').toString(),
-        producer: seller.name,
-        price: plnCommaStringFromPennies(priceGrosze),
-        unit: '/ ${rawUnit.replaceAll('_', ' ')}',
-        distance: '',
-        season: 'Cały rok',
-        rating: ratingNum.toStringAsFixed(1),
-        reviews: reviewsCount.toString(),
-        unitKey: unitKey.isEmpty ? null : unitKey,
-        packageQuantity: qty,
-        categoryId: rawCategoryId == null || rawCategoryId.isEmpty ? null : rawCategoryId,
-      );
-    }).where((product) => product.id.isNotEmpty).toList();
+    final products = (productRows as List<dynamic>)
+        .map<Product>(
+          (dynamic row) => productFromSupabaseRow(
+            Map<String, dynamic>.from(row as Map),
+            producer: seller.name,
+            sellerId: seller.id,
+          ),
+        )
+        .where((product) => product.id.isNotEmpty)
+        .toList();
 
     return ProducerProfileWithProducts(
       profile: seller,

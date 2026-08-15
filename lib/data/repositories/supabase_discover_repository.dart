@@ -1,6 +1,6 @@
 import 'package:lokalny_koszyk/core/formatting/entity_keys.dart';
-import 'package:lokalny_koszyk/core/formatting/pennies.dart';
 import 'package:lokalny_koszyk/core/supabase/seller_public_lookup.dart';
+import 'package:lokalny_koszyk/data/product_from_row.dart';
 import 'package:lokalny_koszyk/domain/models/product.dart';
 import 'package:lokalny_koszyk/domain/repositories/discover_repository.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -33,37 +33,16 @@ class SupabaseDiscoverRepository implements DiscoverRepository {
     }
     final sellerByNorm = await fetchSellerPublicByIds(sellerRawIds);
 
-    return rows.map<Product>((Map<String, dynamic> map) {
-      final sellerIdRaw = (map['seller_id'] ?? '').toString().trim();
-      final sellerKey = normalizeUuidKey(sellerIdRaw);
-      final pick = sellerByNorm[sellerKey];
-      final sellerName =
-          (pick?.name.trim().isNotEmpty ?? false) ? pick!.name : 'Sprzedawca';
-      final priceGrosze = parsePennies(map['price_gross_amount']);
-      final ratingNum = (map['average_rating'] as num?)?.toDouble() ?? 0;
-      final reviewsCount = (map['reviews_count'] as num?)?.toInt() ?? 0;
-      final rawUnit = (map['unit'] ?? '').toString();
-      final unitKey = rawUnit.trim().toLowerCase();
-      final qty = (map['package_size'] as num?)?.toDouble();
-      final rawCategoryId = map['category_id']?.toString().trim();
-      final categoryId =
-          rawCategoryId == null || rawCategoryId.isEmpty ? null : rawCategoryId;
-
-      return Product(
-        id: (map['product_id'] ?? '').toString(),
-        name: (map['name'] ?? 'Produkt').toString(),
-        producer: sellerName,
-        price: plnCommaStringFromPennies(priceGrosze),
-        unit: '/ ${rawUnit.replaceAll('_', ' ')}',
-        distance: '',
-        season: 'Cały rok',
-        rating: ratingNum.toStringAsFixed(1),
-        reviews: reviewsCount.toString(),
-        sellerId: sellerIdRaw.isEmpty ? null : sellerIdRaw,
-        unitKey: unitKey.isEmpty ? null : unitKey,
-        packageQuantity: qty,
-        categoryId: categoryId,
-      );
-    }).where((Product p) => p.id.isNotEmpty).toList();
+    return rows
+        .map<Product>((Map<String, dynamic> map) {
+          final sellerIdRaw = (map['seller_id'] ?? '').toString().trim();
+          final pick = sellerByNorm[normalizeUuidKey(sellerIdRaw)];
+          final sellerName = (pick?.name.trim().isNotEmpty ?? false)
+              ? pick!.name
+              : 'Sprzedawca';
+          return productFromSupabaseRow(map, producer: sellerName);
+        })
+        .where((Product p) => p.id.isNotEmpty)
+        .toList();
   }
 }
