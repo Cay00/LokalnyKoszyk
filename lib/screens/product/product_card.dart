@@ -1,5 +1,5 @@
 ﻿import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:lokalny_koszyk/widgets/common/add_to_cart_icon_button.dart';
 
 import '../../core/themes/app_theme.dart';
 
@@ -56,8 +56,6 @@ class ProductCard extends StatelessWidget {
     this.onAddToCart,
   });
 
-  static const double _addButtonSize = 38;
-  static const double _addIconSize = 24;
   static const double _edgePad = 8;
 
   @override
@@ -111,7 +109,7 @@ class ProductCard extends StatelessWidget {
                       const SizedBox(height: 4),
                       Padding(
                         padding: const EdgeInsets.only(
-                          right: _addButtonSize,
+                          right: AddToCartIconButton.size,
                           bottom: _edgePad,
                         ),
                         child: Row(
@@ -147,27 +145,7 @@ class ProductCard extends StatelessWidget {
             Positioned(
               right: _edgePad,
               bottom: _edgePad,
-              child: GestureDetector(
-                onTap: onAddToCart,
-                child: Container(
-                  width: _addButtonSize,
-                  height: _addButtonSize,
-                  decoration: const BoxDecoration(
-                    color: AppColors.accent,
-                    shape: BoxShape.circle,
-                  ),
-                  alignment: Alignment.center,
-                  child: SvgPicture.asset(
-                    'assets/icons/basket.svg',
-                    width: _addIconSize,
-                    height: _addIconSize,
-                    colorFilter: const ColorFilter.mode(
-                      AppColors.textPrimary,
-                      BlendMode.srcIn,
-                    ),
-                  ),
-                ),
-              ),
+              child: AddToCartIconButton(onPressed: onAddToCart),
             ),
           ],
         ),

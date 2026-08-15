@@ -14,6 +14,7 @@ class ProductUiModel {
     required this.rating,
     required this.reviews,
     required this.bgColor,
+    this.oldPrice,
     this.sellerId,
     this.unitKey,
     this.packageQuantity,
@@ -42,6 +43,7 @@ class ProductUiModel {
   final String name;
   final String producer;
   final String price;
+  final String? oldPrice;
   final String unit;
   final String distance;
   final String rating;
@@ -68,6 +70,12 @@ class ProductUiModel {
   );
 
   String get priceLabel => '$price zł';
+
+  String? get oldPriceLabel {
+    final String? value = oldPrice?.trim();
+    if (value == null || value.isEmpty) return null;
+    return '$value zł';
+  }
 
   String get sizeLabel => buildProductSizeLabel(
     unit: productUnit,

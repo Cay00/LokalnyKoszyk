@@ -7,6 +7,7 @@ import 'package:lokalny_koszyk/screens/product/product_card.dart';
 import 'package:lokalny_koszyk/screens/product/product_tile.dart';
 import 'package:lokalny_koszyk/screens/product/product_tile_small.dart';
 import 'package:lokalny_koszyk/widgets/app_bottom_navigation_bar.dart';
+import 'package:lokalny_koszyk/widgets/common/add_to_cart_icon_button.dart';
 import 'package:lokalny_koszyk/widgets/common/app_notification.dart';
 import 'package:lokalny_koszyk/widgets/common/default_screen.dart';
 import 'package:lokalny_koszyk/widgets/common/primary_action_button.dart';
@@ -61,6 +62,7 @@ class _DeveloperScreenState extends State<DeveloperScreen> {
     unitKey: 'g',
     packageQuantity: 500,
     categoryId: 'spiżarnia',
+    oldPrice: '39,90',
   );
 
   static const List<({String id, String icon, String name, int count})>
@@ -271,10 +273,20 @@ class _DeveloperScreenState extends State<DeveloperScreen> {
           ),
           _ComponentPreview(
             name: 'ProductTile',
-            child: ProductTile(
-              product: _sampleEggs,
-              onOpenDetails: () {},
-              onAddToCart: () {},
+            child: Column(
+              children: <Widget>[
+                ProductTile(
+                  product: _sampleEggs,
+                  onOpenDetails: () {},
+                  onAddToCart: () {},
+                ),
+                const SizedBox(height: 8),
+                ProductTile(
+                  product: _sampleHoney,
+                  onOpenDetails: () {},
+                  onAddToCart: () {},
+                ),
+              ],
             ),
           ),
           _ComponentPreview(
@@ -298,6 +310,13 @@ class _DeveloperScreenState extends State<DeveloperScreen> {
               reviews: _sampleEggs.reviews,
               verified: true,
               onTap: () {},
+            ),
+          ),
+          _ComponentPreview(
+            name: 'AddToCartIconButton',
+            child: const Align(
+              alignment: Alignment.centerLeft,
+              child: AddToCartIconButton(),
             ),
           ),
           _ComponentPreview(

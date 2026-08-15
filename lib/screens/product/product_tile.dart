@@ -1,6 +1,6 @@
 ﻿import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:lokalny_koszyk/presentation/models/product_ui_model.dart';
+import 'package:lokalny_koszyk/widgets/common/add_to_cart_icon_button.dart';
 
 import '../../core/themes/app_theme.dart';
 
@@ -18,10 +18,10 @@ class ProductTile extends StatelessWidget {
   final VoidCallback onOpenDetails;
   final VoidCallback onAddToCart;
 
-  static const double _height = 114;
+  static const double _height = 120;
   static const double _edgePad = 8;
-  static const double _addButtonSize = 38;
-  static const double _addIconSize = 24;
+  static const double _lineGap = 8;
+  static const double _producerToSizeGap = _lineGap * 2;
 
   @override
   Widget build(BuildContext context) {
@@ -65,38 +65,63 @@ class ProductTile extends StatelessWidget {
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(
-                      12,
                       16,
-                      _edgePad + _addButtonSize,
+                      16,
+                      _edgePad + AddToCartIconButton.size,
                       16,
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: <Widget>[
                         Text(
                           product.name,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: AppTypography.normalBold,
+                          style: AppTypography.header.copyWith(height: 1),
                         ),
+                        const SizedBox(height: _lineGap),
                         Text(
                           product.producer,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: AppTypography.caption,
+                          style: AppTypography.caption.copyWith(height: 1),
                         ),
+                        const SizedBox(height: _producerToSizeGap),
                         Text(
                           product.sizeLabel,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: AppTypography.tinyCaption,
+                          style: AppTypography.caption.copyWith(height: 1),
                         ),
-                        Text(
-                          product.priceLabel,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: AppTypography.header,
+                        const SizedBox(height: _lineGap),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.baseline,
+                          textBaseline: TextBaseline.alphabetic,
+                          children: <Widget>[
+                            Flexible(
+                              child: Text(
+                                product.priceLabel,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: AppTypography.header.copyWith(height: 1),
+                              ),
+                            ),
+                            if (product.oldPriceLabel != null) ...<Widget>[
+                              const SizedBox(width: 8),
+                              Flexible(
+                                fit: FlexFit.loose,
+                                child: Text(
+                                  product.oldPriceLabel!,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: AppTypography.caption.copyWith(
+                                    height: 1,
+                                    decoration: TextDecoration.lineThrough,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ],
                         ),
                       ],
                     ),
@@ -107,27 +132,7 @@ class ProductTile extends StatelessWidget {
             Positioned(
               right: _edgePad,
               bottom: _edgePad,
-              child: GestureDetector(
-                onTap: onAddToCart,
-                child: Container(
-                  width: _addButtonSize,
-                  height: _addButtonSize,
-                  decoration: const BoxDecoration(
-                    color: AppColors.accent,
-                    shape: BoxShape.circle,
-                  ),
-                  alignment: Alignment.center,
-                  child: SvgPicture.asset(
-                    'assets/icons/basket.svg',
-                    width: _addIconSize,
-                    height: _addIconSize,
-                    colorFilter: const ColorFilter.mode(
-                      AppColors.textPrimary,
-                      BlendMode.srcIn,
-                    ),
-                  ),
-                ),
-              ),
+              child: AddToCartIconButton(onPressed: onAddToCart),
             ),
           ],
         ),
