@@ -21,6 +21,7 @@ import 'package:lokalny_koszyk/screens/home/discover_screen.dart';
 import 'package:lokalny_koszyk/screens/producer/producer_details_screen.dart';
 import 'package:lokalny_koszyk/screens/product/product_details_screen.dart';
 import 'package:lokalny_koszyk/screens/profile/addresses_screen.dart';
+import 'package:lokalny_koszyk/screens/profile/developer_screen.dart';
 import 'package:lokalny_koszyk/screens/profile/seller/become_seller_screen.dart';
 import 'package:lokalny_koszyk/screens/profile/favorites_screen.dart';
 import 'package:lokalny_koszyk/screens/profile/help_screen.dart';
@@ -407,6 +408,16 @@ class _ProfileNavigator extends StatelessWidget {
           context,
           _NoAnimationPageRoute<void>(
             builder: (_) => BecomeSellerScreen(
+              onBack: () => Navigator.pop(context),
+            ),
+          ),
+        );
+      },
+      onOpenDeveloper: () {
+        Navigator.push(
+          context,
+          _NoAnimationPageRoute<void>(
+            builder: (_) => DeveloperScreen(
               onBack: () => Navigator.pop(context),
             ),
           ),

@@ -17,6 +17,7 @@ class ProfileScreen extends StatelessWidget {
     this.onOpenHelp,
     this.onOpenBecomeSeller,
     this.onOpenSellerPanel,
+    this.onOpenDeveloper,
   });
 
   final VoidCallback? onOpenAddresses;
@@ -27,6 +28,7 @@ class ProfileScreen extends StatelessWidget {
   final VoidCallback? onOpenHelp;
   final VoidCallback? onOpenBecomeSeller;
   final VoidCallback? onOpenSellerPanel;
+  final VoidCallback? onOpenDeveloper;
 
   static const List<_ProfileMenuItem> _menu = <_ProfileMenuItem>[
     _ProfileMenuItem(iconAsset: 'assets/icons/map-pin-area.svg', label: 'Adresy dostawy'),
@@ -35,6 +37,7 @@ class ProfileScreen extends StatelessWidget {
     _ProfileMenuItem(iconAsset: 'assets/icons/gear.svg', label: 'Moje preferencje'),
     _ProfileMenuItem(iconAsset: 'assets/icons/chat-circle-dots.svg', label: 'Wiadomości'),
     _ProfileMenuItem(iconAsset: 'assets/icons/question.svg', label: 'Pomoc i FAQ'),
+    _ProfileMenuItem(iconAsset: 'assets/icons/compass.svg', label: 'Ekran deweloperski'),
   ];
 
   @override
@@ -112,6 +115,7 @@ class ProfileScreen extends StatelessWidget {
                             'Moje preferencje' => onOpenPreferences,
                             'Wiadomości' => onOpenMessages,
                             'Pomoc i FAQ' => onOpenHelp,
+                            'Ekran deweloperski' => onOpenDeveloper,
                             _ => null,
                           },
                         );

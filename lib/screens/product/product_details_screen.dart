@@ -457,7 +457,7 @@ class _MonthAvailabilityGrid extends StatelessWidget {
                                 _polishMonthLabels[month - 1],
                                 textAlign: TextAlign.center,
                                 maxLines: 1,
-                                style: AppTypography.tinyCaptionDark,
+                                style: AppTypography.caption,
                               ),
                             ),
                           ),

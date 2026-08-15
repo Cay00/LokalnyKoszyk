@@ -16,16 +16,20 @@ class PrimaryActionButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: double.infinity,
+      height: 50,
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.accent,
           foregroundColor: AppColors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppRadius.normal),
-          ),
-          padding: const EdgeInsets.symmetric(vertical: 12),
+          shape: const StadiumBorder(),
+          padding: EdgeInsets.zero,
           elevation: 0,
+          overlayColor: Colors.transparent,
+          shadowColor: Colors.transparent,
+          splashFactory: NoSplash.splashFactory,
+          minimumSize: Size.zero,
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
         ),
         child: Text(
           label,
