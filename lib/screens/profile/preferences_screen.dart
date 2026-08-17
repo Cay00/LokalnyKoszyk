@@ -12,7 +12,7 @@ class PreferencesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DefaultScreen(
-      title: 'Moje preferencje',
+      title: 'Ustawienia',
       message: 'Ustaw swoje preferencje zakupowe, aby lepiej dopasować oferty.',
       onBack: onBack,
     );

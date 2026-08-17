@@ -21,16 +21,13 @@ import 'package:lokalny_koszyk/screens/home/discover_screen.dart';
 import 'package:lokalny_koszyk/screens/producer/producer_details_screen.dart';
 import 'package:lokalny_koszyk/screens/product/product_details_screen.dart';
 import 'package:lokalny_koszyk/screens/profile/addresses_screen.dart';
-import 'package:lokalny_koszyk/screens/profile/developer_screen.dart';
 import 'package:lokalny_koszyk/screens/profile/seller/become_seller_screen.dart';
 import 'package:lokalny_koszyk/screens/profile/favorites_screen.dart';
 import 'package:lokalny_koszyk/screens/profile/help_screen.dart';
-import 'package:lokalny_koszyk/screens/profile/messages_screen.dart';
-import 'package:lokalny_koszyk/screens/profile/notifications_screen.dart';
-import 'package:lokalny_koszyk/screens/profile/payments_screen.dart';
+import 'package:lokalny_koszyk/screens/profile/my_orders_screen.dart';
+import 'package:lokalny_koszyk/screens/profile/my_reviews_screen.dart';
 import 'package:lokalny_koszyk/screens/profile/preferences_screen.dart';
 import 'package:lokalny_koszyk/screens/profile/profile_screen.dart';
-import 'package:lokalny_koszyk/screens/profile/seller_panel_screen.dart';
 
 // GŁÓWNY ROUTER APLIKACJI
 // Odpowiada za:
@@ -333,11 +330,11 @@ class _ProfileNavigator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ProfileScreen(
-      onOpenSellerPanel: () {
+      onOpenOrders: () {
         Navigator.push(
           context,
           _NoAnimationPageRoute<void>(
-            builder: (_) => SellerPanelScreen(
+            builder: (_) => MyOrdersScreen(
               onBack: () => Navigator.pop(context),
             ),
           ),
@@ -353,41 +350,21 @@ class _ProfileNavigator extends StatelessWidget {
           ),
         );
       },
-      onOpenPayments: () {
+      onOpenReviews: () {
         Navigator.push(
           context,
           _NoAnimationPageRoute<void>(
-            builder: (_) => PaymentsScreen(
+            builder: (_) => MyReviewsScreen(
               onBack: () => Navigator.pop(context),
             ),
           ),
         );
       },
-      onOpenNotifications: () {
-        Navigator.push(
-          context,
-          _NoAnimationPageRoute<void>(
-            builder: (_) => NotificationsScreen(
-              onBack: () => Navigator.pop(context),
-            ),
-          ),
-        );
-      },
-      onOpenPreferences: () {
+      onOpenSettings: () {
         Navigator.push(
           context,
           _NoAnimationPageRoute<void>(
             builder: (_) => PreferencesScreen(
-              onBack: () => Navigator.pop(context),
-            ),
-          ),
-        );
-      },
-      onOpenMessages: () {
-        Navigator.push(
-          context,
-          _NoAnimationPageRoute<void>(
-            builder: (_) => MessagesScreen(
               onBack: () => Navigator.pop(context),
             ),
           ),
@@ -408,16 +385,6 @@ class _ProfileNavigator extends StatelessWidget {
           context,
           _NoAnimationPageRoute<void>(
             builder: (_) => BecomeSellerScreen(
-              onBack: () => Navigator.pop(context),
-            ),
-          ),
-        );
-      },
-      onOpenDeveloper: () {
-        Navigator.push(
-          context,
-          _NoAnimationPageRoute<void>(
-            builder: (_) => DeveloperScreen(
               onBack: () => Navigator.pop(context),
             ),
           ),

@@ -10,6 +10,7 @@ import 'package:lokalny_koszyk/widgets/app_bottom_navigation_bar.dart';
 import 'package:lokalny_koszyk/widgets/common/add_to_cart_icon_button.dart';
 import 'package:lokalny_koszyk/widgets/common/app_notification.dart';
 import 'package:lokalny_koszyk/widgets/common/default_screen.dart';
+import 'package:lokalny_koszyk/widgets/common/menu_action_button.dart';
 import 'package:lokalny_koszyk/widgets/common/primary_action_button.dart';
 import 'package:lokalny_koszyk/widgets/common/quantity_selector.dart';
 import 'package:lokalny_koszyk/widgets/common/product_info_chip.dart';
@@ -358,6 +359,25 @@ class _DeveloperScreenState extends State<DeveloperScreen> {
             child: PrimaryActionButton(
               label: 'Dodaj do koszyka',
               onPressed: () {},
+            ),
+          ),
+          _ComponentPreview(
+            name: 'MenuActionButton',
+            child: Column(
+              children: <Widget>[
+                MenuActionButton(
+                  iconAsset: 'assets/icons/package.svg',
+                  label: 'Moje zamówienia',
+                  onTap: () {},
+                ),
+                const SizedBox(height: 8),
+                MenuActionButton(
+                  iconAsset: 'assets/icons/barn.svg',
+                  label: 'Zostań sprzedawcą',
+                  backgroundColor: AppColors.accent,
+                  onTap: () {},
+                ),
+              ],
             ),
           ),
           _ComponentPreview(
