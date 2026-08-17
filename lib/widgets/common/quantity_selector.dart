@@ -76,12 +76,10 @@ class _QuantityCircleButton extends StatelessWidget {
           disabledBackgroundColor: filled
               ? AppColors.textTertiary
               : Colors.transparent,
-          disabledForegroundColor: AppColors.textSecondary,
-          shape: CircleBorder(
-            side: filled
-                ? BorderSide.none
-                : const BorderSide(color: AppColors.textPrimary),
-          ),
+          disabledForegroundColor: filled
+              ? AppColors.textSecondary
+              : AppColors.textTertiary,
+          shape: const CircleBorder(),
           padding: EdgeInsets.zero,
           elevation: 0,
           overlayColor: Colors.transparent,
@@ -90,6 +88,15 @@ class _QuantityCircleButton extends StatelessWidget {
           minimumSize: Size.zero,
           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
         ).copyWith(
+          side: WidgetStateProperty.resolveWith((Set<WidgetState> states) {
+            if (filled) {
+              return BorderSide.none;
+            }
+            if (states.contains(WidgetState.disabled)) {
+              return const BorderSide(color: AppColors.textTertiary);
+            }
+            return const BorderSide(color: AppColors.textPrimary);
+          }),
           backgroundColor: WidgetStateProperty.resolveWith((
             Set<WidgetState> states,
           ) {
@@ -113,7 +120,9 @@ class _QuantityCircleButton extends StatelessWidget {
           size: QuantitySelector.iconSize,
           color: onPressed != null
               ? AppColors.textPrimary
-              : AppColors.textSecondary,
+              : filled
+              ? AppColors.textSecondary
+              : AppColors.textTertiary,
         ),
       ),
     );
