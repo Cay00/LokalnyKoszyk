@@ -14,6 +14,7 @@ class ProfileScreen extends StatelessWidget {
     this.onOpenSettings,
     this.onOpenHelp,
     this.onOpenBecomeSeller,
+    this.onOpenDeveloper,
   });
 
   final VoidCallback? onOpenOrders;
@@ -22,6 +23,7 @@ class ProfileScreen extends StatelessWidget {
   final VoidCallback? onOpenSettings;
   final VoidCallback? onOpenHelp;
   final VoidCallback? onOpenBecomeSeller;
+  final VoidCallback? onOpenDeveloper;
 
   @override
   Widget build(BuildContext context) {
@@ -89,6 +91,12 @@ class ProfileScreen extends StatelessWidget {
             label: 'Zostań sprzedawcą',
             backgroundColor: AppColors.accent,
             onTap: onOpenBecomeSeller,
+          ),
+          const SizedBox(height: 8),
+          MenuActionButton(
+            iconAsset: 'assets/icons/square.svg',
+            label: 'Ekran deweloperski',
+            onTap: onOpenDeveloper,
           ),
         ],
       ),

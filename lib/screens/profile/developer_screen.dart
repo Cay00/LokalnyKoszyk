@@ -3,6 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:lokalny_koszyk/core/themes/app_theme.dart';
 import 'package:lokalny_koszyk/presentation/models/product_ui_model.dart';
 import 'package:lokalny_koszyk/screens/producer/producer_tile.dart';
+import 'package:lokalny_koszyk/screens/profile/order_history/order_history_tile.dart';
 import 'package:lokalny_koszyk/screens/product/product_card.dart';
 import 'package:lokalny_koszyk/screens/product/product_tile.dart';
 import 'package:lokalny_koszyk/screens/product/product_tile_small.dart';
@@ -328,11 +329,20 @@ class _DeveloperScreenState extends State<DeveloperScreen> {
             name: 'ProducerTile',
             child: ProducerTile(
               name: _sampleEggs.producer,
-              subtitle: 'Warzywa, nabiał i przetwory',
               distance: _sampleEggs.distance,
               rating: _sampleEggs.rating,
               reviews: _sampleEggs.reviews,
               verified: true,
+              onTap: () {},
+            ),
+          ),
+          _ComponentPreview(
+            name: 'OrderHistoryTile',
+            child: OrderHistoryTile(
+              orderNumber: '123',
+              status: 'W realizacji',
+              date: '18.08.2026',
+              total: '45,90 zł',
               onTap: () {},
             ),
           ),

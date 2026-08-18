@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:lokalny_koszyk/core/themes/app_theme.dart';
 import 'package:lokalny_koszyk/domain/models/cart_item.dart';
-import 'package:lokalny_koszyk/domain/models/order_summary.dart';
 import 'package:lokalny_koszyk/presentation/models/product_ui_model.dart';
 import 'package:lokalny_koszyk/presentation/orders_bloc.dart';
 import 'package:lokalny_koszyk/screens/producer/producer_details_screen.dart';
@@ -13,10 +12,13 @@ import 'package:lokalny_koszyk/widgets/app_bottom_navigation_bar.dart';
 import 'package:lokalny_koszyk/widgets/common/app_notification.dart';
 import 'package:lokalny_koszyk/widgets/common/default_screen.dart';
 import 'package:lokalny_koszyk/widgets/common/primary_action_button.dart';
-import 'package:lokalny_koszyk/widgets/common/section_header.dart';
 
 class OrdersScreen extends StatelessWidget {
-  const OrdersScreen({super.key, this.onOpenCheckout, this.onOpenOrderDetails});
+  const OrdersScreen({
+    super.key,
+    this.onOpenCheckout,
+    this.onOpenOrderDetails,
+  });
 
   final VoidCallback? onOpenCheckout;
   final ValueChanged<String>? onOpenOrderDetails;
@@ -34,19 +36,6 @@ class OrdersScreen extends StatelessWidget {
       },
       child: BlocBuilder<OrdersBloc, OrdersState>(
         builder: (BuildContext context, OrdersState state) {
-          final orders = state.orders
-              .map(
-                (OrderSummary order) => _OrderItem(
-                  id: order.id,
-                  orderNumber: order.orderNumber,
-                  status: orderStatusLabel(order.rawStatus),
-                  date: formatOrderDate(order.createdAt),
-                  total: formatMoney(order.totalAmount, order.currency),
-                  color: orderStatusColor(order.rawStatus),
-                  iconAsset: orderStatusIcon(order.rawStatus),
-                ),
-              )
-              .toList();
           final cartItems = state.cartItems;
           final hasCartItems = cartItems.isNotEmpty;
           final productsTotal = state.selectedProductsTotal;
@@ -62,11 +51,11 @@ class OrdersScreen extends StatelessWidget {
                   child: RefreshIndicator(
                     onRefresh: () {
                       final bloc = context.read<OrdersBloc>();
-                      bloc.add(const OrdersRefreshAllRequested());
-                      return bloc.stream.firstWhere(
-                        (OrdersState s) =>
-                            !s.isLoadingCart && !s.isLoadingOrders,
+                      final done = bloc.stream.firstWhere(
+                        (OrdersState s) => !s.isLoadingCart,
                       );
+                      bloc.add(const OrdersLoadCartRequested());
+                      return done;
                     },
                     child: ListView(
                       physics: const AlwaysScrollableScrollPhysics(),
@@ -86,48 +75,6 @@ class OrdersScreen extends StatelessWidget {
                           )
                         else
                           ..._sellerSections(context, state, cartItems),
-                        const SizedBox(height: 16),
-                        const SectionHeader(
-                          title: 'Historia zamówień',
-                          actionLabel: 'Wszystkie',
-                        ),
-                        const SizedBox(height: 16),
-                        if (state.isLoadingOrders)
-                          const Center(child: CircularProgressIndicator())
-                        else if (state.ordersError != null)
-                          Row(
-                            children: <Widget>[
-                              Expanded(
-                                child: Text(
-                                  state.ordersError!,
-                                  style: AppTypography.normal,
-                                ),
-                              ),
-                              TextButton(
-                                onPressed: () => context.read<OrdersBloc>().add(
-                                  const OrdersLoadOrdersRequested(),
-                                ),
-                                child: const Text('Ponów'),
-                              ),
-                            ],
-                          )
-                        else if (orders.isEmpty)
-                          Text(
-                            'Brak złożonych zamówień dla tego konta.',
-                            style: AppTypography.normal,
-                          )
-                        else
-                          ...orders.asMap().entries.map((entry) {
-                            final int index = entry.key;
-                            final _OrderItem order = entry.value;
-                            return _OrderHistoryTile(
-                              order: order,
-                              withBottomSpacing: index < orders.length - 1,
-                              onTap: onOpenOrderDetails != null
-                                  ? () => onOpenOrderDetails!(order.id)
-                                  : null,
-                            );
-                          }),
                       ],
                     ),
                   ),
@@ -371,109 +318,4 @@ class _CartTotalsLine extends StatelessWidget {
 
 String _formatZl(double value) {
   return '${value.toStringAsFixed(2).replaceAll('.', ',')} zł';
-}
-
-class _OrderHistoryTile extends StatelessWidget {
-  const _OrderHistoryTile({
-    required this.order,
-    required this.withBottomSpacing,
-    this.onTap,
-  });
-
-  final _OrderItem order;
-  final bool withBottomSpacing;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(AppRadius.normal),
-      child: Container(
-        margin: EdgeInsets.only(bottom: withBottomSpacing ? 8 : 0),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(AppRadius.normal),
-          border: Border.all(color: AppColors.background),
-        ),
-        child: Column(
-          children: <Widget>[
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: <Widget>[
-                SvgPicture.asset(
-                  order.iconAsset,
-                  width: 22,
-                  height: 22,
-                  colorFilter: const ColorFilter.mode(
-                    AppColors.accent,
-                    BlendMode.srcIn,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Text(
-                        'Zamówienie ${order.orderNumber}',
-                        style: AppTypography.header,
-                      ),
-                      Text(order.date, style: AppTypography.caption),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: order.color.withValues(alpha: 0.13),
-                    borderRadius: BorderRadius.circular(AppRadius.sm),
-                  ),
-                  child: Text(
-                    order.status,
-                    style: TextStyle(
-                      color: order.color,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: <Widget>[
-                Expanded(child: Text('Łącznie', style: AppTypography.caption)),
-                Text(order.total, style: AppTypography.header),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _OrderItem {
-  const _OrderItem({
-    required this.id,
-    required this.orderNumber,
-    required this.status,
-    required this.date,
-    required this.total,
-    required this.color,
-    required this.iconAsset,
-  });
-
-  final String id;
-  final String orderNumber;
-  final String status;
-  final String date;
-  final String total;
-  final Color color;
-  final String iconAsset;
 }

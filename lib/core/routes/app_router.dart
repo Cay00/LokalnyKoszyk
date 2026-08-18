@@ -11,20 +11,22 @@ import 'package:lokalny_koszyk/presentation/checkout_bloc.dart';
 import 'package:lokalny_koszyk/presentation/discover_bloc.dart';
 import 'package:lokalny_koszyk/presentation/favorites_bloc.dart';
 import 'package:lokalny_koszyk/presentation/models/product_ui_model.dart';
+import 'package:lokalny_koszyk/presentation/my_orders_bloc.dart';
 import 'package:lokalny_koszyk/presentation/order_history_detail_bloc.dart';
 import 'package:lokalny_koszyk/presentation/orders_bloc.dart';
 import 'package:lokalny_koszyk/widgets/app_bottom_navigation_bar.dart';
 import 'package:lokalny_koszyk/screens/checkout/order_checkout_screen.dart';
-import 'package:lokalny_koszyk/screens/checkout/order_history_detail_screen.dart';
 import 'package:lokalny_koszyk/screens/checkout/orders_screen.dart';
+import 'package:lokalny_koszyk/screens/profile/order_history/order_history_detail_screen.dart';
+import 'package:lokalny_koszyk/screens/profile/order_history/order_history_screen.dart';
 import 'package:lokalny_koszyk/screens/home/discover_screen.dart';
 import 'package:lokalny_koszyk/screens/producer/producer_details_screen.dart';
 import 'package:lokalny_koszyk/screens/product/product_details_screen.dart';
 import 'package:lokalny_koszyk/screens/profile/addresses_screen.dart';
 import 'package:lokalny_koszyk/screens/profile/seller/become_seller_screen.dart';
 import 'package:lokalny_koszyk/screens/profile/favorites_screen.dart';
+import 'package:lokalny_koszyk/screens/profile/developer_screen.dart';
 import 'package:lokalny_koszyk/screens/profile/help_screen.dart';
-import 'package:lokalny_koszyk/screens/profile/my_orders_screen.dart';
 import 'package:lokalny_koszyk/screens/profile/my_reviews_screen.dart';
 import 'package:lokalny_koszyk/screens/profile/preferences_screen.dart';
 import 'package:lokalny_koszyk/screens/profile/profile_screen.dart';
@@ -225,10 +227,11 @@ class OrdersTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => OrdersBloc(
-        cartRepository: context.read<CartRepository>(),
-        ordersRepository: context.read<OrdersRepository>(),
-      )..add(const OrdersRefreshAllRequested()),
+      create: (BuildContext context) {
+        return OrdersBloc(
+          cartRepository: context.read<CartRepository>(),
+        )..add(const OrdersLoadCartRequested());
+      },
       child: Navigator(
         key: navigatorKey,
         onGenerateRoute: (_) => _NoAnimationPageRoute<void>(
@@ -255,23 +258,6 @@ class _OrdersNavigator extends StatelessWidget {
                 cartRepository: context.read<CartRepository>(),
               )..add(const CheckoutLoadRequested()),
               child: OrderCheckoutScreen(
-                onBack: () => Navigator.pop(context),
-              ),
-            ),
-          ),
-        );
-      },
-      onOpenOrderDetails: (String id) {
-        Navigator.push(
-          context,
-          _NoAnimationPageRoute<void>(
-            builder: (_) => BlocProvider(
-              create: (context) => OrderHistoryDetailBloc(
-                ordersRepository: context.read<OrdersRepository>(),
-                orderId: id,
-              )..add(const OrderHistoryDetailLoadRequested()),
-              child: OrderHistoryDetailScreen(
-                orderId: id,
                 onBack: () => Navigator.pop(context),
               ),
             ),
@@ -334,8 +320,30 @@ class _ProfileNavigator extends StatelessWidget {
         Navigator.push(
           context,
           _NoAnimationPageRoute<void>(
-            builder: (_) => MyOrdersScreen(
-              onBack: () => Navigator.pop(context),
+            builder: (_) => BlocProvider(
+              create: (context) => MyOrdersBloc(
+                ordersRepository: context.read<OrdersRepository>(),
+              )..add(const MyOrdersLoadRequested()),
+              child: OrderHistoryScreen(
+                onBack: () => Navigator.pop(context),
+                onOpenOrderDetails: (String id) {
+                  Navigator.push(
+                    context,
+                    _NoAnimationPageRoute<void>(
+                      builder: (_) => BlocProvider(
+                        create: (context) => OrderHistoryDetailBloc(
+                          ordersRepository: context.read<OrdersRepository>(),
+                          orderId: id,
+                        )..add(const OrderHistoryDetailLoadRequested()),
+                        child: OrderHistoryDetailScreen(
+                          orderId: id,
+                          onBack: () => Navigator.pop(context),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
             ),
           ),
         );
@@ -385,6 +393,16 @@ class _ProfileNavigator extends StatelessWidget {
           context,
           _NoAnimationPageRoute<void>(
             builder: (_) => BecomeSellerScreen(
+              onBack: () => Navigator.pop(context),
+            ),
+          ),
+        );
+      },
+      onOpenDeveloper: () {
+        Navigator.push(
+          context,
+          _NoAnimationPageRoute<void>(
+            builder: (_) => DeveloperScreen(
               onBack: () => Navigator.pop(context),
             ),
           ),

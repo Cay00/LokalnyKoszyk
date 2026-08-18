@@ -197,7 +197,7 @@ class _ProductDetailsBody extends StatelessWidget {
                   '*Najniższa cena z ostatnich 30 dni: ${product.pricePerOfferLabel}',
                   style: AppTypography.caption,
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 16),
                 Row(
                   children: <Widget>[
                     QuantitySelector(

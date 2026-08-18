@@ -7,7 +7,6 @@ class ProducerTile extends StatelessWidget {
   const ProducerTile({
     super.key,
     required this.name,
-    this.subtitle,
     required this.distance,
     required this.rating,
     required this.reviews,
@@ -16,8 +15,6 @@ class ProducerTile extends StatelessWidget {
   });
 
   final String name;
-  /// Druga linia pod nazwą (np. UUID lub krótka wskazówka), opcjonalnie.
-  final String? subtitle;
   final String distance;
   final String rating;
   final String reviews;
@@ -38,7 +35,7 @@ class ProducerTile extends StatelessWidget {
         focusColor: Colors.transparent,
         child: Container(
           margin: const EdgeInsets.only(bottom: 8),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
             color: AppColors.white,
             borderRadius: BorderRadius.circular(AppRadius.normal),
@@ -51,7 +48,7 @@ class ProducerTile extends StatelessWidget {
                 height: 48,
                 decoration: BoxDecoration(
                   color: AppColors.background,
-                  borderRadius: BorderRadius.circular(AppRadius.sm),
+                  borderRadius: BorderRadius.circular(8),
                   border: Border.all(color: AppColors.background),
                 ),
                 clipBehavior: Clip.antiAlias,
@@ -77,7 +74,7 @@ class ProducerTile extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -89,7 +86,7 @@ class ProducerTile extends StatelessWidget {
                             name,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: AppTypography.header,
+                            style: AppTypography.normalBold,
                           ),
                         ),
                         if (verified) ...<Widget>[
@@ -106,46 +103,27 @@ class ProducerTile extends StatelessWidget {
                         ],
                       ],
                     ),
-                    if (subtitle != null && subtitle!.trim().isNotEmpty) ...<Widget>[
-                      const SizedBox(height: 4),
-                      Text(
-                        subtitle!,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 11,
-                          color: AppColors.textSecondary,
-                          height: 1.25,
-                        ),
-                      ),
-                    ],
+                    const SizedBox(height: 4),
                     Row(
                       children: <Widget>[
                         SvgPicture.asset(
                           'assets/icons/star-fill.svg',
-                          width: 12,
-                          height: 12,
+                          width: 14,
+                          height: 14,
                           colorFilter: const ColorFilter.mode(
-                            AppColors.accent,
+                            AppColors.accent_2,
                             BlendMode.srcIn,
                           ),
                         ),
                         const SizedBox(width: 4),
                         Text(
                           rating,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textPrimary,
-                          ),
+                          style: AppTypography.caption,
                         ),
                         const SizedBox(width: 4),
                         Text(
                           '($reviews)',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: AppColors.textSecondary,
-                          ),
+                          style: AppTypography.caption,
                         ),
                         // Don't show distance for now, as it's not implemented in the backend yet
                         // const SizedBox(width: 8),
@@ -171,10 +149,10 @@ class ProducerTile extends StatelessWidget {
               ),
               SvgPicture.asset(
                 'assets/icons/caret-right.svg',
-                width: 12,
-                height: 12,
+                width: 24,
+                height: 24,
                 colorFilter: const ColorFilter.mode(
-                  AppColors.accent,
+                  AppColors.textSecondary,
                   BlendMode.srcIn,
                 ),
               ),

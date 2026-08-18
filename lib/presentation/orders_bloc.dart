@@ -2,7 +2,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lokalny_koszyk/core/themes/app_theme.dart';
 import 'package:lokalny_koszyk/domain/models/cart_item.dart';
-import 'package:lokalny_koszyk/domain/models/order_summary.dart';
 import 'package:lokalny_koszyk/domain/repositories/cart_repository.dart';
 import 'package:lokalny_koszyk/domain/repositories/orders_repository.dart';
 
@@ -12,10 +11,6 @@ sealed class OrdersEvent {
 
 final class OrdersLoadCartRequested extends OrdersEvent {
   const OrdersLoadCartRequested();
-}
-
-final class OrdersLoadOrdersRequested extends OrdersEvent {
-  const OrdersLoadOrdersRequested();
 }
 
 final class OrdersRefreshAllRequested extends OrdersEvent {
@@ -44,28 +39,20 @@ class OrdersState {
   const OrdersState({
     required this.isLoadingCart,
     required this.isRemovingItem,
-    required this.isLoadingOrders,
     required this.cartItems,
-    required this.orders,
     this.unselectedSellerKeys = const <String>{},
-    this.ordersError,
     this.feedbackMessage,
   });
 
   factory OrdersState.initial() => const OrdersState(
     isLoadingCart: true,
     isRemovingItem: false,
-    isLoadingOrders: true,
     cartItems: <CartItem>[],
-    orders: <OrderSummary>[],
   );
 
   final bool isLoadingCart;
   final bool isRemovingItem;
-  final bool isLoadingOrders;
-  final String? ordersError;
   final List<CartItem> cartItems;
-  final List<OrderSummary> orders;
   final Set<String> unselectedSellerKeys;
   final String? feedbackMessage;
 
@@ -84,20 +71,14 @@ class OrdersState {
   OrdersState copyWith({
     bool? isLoadingCart,
     bool? isRemovingItem,
-    bool? isLoadingOrders,
-    String? ordersError,
     List<CartItem>? cartItems,
-    List<OrderSummary>? orders,
     Set<String>? unselectedSellerKeys,
     Object? feedbackMessage = _unset,
   }) {
     return OrdersState(
       isLoadingCart: isLoadingCart ?? this.isLoadingCart,
       isRemovingItem: isRemovingItem ?? this.isRemovingItem,
-      isLoadingOrders: isLoadingOrders ?? this.isLoadingOrders,
-      ordersError: ordersError,
       cartItems: cartItems ?? this.cartItems,
-      orders: orders ?? this.orders,
       unselectedSellerKeys:
           unselectedSellerKeys ?? this.unselectedSellerKeys,
       feedbackMessage: identical(feedbackMessage, _unset)
@@ -112,12 +93,10 @@ const _unset = Object();
 class OrdersBloc extends Bloc<OrdersEvent, OrdersState> {
   OrdersBloc({
     required CartRepository cartRepository,
-    required OrdersRepository ordersRepository,
+    OrdersRepository? ordersRepository,
   }) : _cartRepository = cartRepository,
-       _ordersRepository = ordersRepository,
        super(OrdersState.initial()) {
     on<OrdersLoadCartRequested>(_onLoadCart);
-    on<OrdersLoadOrdersRequested>(_onLoadOrders);
     on<OrdersRefreshAllRequested>(_onRefreshAll);
     on<OrdersRemoveItemRequested>(_onRemoveItem);
     on<OrdersAddToCartRequested>(_onAddToCart);
@@ -125,7 +104,6 @@ class OrdersBloc extends Bloc<OrdersEvent, OrdersState> {
   }
 
   final CartRepository _cartRepository;
-  final OrdersRepository _ordersRepository;
 
   Future<void> _onLoadCart(
     OrdersLoadCartRequested event,
@@ -145,36 +123,11 @@ class OrdersBloc extends Bloc<OrdersEvent, OrdersState> {
     }
   }
 
-  Future<void> _onLoadOrders(
-    OrdersLoadOrdersRequested event,
-    Emitter<OrdersState> emit,
-  ) async {
-    emit(state.copyWith(isLoadingOrders: true, ordersError: null));
-    try {
-      final orders = await _ordersRepository.getOrdersForCurrentUser();
-      emit(
-        state.copyWith(
-          orders: orders,
-          isLoadingOrders: false,
-          ordersError: null,
-        ),
-      );
-    } catch (e) {
-      emit(
-        state.copyWith(
-          ordersError: 'Nie udało się pobrać historii zamówień: $e',
-          isLoadingOrders: false,
-        ),
-      );
-    }
-  }
-
   Future<void> _onRefreshAll(
     OrdersRefreshAllRequested event,
     Emitter<OrdersState> emit,
-  ) async {
-    await _onLoadCart(const OrdersLoadCartRequested(), emit);
-    await _onLoadOrders(const OrdersLoadOrdersRequested(), emit);
+  ) {
+    return _onLoadCart(const OrdersLoadCartRequested(), emit);
   }
 
   Future<void> _onRemoveItem(
@@ -304,5 +257,6 @@ String formatOrderDate(DateTime? date) {
   final d = date.toLocal();
   final dd = d.day.toString().padLeft(2, '0');
   final mm = d.month.toString().padLeft(2, '0');
-  return '$dd.$mm';
+  final yyyy = d.year.toString();
+  return '$dd.$mm.$yyyy';
 }
