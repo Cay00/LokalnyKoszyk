@@ -1,7 +1,43 @@
 ﻿import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lokalny_koszyk/core/formatting/price_parse.dart';
 import 'package:lokalny_koszyk/domain/repositories/cart_repository.dart';
 import 'package:lokalny_koszyk/domain/repositories/discover_repository.dart';
 import 'package:lokalny_koszyk/presentation/models/product_ui_model.dart';
+
+enum DiscoverPriceFilter {
+  all('Wszystkie'),
+  upTo20('do 20 zł'),
+  from20To50('20–50 zł'),
+  over50('powyżej 50 zł');
+
+  const DiscoverPriceFilter(this.label);
+  final String label;
+
+  bool matches(double? price) {
+    if (this == DiscoverPriceFilter.all) return true;
+    if (price == null) return false;
+    switch (this) {
+      case DiscoverPriceFilter.all:
+        return true;
+      case DiscoverPriceFilter.upTo20:
+        return price <= 20;
+      case DiscoverPriceFilter.from20To50:
+        return price > 20 && price <= 50;
+      case DiscoverPriceFilter.over50:
+        return price > 50;
+    }
+  }
+}
+
+enum DiscoverSortOption {
+  recommended('Polecane'),
+  priceAsc('Cena: rosnąco'),
+  priceDesc('Cena: malejąco'),
+  nameAsc('Nazwa: A–Z');
+
+  const DiscoverSortOption(this.label);
+  final String label;
+}
 
 sealed class DiscoverEvent {
   const DiscoverEvent();
@@ -23,11 +59,42 @@ final class DiscoverCategoryToggled extends DiscoverEvent {
   final String categoryId;
 }
 
+final class DiscoverPriceFilterChanged extends DiscoverEvent {
+  const DiscoverPriceFilterChanged(this.filter);
+
+  final DiscoverPriceFilter filter;
+}
+
+final class DiscoverSearchQueryChanged extends DiscoverEvent {
+  const DiscoverSearchQueryChanged(this.query);
+
+  final String query;
+}
+
+final class DiscoverSortOptionChanged extends DiscoverEvent {
+  const DiscoverSortOptionChanged(this.sort);
+
+  final DiscoverSortOption sort;
+}
+
+final class DiscoverFiltersApplied extends DiscoverEvent {
+  const DiscoverFiltersApplied({
+    required this.priceFilter,
+    required this.sortOption,
+  });
+
+  final DiscoverPriceFilter priceFilter;
+  final DiscoverSortOption sortOption;
+}
+
 const _unset = Object();
 
 class DiscoverState {
   const DiscoverState({
     required this.activeCategoryId,
+    required this.priceFilter,
+    required this.sortOption,
+    required this.searchQuery,
     required this.isAddingToCart,
     required this.isLoadingProducts,
     required this.products,
@@ -37,6 +104,9 @@ class DiscoverState {
 
   factory DiscoverState.initial() => const DiscoverState(
     activeCategoryId: null,
+    priceFilter: DiscoverPriceFilter.all,
+    sortOption: DiscoverSortOption.recommended,
+    searchQuery: '',
     isAddingToCart: false,
     isLoadingProducts: true,
     products: <ProductUiModel>[],
@@ -44,17 +114,54 @@ class DiscoverState {
   );
 
   final String? activeCategoryId;
+  final DiscoverPriceFilter priceFilter;
+  final DiscoverSortOption sortOption;
+  final String searchQuery;
   final bool isAddingToCart;
   final bool isLoadingProducts;
   final List<ProductUiModel> products;
   final String? productsError;
   final String? feedbackMessage;
 
+  bool get hasActiveFilters =>
+      priceFilter != DiscoverPriceFilter.all ||
+      sortOption != DiscoverSortOption.recommended;
+
   List<ProductUiModel> get visibleProducts {
-    if (activeCategoryId == null) return products;
-    return products
-        .where((ProductUiModel p) => p.categoryId == activeCategoryId)
-        .toList();
+    final query = searchQuery.trim().toLowerCase();
+    final filtered = products.where((ProductUiModel p) {
+      if (activeCategoryId != null && p.categoryId != activeCategoryId) {
+        return false;
+      }
+      if (!priceFilter.matches(parsePriceLabel(p.price))) return false;
+      if (query.isEmpty) return true;
+      return p.name.toLowerCase().contains(query) ||
+          p.producer.toLowerCase().contains(query);
+    }).toList();
+
+    switch (sortOption) {
+      case DiscoverSortOption.recommended:
+        return filtered;
+      case DiscoverSortOption.priceAsc:
+        filtered.sort(
+          (a, b) => (parsePriceLabel(a.price) ?? 0).compareTo(
+            parsePriceLabel(b.price) ?? 0,
+          ),
+        );
+        return filtered;
+      case DiscoverSortOption.priceDesc:
+        filtered.sort(
+          (a, b) => (parsePriceLabel(b.price) ?? 0).compareTo(
+            parsePriceLabel(a.price) ?? 0,
+          ),
+        );
+        return filtered;
+      case DiscoverSortOption.nameAsc:
+        filtered.sort(
+          (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
+        );
+        return filtered;
+    }
   }
 
   List<DiscoverCategoryItem> get categoryItems => DiscoverBloc.categoryCatalog
@@ -72,6 +179,9 @@ class DiscoverState {
 
   DiscoverState copyWith({
     Object? activeCategoryId = _unset,
+    DiscoverPriceFilter? priceFilter,
+    DiscoverSortOption? sortOption,
+    String? searchQuery,
     bool? isAddingToCart,
     bool? isLoadingProducts,
     List<ProductUiModel>? products,
@@ -82,6 +192,9 @@ class DiscoverState {
       activeCategoryId: identical(activeCategoryId, _unset)
           ? this.activeCategoryId
           : activeCategoryId as String?,
+      priceFilter: priceFilter ?? this.priceFilter,
+      sortOption: sortOption ?? this.sortOption,
+      searchQuery: searchQuery ?? this.searchQuery,
       isAddingToCart: isAddingToCart ?? this.isAddingToCart,
       isLoadingProducts: isLoadingProducts ?? this.isLoadingProducts,
       products: products ?? this.products,
@@ -103,6 +216,10 @@ class DiscoverBloc extends Bloc<DiscoverEvent, DiscoverState> {
     on<DiscoverLoadProductsRequested>(_onLoadProducts);
     on<DiscoverAddToCartRequested>(_onAddToCart);
     on<DiscoverCategoryToggled>(_onCategoryToggled);
+    on<DiscoverPriceFilterChanged>(_onPriceFilterChanged);
+    on<DiscoverSearchQueryChanged>(_onSearchQueryChanged);
+    on<DiscoverSortOptionChanged>(_onSortOptionChanged);
+    on<DiscoverFiltersApplied>(_onFiltersApplied);
   }
 
   final DiscoverRepository _discoverRepository;
@@ -275,6 +392,39 @@ class DiscoverBloc extends Bloc<DiscoverEvent, DiscoverState> {
         activeCategoryId: state.activeCategoryId == event.categoryId
             ? null
             : event.categoryId,
+      ),
+    );
+  }
+
+  void _onPriceFilterChanged(
+    DiscoverPriceFilterChanged event,
+    Emitter<DiscoverState> emit,
+  ) {
+    emit(state.copyWith(priceFilter: event.filter));
+  }
+
+  void _onSearchQueryChanged(
+    DiscoverSearchQueryChanged event,
+    Emitter<DiscoverState> emit,
+  ) {
+    emit(state.copyWith(searchQuery: event.query));
+  }
+
+  void _onSortOptionChanged(
+    DiscoverSortOptionChanged event,
+    Emitter<DiscoverState> emit,
+  ) {
+    emit(state.copyWith(sortOption: event.sort));
+  }
+
+  void _onFiltersApplied(
+    DiscoverFiltersApplied event,
+    Emitter<DiscoverState> emit,
+  ) {
+    emit(
+      state.copyWith(
+        priceFilter: event.priceFilter,
+        sortOption: event.sortOption,
       ),
     );
   }

@@ -1,9 +1,13 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lokalny_koszyk/domain/models/cart_item.dart';
+import 'package:lokalny_koszyk/domain/models/payment_method.dart';
 import 'package:lokalny_koszyk/presentation/checkout_bloc.dart';
+import 'package:lokalny_koszyk/screens/checkout/checkout_delivery_screen.dart';
+import 'package:lokalny_koszyk/widgets/common/app_toggle_row.dart';
+import 'package:lokalny_koszyk/widgets/common/primary_action_button.dart';
 
 import '../../core/themes/app_theme.dart';
-import '../../widgets/common/app_notification.dart';
 import '../../widgets/common/default_screen.dart';
 
 class OrderCheckoutScreen extends StatelessWidget {
@@ -13,235 +17,218 @@ class OrderCheckoutScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<CheckoutBloc, CheckoutState>(
-      listenWhen: (CheckoutState previous, CheckoutState current) =>
-          current.feedbackMessage != null &&
-          current.feedbackMessage != previous.feedbackMessage,
-      listener: (BuildContext context, CheckoutState state) {
-        final message = state.feedbackMessage;
-        if (message == null) return;
-        showAppNotification(context, message);
-      },
-      child: BlocBuilder<CheckoutBloc, CheckoutState>(
-        builder: (BuildContext context, CheckoutState state) {
-          final items = state.items;
-          final total = items.fold<double>(
-            0,
-            (sum, item) => sum + item.lineTotal,
-          );
-          return DefaultScreen(
-            title: 'Moje zamówienie',
-            onBack: onBack,
-            body: state.isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : state.errorText != null
-                    ? Center(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 24),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: <Widget>[
-                              Text(
-                                state.errorText!,
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(
-                                  color: AppColors.textSecondary,
-                                  fontSize: 14,
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              FilledButton(
-                                onPressed: () =>
-                                    context.read<CheckoutBloc>().add(
-                                      const CheckoutLoadRequested(),
-                                    ),
-                                child: const Text('Ponów'),
-                              ),
-                            ],
+    return BlocBuilder<CheckoutBloc, CheckoutState>(
+      builder: (BuildContext context, CheckoutState state) {
+        final items = state.items;
+        return DefaultScreen(
+          title: 'Moje zamówienie',
+          onBack: onBack,
+          showBottomNavPadding: false,
+          body: state.isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : state.errorText != null
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        Text(
+                          state.errorText!,
+                          textAlign: TextAlign.center,
+                          style: AppTypography.normal.copyWith(
+                            color: AppColors.textSecondary,
                           ),
                         ),
-                      )
-                    : items.isEmpty
-                    ? const Center(
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 24),
-                          child: Text(
-                            'Koszyk jest pusty.',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: AppColors.textSecondary,
-                              fontSize: 14,
-                            ),
+                        const SizedBox(height: 12),
+                        PrimaryActionButton(
+                          label: 'Ponów',
+                          onPressed: () => context.read<CheckoutBloc>().add(
+                            const CheckoutLoadRequested(),
                           ),
                         ),
-                      )
-                    : ListView(
-                        padding: DefaultScreen.bodyPadding(context),
+                      ],
+                    ),
+                  ),
+                )
+              : items.isEmpty
+              ? Center(
+                  child: Text(
+                    'Koszyk jest pusty.',
+                    style: AppTypography.normal.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                )
+              : Column(
+                  children: <Widget>[
+                    Expanded(
+                      child: ListView(
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                         children: <Widget>[
-                          ...items.map((item) {
-                            return Container(
-                              margin: const EdgeInsets.only(bottom: 8),
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: AppColors.white,
-                                borderRadius: BorderRadius.circular(
-                                  AppRadius.normal,
-                                ),
-                                border: Border.all(color: AppColors.background),
-                              ),
-                              child: Row(
-                                children: <Widget>[
-                                  const Text(
-                                    '🧺',
-                                    style: TextStyle(fontSize: 22),
-                                  ),
-                                  const SizedBox(width: 10),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: <Widget>[
-                                        Text(
-                                          item.name,
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.w600,
-                                            color: AppColors.textPrimary,
-                                          ),
-                                        ),
-                                        Text(
-                                          '${item.quantity} ${item.unit}',
-                                          style: const TextStyle(
-                                            color: AppColors.textSecondary,
-                                            fontSize: 12,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  Text(
-                                    _formatMoney(
-                                      item.lineTotal,
-                                      item.currency,
-                                    ),
-                                    style: const TextStyle(
-                                      color: AppColors.accent,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  InkWell(
-                                    onTap: state.isRemovingItem
-                                        ? null
-                                        : () => context
-                                              .read<CheckoutBloc>()
-                                              .add(
-                                                CheckoutRemoveItemRequested(
-                                                  item,
-                                                ),
-                                              ),
-                                    child: Icon(
-                                      Icons.delete_outline,
-                                      color: state.isRemovingItem
-                                          ? AppColors.textSecondary
-                                          : AppColors.accent,
-                                      size: 20,
-                                    ),
-                                  ),
-                                ],
-                              ),
+                          Text('Produkty', style: AppTypography.header),
+                          const SizedBox(height: 12),
+                          ...items.map(_CheckoutProductTile.new),
+                          const SizedBox(height: 16),
+                          Text('Opcja dostawy', style: AppTypography.header),
+                          const SizedBox(height: 8),
+                          ...DeliveryOption.values.map((DeliveryOption option) {
+                            return AppSelectTile<DeliveryOption>(
+                              value: option,
+                              groupValue: state.deliveryOption,
+                              label: option.label,
+                              onChanged: (DeliveryOption value) {
+                                context.read<CheckoutBloc>().add(
+                                  CheckoutDeliveryOptionChanged(value),
+                                );
+                              },
                             );
                           }),
-                          const SizedBox(height: 16),
-                          const Text(
-                            'Opcja dostawy',
-                            style: TextStyle(
-                              color: AppColors.textSecondary,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Metoda płatności',
+                            style: AppTypography.header,
                           ),
                           const SizedBox(height: 8),
-                          RadioGroup<DeliveryOption>(
-                            groupValue: state.deliveryOption,
-                            onChanged: (DeliveryOption? value) {
-                              if (value == null) return;
-                              context.read<CheckoutBloc>().add(
-                                CheckoutDeliveryOptionChanged(value),
-                              );
-                            },
-                            child: Column(
-                              children: DeliveryOption.values.map((
-                                DeliveryOption option,
-                              ) {
-                                return Container(
-                                  margin: const EdgeInsets.only(bottom: 8),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.white,
-                                    borderRadius: BorderRadius.circular(
-                                      AppRadius.normal,
-                                    ),
-                                    border: Border.all(color: AppColors.background),
-                                  ),
-                                  child: RadioListTile<DeliveryOption>(
-                                    value: option,
-                                    title: Text(option.label),
-                                  ),
+                          ...AppPaymentMethod.values.map((
+                            AppPaymentMethod method,
+                          ) {
+                            return AppSelectTile<AppPaymentMethod>(
+                              value: method,
+                              groupValue: state.paymentMethod,
+                              label: method.label,
+                              onChanged: (AppPaymentMethod value) {
+                                context.read<CheckoutBloc>().add(
+                                  CheckoutPaymentMethodChanged(value),
                                 );
-                              }).toList(),
-                            ),
-                          ),
+                              },
+                            );
+                          }),
                           const SizedBox(height: 8),
                           Row(
                             children: <Widget>[
-                              const Expanded(
-                                child: Text(
-                                  'Razem',
-                                  style: TextStyle(
-                                    color: AppColors.textSecondary,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
+                              Expanded(
+                                child: Text('Razem', style: AppTypography.header),
                               ),
                               Text(
                                 _formatMoney(
-                                  total,
-                                  items.isEmpty
-                                      ? 'PLN'
-                                      : items.first.currency,
+                                  state.productsTotal,
+                                  items.first.currency,
                                 ),
-                                style: const TextStyle(
-                                  color: AppColors.accent,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w700,
-                                ),
+                                style: AppTypography.header,
                               ),
                             ],
                           ),
-                          const SizedBox(height: 16),
-                          SizedBox(
-                            width: double.infinity,
-                            child: FilledButton(
-                              onPressed: state.isPaying
-                                  ? null
-                                  : () => context.read<CheckoutBloc>().add(
-                                      const CheckoutPayRequested(),
-                                    ),
-                              child: state.isPaying
-                                  ? const SizedBox(
-                                      width: 18,
-                                      height: 18,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                      ),
-                                    )
-                                  : const Text('Zapłać'),
-                            ),
-                          ),
                         ],
                       ),
-          );
-        },
+                    ),
+                    SafeArea(
+                      top: false,
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                        child: PrimaryActionButton(
+                          label: 'Przejdź dalej',
+                          onPressed: () {
+                            final checkoutBloc = context.read<CheckoutBloc>();
+                            Navigator.of(context).push(
+                              PageRouteBuilder<void>(
+                                pageBuilder: (_, _, _) => BlocProvider.value(
+                                  value: checkoutBloc,
+                                  child: CheckoutDeliveryScreen(
+                                    onBack: () => Navigator.of(context).pop(),
+                                  ),
+                                ),
+                                transitionDuration: Duration.zero,
+                                reverseTransitionDuration: Duration.zero,
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+        );
+      },
+    );
+  }
+}
+
+class _CheckoutProductTile extends StatelessWidget {
+  const _CheckoutProductTile(this.item);
+
+  final CartItem item;
+
+  @override
+  Widget build(BuildContext context) {
+    final qtyLabel = item.quantity == item.quantity.roundToDouble()
+        ? item.quantity.toInt().toString()
+        : item.quantity.toString().replaceAll('.', ',');
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(AppRadius.normal),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: SizedBox(
+        height: 88,
+        child: Row(
+          children: <Widget>[
+            SizedBox(
+              width: 88,
+              height: 88,
+              child: ColoredBox(
+                color: AppColors.background,
+                child: Image.asset(
+                  'assets/images/food_default.png',
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, _, _) => const SizedBox.shrink(),
+                ),
+              ),
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      item.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTypography.normalBold,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      item.sellerDisplayName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTypography.caption.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                    const Spacer(),
+                    Row(
+                      children: <Widget>[
+                        Expanded(
+                          child: Text(
+                            '$qtyLabel × ${_formatMoney(item.price, item.currency)}',
+                            style: AppTypography.caption,
+                          ),
+                        ),
+                        Text(
+                          _formatMoney(item.lineTotal, item.currency),
+                          style: AppTypography.normalBold,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -249,5 +236,8 @@ class OrderCheckoutScreen extends StatelessWidget {
 
 String _formatMoney(double value, String currency) {
   final formatted = value.toStringAsFixed(2).replaceAll('.', ',');
-  return '$formatted $currency';
+  final suffix = currency.trim().isEmpty || currency.toUpperCase() == 'PLN'
+      ? 'zł'
+      : currency;
+  return '$formatted $suffix';
 }

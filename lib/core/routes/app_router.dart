@@ -7,6 +7,7 @@ import 'package:lokalny_koszyk/domain/repositories/cart_repository.dart';
 import 'package:lokalny_koszyk/domain/repositories/discover_repository.dart';
 import 'package:lokalny_koszyk/domain/repositories/orders_repository.dart';
 import 'package:lokalny_koszyk/domain/repositories/watched_products_repository.dart';
+import 'package:lokalny_koszyk/domain/repositories/watched_sellers_repository.dart';
 import 'package:lokalny_koszyk/presentation/checkout_bloc.dart';
 import 'package:lokalny_koszyk/presentation/discover_bloc.dart';
 import 'package:lokalny_koszyk/presentation/favorites_bloc.dart';
@@ -54,6 +55,16 @@ class _AppRouterState extends State<AppRouter> {
       GlobalKey<NavigatorState>();
   final GlobalKey<NavigatorState> _profileNavigatorKey = GlobalKey<NavigatorState>();
 
+  void _onTabStackChanged() {
+    if (mounted) setState(() {});
+  }
+
+  // Osobny observer na każdy Navigator (Flutter nie pozwala dzielić jednej instancji).
+  late final List<NavigatorObserver> _navObservers = List<NavigatorObserver>.generate(
+    4,
+    (_) => _TabStackObserver(_onTabStackChanged),
+  );
+
   // lista navigatorów dla łatwego dostępu po indeksie
   List<GlobalKey<NavigatorState>> get _navigatorKeys => [
     _shopNavigatorKey,
@@ -61,6 +72,9 @@ class _AppRouterState extends State<AppRouter> {
     _favoritesNavigatorKey,
     _profileNavigatorKey,
   ];
+
+  bool get _hideBottomNav =>
+      _navigatorKeys[_selectedIndex].currentState?.canPop() ?? false;
 
   // OBSŁUGA BACK BUTTONA
   // kolejność:
@@ -85,6 +99,8 @@ class _AppRouterState extends State<AppRouter> {
 
   @override
   Widget build(BuildContext context) {
+    final bool hideBottomNav = _hideBottomNav;
+
     return AnnotatedRegion<SystemUiOverlayStyle>(
       // styl status bara
       value: const SystemUiOverlayStyle(
@@ -114,30 +130,71 @@ class _AppRouterState extends State<AppRouter> {
                     child: IndexedStack(
                       index: _selectedIndex,
                       children: [
-                        DiscoverTab(navigatorKey: _shopNavigatorKey),
-                        OrdersTab(navigatorKey: _cartNavigatorKey),
-                        FavoritesTab(navigatorKey: _favoritesNavigatorKey),
-                        ProfileTab(navigatorKey: _profileNavigatorKey),
+                        DiscoverTab(
+                          navigatorKey: _shopNavigatorKey,
+                          isActive: _selectedIndex == 0,
+                          navigatorObserver: _navObservers[0],
+                        ),
+                        OrdersTab(
+                          navigatorKey: _cartNavigatorKey,
+                          isActive: _selectedIndex == 1,
+                          navigatorObserver: _navObservers[1],
+                        ),
+                        FavoritesTab(
+                          navigatorKey: _favoritesNavigatorKey,
+                          isActive: _selectedIndex == 2,
+                          navigatorObserver: _navObservers[2],
+                        ),
+                        ProfileTab(
+                          navigatorKey: _profileNavigatorKey,
+                          navigatorObserver: _navObservers[3],
+                        ),
                       ],
                     ),
                   ),
                 ],
               ),
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: 0,
-                child: AppBottomNavigationBar(
-                  currentIndex: _selectedIndex,
-                  onTap: (index) => setState(() => _selectedIndex = index),
+              if (!hideBottomNav)
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: AppBottomNavigationBar(
+                    currentIndex: _selectedIndex,
+                    onTap: (index) => setState(() => _selectedIndex = index),
+                  ),
                 ),
-              ),
             ],
           ),
         ),
       ),
     );
   }
+}
+
+class _TabStackObserver extends NavigatorObserver {
+  _TabStackObserver(this.onStackChanged);
+
+  final VoidCallback onStackChanged;
+
+  void _notify() {
+    // Po frame — canPop() jest już aktualne.
+    WidgetsBinding.instance.addPostFrameCallback((_) => onStackChanged());
+  }
+
+  @override
+  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) => _notify();
+
+  @override
+  void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) => _notify();
+
+  @override
+  void didRemove(Route<dynamic> route, Route<dynamic>? previousRoute) =>
+      _notify();
+
+  @override
+  void didReplace({Route<dynamic>? newRoute, Route<dynamic>? oldRoute}) =>
+      _notify();
 }
 
 // ROUTE BEZ ANIMACJI
@@ -171,11 +228,23 @@ void _pushProducerDetails(BuildContext context, String sellerId) {
 }
 
 // ------------------ SHOP TAB (Sklep) ------------------
-class DiscoverTab extends StatelessWidget {
-  const DiscoverTab({required this.navigatorKey, super.key});
+class DiscoverTab extends StatefulWidget {
+  const DiscoverTab({
+    required this.navigatorKey,
+    required this.isActive,
+    required this.navigatorObserver,
+    super.key,
+  });
 
   final GlobalKey<NavigatorState> navigatorKey;
+  final bool isActive;
+  final NavigatorObserver navigatorObserver;
 
+  @override
+  State<DiscoverTab> createState() => _DiscoverTabState();
+}
+
+class _DiscoverTabState extends State<DiscoverTab> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
@@ -183,10 +252,19 @@ class DiscoverTab extends StatelessWidget {
         discoverRepository: context.read<DiscoverRepository>(),
         cartRepository: context.read<CartRepository>(),
       )..add(const DiscoverLoadProductsRequested()),
-      child: Navigator(
-        key: navigatorKey,
-        onGenerateRoute: (_) => _NoAnimationPageRoute<void>(
-          builder: (_) => const _DiscoverNavigator(),
+      child: _TabRefreshOnActivate(
+        isActive: widget.isActive,
+        onActivate: (BuildContext context) {
+          context.read<DiscoverBloc>().add(
+            const DiscoverLoadProductsRequested(),
+          );
+        },
+        child: Navigator(
+          key: widget.navigatorKey,
+          observers: <NavigatorObserver>[widget.navigatorObserver],
+          onGenerateRoute: (_) => _NoAnimationPageRoute<void>(
+            builder: (_) => const _DiscoverNavigator(),
+          ),
         ),
       ),
     );
@@ -219,11 +297,23 @@ class _DiscoverNavigator extends StatelessWidget {
 }
 
 // ------------------ CART TAB (Koszyk) ------------------
-class OrdersTab extends StatelessWidget {
-  const OrdersTab({required this.navigatorKey, super.key});
+class OrdersTab extends StatefulWidget {
+  const OrdersTab({
+    required this.navigatorKey,
+    required this.isActive,
+    required this.navigatorObserver,
+    super.key,
+  });
 
   final GlobalKey<NavigatorState> navigatorKey;
+  final bool isActive;
+  final NavigatorObserver navigatorObserver;
 
+  @override
+  State<OrdersTab> createState() => _OrdersTabState();
+}
+
+class _OrdersTabState extends State<OrdersTab> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
@@ -232,10 +322,17 @@ class OrdersTab extends StatelessWidget {
           cartRepository: context.read<CartRepository>(),
         )..add(const OrdersLoadCartRequested());
       },
-      child: Navigator(
-        key: navigatorKey,
-        onGenerateRoute: (_) => _NoAnimationPageRoute<void>(
-          builder: (_) => const _OrdersNavigator(),
+      child: _TabRefreshOnActivate(
+        isActive: widget.isActive,
+        onActivate: (BuildContext context) {
+          context.read<OrdersBloc>().add(const OrdersLoadCartRequested());
+        },
+        child: Navigator(
+          key: widget.navigatorKey,
+          observers: <NavigatorObserver>[widget.navigatorObserver],
+          onGenerateRoute: (_) => _NoAnimationPageRoute<void>(
+            builder: (_) => const _OrdersNavigator(),
+          ),
         ),
       ),
     );
@@ -250,13 +347,19 @@ class _OrdersNavigator extends StatelessWidget {
   Widget build(BuildContext context) {
     return OrdersScreen(
       onOpenCheckout: () {
+        final selectedIds = context
+            .read<OrdersBloc>()
+            .state
+            .selectedCartItems
+            .map((item) => item.id)
+            .toList();
         Navigator.push(
           context,
           _NoAnimationPageRoute<void>(
             builder: (_) => BlocProvider(
               create: (context) => CheckoutBloc(
                 cartRepository: context.read<CartRepository>(),
-              )..add(const CheckoutLoadRequested()),
+              )..add(CheckoutLoadRequested(selectedCartItemIds: selectedIds)),
               child: OrderCheckoutScreen(
                 onBack: () => Navigator.pop(context),
               ),
@@ -268,23 +371,74 @@ class _OrdersNavigator extends StatelessWidget {
   }
 }
 
+/// Odświeża dane zakładki po każdym wejściu (IndexedStack trzyma stan).
+class _TabRefreshOnActivate extends StatefulWidget {
+  const _TabRefreshOnActivate({
+    required this.isActive,
+    required this.onActivate,
+    required this.child,
+  });
+
+  final bool isActive;
+  final void Function(BuildContext context) onActivate;
+  final Widget child;
+
+  @override
+  State<_TabRefreshOnActivate> createState() => _TabRefreshOnActivateState();
+}
+
+class _TabRefreshOnActivateState extends State<_TabRefreshOnActivate> {
+  @override
+  void didUpdateWidget(covariant _TabRefreshOnActivate oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isActive && !oldWidget.isActive) {
+      widget.onActivate(context);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
+}
+
 // ------------------ FAVORITES TAB (Ulubione) ------------------
-class FavoritesTab extends StatelessWidget {
-  const FavoritesTab({required this.navigatorKey, super.key});
+class FavoritesTab extends StatefulWidget {
+  const FavoritesTab({
+    required this.navigatorKey,
+    required this.isActive,
+    required this.navigatorObserver,
+    super.key,
+  });
 
   final GlobalKey<NavigatorState> navigatorKey;
+  final bool isActive;
+  final NavigatorObserver navigatorObserver;
 
+  @override
+  State<FavoritesTab> createState() => _FavoritesTabState();
+}
+
+class _FavoritesTabState extends State<FavoritesTab> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => FavoritesBloc(
         watchedProductsRepository: context.read<WatchedProductsRepository>(),
+        watchedSellersRepository: context.read<WatchedSellersRepository>(),
         cartRepository: context.read<CartRepository>(),
       )..add(const FavoritesLoadRequested()),
-      child: Navigator(
-        key: navigatorKey,
-        onGenerateRoute: (_) => _NoAnimationPageRoute<void>(
-          builder: (_) => const FavoritesScreen(),
+      child: _TabRefreshOnActivate(
+        isActive: widget.isActive,
+        onActivate: (BuildContext context) {
+          context.read<FavoritesBloc>().add(
+            const FavoritesLoadRequested(silent: true),
+          );
+        },
+        child: Navigator(
+          key: widget.navigatorKey,
+          observers: <NavigatorObserver>[widget.navigatorObserver],
+          onGenerateRoute: (_) => _NoAnimationPageRoute<void>(
+            builder: (_) => const FavoritesScreen(),
+          ),
         ),
       ),
     );
@@ -293,14 +447,20 @@ class FavoritesTab extends StatelessWidget {
 
 // ------------------ PROFILE TAB ------------------
 class ProfileTab extends StatelessWidget {
-  const ProfileTab({required this.navigatorKey, super.key});
+  const ProfileTab({
+    required this.navigatorKey,
+    required this.navigatorObserver,
+    super.key,
+  });
 
   final GlobalKey<NavigatorState> navigatorKey;
+  final NavigatorObserver navigatorObserver;
 
   @override
   Widget build(BuildContext context) {
     return Navigator(
       key: navigatorKey,
+      observers: <NavigatorObserver>[navigatorObserver],
       onGenerateRoute: (_) => _NoAnimationPageRoute<void>(
         builder: (_) => const _ProfileNavigator(),
       ),

@@ -5,11 +5,13 @@ import 'package:lokalny_koszyk/data/repositories/supabase_discover_repository.da
 import 'package:lokalny_koszyk/data/repositories/supabase_orders_repository.dart';
 import 'package:lokalny_koszyk/data/repositories/supabase_producer_details_repository.dart';
 import 'package:lokalny_koszyk/data/repositories/supabase_watched_products_repository.dart';
+import 'package:lokalny_koszyk/data/repositories/supabase_watched_sellers_repository.dart';
 import 'package:lokalny_koszyk/domain/repositories/cart_repository.dart';
 import 'package:lokalny_koszyk/domain/repositories/discover_repository.dart';
 import 'package:lokalny_koszyk/domain/repositories/orders_repository.dart';
 import 'package:lokalny_koszyk/domain/repositories/producer_details_repository.dart';
 import 'package:lokalny_koszyk/domain/repositories/watched_products_repository.dart';
+import 'package:lokalny_koszyk/domain/repositories/watched_sellers_repository.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Repozytoria udostępniane w drzewie widgetów przez [RepositoryProvider].
@@ -37,6 +39,11 @@ class AppRepositories extends MultiRepositoryProvider {
           ),
           RepositoryProvider<WatchedProductsRepository>(
             create: (context) => SupabaseWatchedProductsRepository(
+              context.read<SupabaseClient>(),
+            ),
+          ),
+          RepositoryProvider<WatchedSellersRepository>(
+            create: (context) => SupabaseWatchedSellersRepository(
               context.read<SupabaseClient>(),
             ),
           ),

@@ -32,6 +32,10 @@ class ProfileScreen extends StatelessWidget {
     final displayName = metadataName is String && metadataName.trim().isNotEmpty
         ? metadataName.trim()
         : 'Użytkownik';
+    final metaPhone = user?.userMetadata?['phone'];
+    final phoneLabel = metaPhone is String && metaPhone.trim().isNotEmpty
+        ? metaPhone.trim()
+        : null;
 
     return DefaultScreen(
       title: 'Profil',
@@ -49,6 +53,17 @@ class ProfileScreen extends StatelessWidget {
               fontWeight: FontWeight.w700,
             ),
           ),
+          if (phoneLabel != null) ...[
+            const SizedBox(height: 4),
+            Text(
+              phoneLabel,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 14,
+              ),
+            ),
+          ],
           const SizedBox(height: 32),
           MenuActionButton(
             iconAsset: 'assets/icons/package.svg',
@@ -70,7 +85,7 @@ class ProfileScreen extends StatelessWidget {
           const SizedBox(height: 8),
           MenuActionButton(
             iconAsset: 'assets/icons/gear.svg',
-            label: 'Ustawienia',
+            label: 'Ustawienia profilu',
             onTap: onOpenSettings,
           ),
           const SizedBox(height: 8),

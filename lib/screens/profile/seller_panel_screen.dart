@@ -2,6 +2,7 @@
 
 import 'package:lokalny_koszyk/core/supabase/supabase_client.dart';
 import 'package:lokalny_koszyk/core/themes/app_theme.dart';
+import 'package:lokalny_koszyk/domain/models/payment_method.dart';
 import 'package:lokalny_koszyk/screens/profile/seller/become_seller_screen.dart';
 import 'package:lokalny_koszyk/widgets/common/app_notification.dart';
 import 'package:lokalny_koszyk/widgets/common/default_screen.dart';
@@ -36,6 +37,9 @@ class _SellerPanelScreenState extends State<SellerPanelScreen> {
   TextEditingController? _qualityCtrl;
   bool _pickup = false;
   bool _shipping = false;
+  Set<AppPaymentMethod> _acceptedPayments = Set<AppPaymentMethod>.of(
+    AppPaymentMethod.all,
+  );
 
   final List<_LocationDraft> _locationDrafts = [];
 
@@ -142,6 +146,9 @@ class _SellerPanelScreenState extends State<SellerPanelScreen> {
     _qualityCtrl = TextEditingController(text: _textOrEmpty(s['quality_description']));
     _pickup = s['is_pickup_available'] == true;
     _shipping = s['is_shipping_available'] == true;
+    _acceptedPayments = AppPaymentMethod.parseList(
+      s['accepted_payment_methods']?.toString(),
+    ).toSet();
 
     for (final loc in _locations) {
       _locationDrafts.add(_LocationDraft.fromMap(loc));
@@ -195,16 +202,35 @@ class _SellerPanelScreenState extends State<SellerPanelScreen> {
       }
     }
 
+    if (_acceptedPayments.isEmpty) {
+      showAppNotification(context, 'Wybierz co najmniej jedną metodę płatności.');
+      return;
+    }
+
     setState(() => _saving = true);
     try {
-      await supabase.from(_sellersTable).update({
+      final baseUpdate = <String, dynamic>{
         'name': name,
         'description': _nullableTrim(_descriptionCtrl?.text),
         'phone': _nullableTrim(_phoneCtrl?.text),
         'is_pickup_available': _pickup,
         'is_shipping_available': _shipping,
         'quality_description': _nullableTrim(_qualityCtrl?.text),
-      }).eq('id', sellerId).eq('user_id', uid);
+      };
+      try {
+        await supabase.from(_sellersTable).update({
+          ...baseUpdate,
+          'accepted_payment_methods': AppPaymentMethod.encodeList(
+            _acceptedPayments,
+          ),
+        }).eq('id', sellerId).eq('user_id', uid);
+      } catch (_) {
+        await supabase
+            .from(_sellersTable)
+            .update(baseUpdate)
+            .eq('id', sellerId)
+            .eq('user_id', uid);
+      }
 
       for (final d in _locationDrafts) {
         final payload = d.toPayload();
@@ -421,6 +447,12 @@ class _SellerPanelScreenState extends State<SellerPanelScreen> {
                 _InfoTile(label: 'Opis', value: _str(_seller!['description'])),
                 _InfoTile(label: 'E-mail', value: _str(_seller!['email'])),
                 _InfoTile(label: 'Telefon', value: _str(_seller!['phone'])),
+                _InfoTile(
+                  label: 'Metody płatności',
+                  value: AppPaymentMethod.parseList(
+                    _seller!['accepted_payment_methods']?.toString(),
+                  ).map((AppPaymentMethod m) => m.label).join(', '),
+                ),
                 _InfoTile(label: 'Zweryfikowany', value: _boolPl(_seller!['is_verified'])),
                 _InfoTile(label: 'Odbiór osobisty', value: _boolPl(_seller!['is_pickup_available'])),
                 _InfoTile(label: 'Wysyłka', value: _boolPl(_seller!['is_shipping_available'])),
@@ -456,6 +488,36 @@ class _SellerPanelScreenState extends State<SellerPanelScreen> {
                   value: _shipping,
                   onChanged: _saving ? null : (v) => setState(() => _shipping = v),
                 ),
+                const Padding(
+                  padding: EdgeInsets.only(top: 8, bottom: 4),
+                  child: Text(
+                    'Akceptowane metody płatności',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                ),
+                ...AppPaymentMethod.values.map((AppPaymentMethod method) {
+                  return CheckboxListTile(
+                    contentPadding: EdgeInsets.zero,
+                    dense: true,
+                    title: Text(method.label),
+                    value: _acceptedPayments.contains(method),
+                    onChanged: _saving
+                        ? null
+                        : (bool? checked) {
+                            setState(() {
+                              if (checked == true) {
+                                _acceptedPayments.add(method);
+                              } else {
+                                _acceptedPayments.remove(method);
+                              }
+                            });
+                          },
+                  );
+                }),
                 _PanelField(
                   controller: _qualityCtrl!,
                   label: 'Opis jakości',

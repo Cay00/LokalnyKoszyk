@@ -4,6 +4,7 @@ import 'package:lokalny_koszyk/core/formatting/entity_keys.dart';
 import 'package:lokalny_koszyk/core/supabase/nested_row.dart';
 import 'package:lokalny_koszyk/core/supabase/seller_public_lookup.dart';
 import 'package:lokalny_koszyk/data/product_from_row.dart';
+import 'package:lokalny_koszyk/domain/models/payment_method.dart';
 import 'package:lokalny_koszyk/domain/models/producer_profile.dart';
 import 'package:lokalny_koszyk/domain/models/product.dart';
 import 'package:lokalny_koszyk/domain/repositories/producer_details_repository.dart';
@@ -18,15 +19,29 @@ class SupabaseProducerDetailsRepository implements ProducerDetailsRepository {
   Future<ProducerProfileWithProducts> getSellerAndProducts(String sellerId) async {
     final normalizedSellerId = normalizeUuidKey(sellerId);
 
-    dynamic sellerWithLocationRow = await _supabase
-        .from('sellers')
-        .select(
-          'id, name, description, email, phone, is_verified, quality_description, '
-          'seller_locations(address, city, postal_code, country, latitude, longitude)',
-        )
-        .eq('id', normalizedSellerId)
-        .isFilter('deleted_at', null)
-        .maybeSingle();
+    dynamic sellerWithLocationRow;
+    try {
+      sellerWithLocationRow = await _supabase
+          .from('sellers')
+          .select(
+            'id, name, description, email, phone, is_verified, quality_description, '
+            'accepted_payment_methods, '
+            'seller_locations(address, city, postal_code, country, latitude, longitude)',
+          )
+          .eq('id', normalizedSellerId)
+          .isFilter('deleted_at', null)
+          .maybeSingle();
+    } catch (_) {
+      sellerWithLocationRow = await _supabase
+          .from('sellers')
+          .select(
+            'id, name, description, email, phone, is_verified, quality_description, '
+            'seller_locations(address, city, postal_code, country, latitude, longitude)',
+          )
+          .eq('id', normalizedSellerId)
+          .isFilter('deleted_at', null)
+          .maybeSingle();
+    }
 
     if (sellerWithLocationRow == null) {
       final byNorm = await fetchSellerPublicByIds({sellerId.trim()});
@@ -40,6 +55,7 @@ class SupabaseProducerDetailsRepository implements ProducerDetailsRepository {
           'phone': '',
           'is_verified': pick.isVerified,
           'quality_description': '',
+          'accepted_payment_methods': null,
           'seller_locations': null,
         };
       }
@@ -105,6 +121,9 @@ class SupabaseProducerDetailsRepository implements ProducerDetailsRepository {
       country: (locationMap['country'] ?? '').toString(),
       latitude: (locationMap['latitude'] as num?)?.toDouble(),
       longitude: (locationMap['longitude'] as num?)?.toDouble(),
+      acceptedPaymentMethods: AppPaymentMethod.parseList(
+        sellerMap['accepted_payment_methods']?.toString(),
+      ),
     );
 
     final productRows = await _supabase

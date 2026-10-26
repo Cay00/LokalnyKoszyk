@@ -3,8 +3,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lokalny_koszyk/presentation/discover_bloc.dart';
 import 'package:lokalny_koszyk/presentation/models/product_ui_model.dart';
 import 'package:lokalny_koszyk/widgets/discover/category_tile.dart';
+import 'package:lokalny_koszyk/widgets/discover/discover_filter_sheet.dart';
 import 'package:lokalny_koszyk/widgets/discover/discover_fulfillment_toggle.dart';
 import 'package:lokalny_koszyk/widgets/discover/discover_header.dart';
+import 'package:lokalny_koszyk/widgets/discover/discover_search_bar.dart';
 import 'package:lokalny_koszyk/screens/product/product_card.dart';
 import 'package:lokalny_koszyk/widgets/common/default_screen.dart';
 import 'package:lokalny_koszyk/widgets/common/section_header.dart';
@@ -23,6 +25,28 @@ class DiscoverScreen extends StatefulWidget {
 
 class _DiscoverScreenState extends State<DiscoverScreen> {
   DiscoverFulfillmentMode _fulfillmentMode = DiscoverFulfillmentMode.delivery;
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _openFilters(DiscoverState state) async {
+    final result = await showDiscoverFilterSheet(
+      context: context,
+      priceFilter: state.priceFilter,
+      sortOption: state.sortOption,
+    );
+    if (!mounted || result == null) return;
+    context.read<DiscoverBloc>().add(
+      DiscoverFiltersApplied(
+        priceFilter: result.price,
+        sortOption: result.sort,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -46,96 +70,120 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
           final visibleProducts = state.visibleProducts;
           return DefaultScreen(
             header: const DiscoverHeader(),
-            body: ListView(
-              padding: DefaultScreen.bodyPadding(
-                context,
-                left: 0,
-                top: 0,
-                right: 0,
-              ),
-              children: <Widget>[
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-                  child: DiscoverFulfillmentToggle(
-                    value: _fulfillmentMode,
-                    onChanged: (DiscoverFulfillmentMode mode) {
-                      setState(() => _fulfillmentMode = mode);
+            body: RefreshIndicator(
+              onRefresh: () {
+                final bloc = context.read<DiscoverBloc>();
+                final done = bloc.stream.firstWhere(
+                  (DiscoverState s) => !s.isLoadingProducts,
+                );
+                bloc.add(const DiscoverLoadProductsRequested());
+                return done;
+              },
+              child: ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: DefaultScreen.bodyPadding(
+                  context,
+                  left: 0,
+                  top: 0,
+                  right: 0,
+                ),
+                children: <Widget>[
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+                    child: DiscoverFulfillmentToggle(
+                      value: _fulfillmentMode,
+                      onChanged: (DiscoverFulfillmentMode mode) {
+                        setState(() => _fulfillmentMode = mode);
+                      },
+                    ),
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
+                    child: _PromoBanner(),
+                  ),
+                  _CategoriesSection(
+                    categories: state.categoryItems,
+                    activeCategoryId: state.activeCategoryId,
+                    onSelect: (String categoryId) {
+                      context.read<DiscoverBloc>().add(
+                        DiscoverCategoryToggled(categoryId),
+                      );
                     },
                   ),
-                ),
-                const Padding(
-                  padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
-                  child: _PromoBanner(),
-                ),
-                _CategoriesSection(
-                  categories: state.categoryItems,
-                  activeCategoryId: state.activeCategoryId,
-                  onSelect: (String categoryId) {
-                    context.read<DiscoverBloc>().add(
-                      DiscoverCategoryToggled(categoryId),
-                    );
-                  },
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      SectionHeader(
-                        title: 'Popularne produkty',
-                        titleCount: state.isLoadingProducts
-                            ? null
-                            : visibleProducts.length,
-                      ),
-                      const SizedBox(height: 16),
-                      if (state.isLoadingProducts)
-                        const Center(child: CircularProgressIndicator())
-                      else if (state.productsError != null)
-                        Text(
-                          state.productsError!,
-                          style: AppTypography.normal,
-                        )
-                      else if (visibleProducts.isEmpty)
-                        Text(
-                          'Brak produktów do wyświetlenia.',
-                          style: AppTypography.normal,
-                        )
-                      else
-                        ProductCardGrid(
-                          itemCount: visibleProducts.length,
-                          itemBuilder: (BuildContext context, int index) {
-                            final ProductUiModel product =
-                                visibleProducts[index];
-
-                            return ProductCard(
-                              image: Image.asset(
-                                'assets/images/food_default.png',
-                                fit: BoxFit.cover,
-                                alignment: Alignment.center,
-                                errorBuilder:
-                                    (
-                                      BuildContext context,
-                                      Object error,
-                                      StackTrace? stackTrace,
-                                    ) => ColoredBox(color: product.bgColor),
-                              ),
-                              name: product.name,
-                              size: product.sizeLabel,
-                              price: product.priceLabel,
-                              onTap: () =>
-                                  widget.onOpenProductDetails?.call(product),
-                              onAddToCart: () {
-                                context.read<DiscoverBloc>().add(
-                                  DiscoverAddToCartRequested(product),
-                                );
-                              },
-                            );
-                          },
-                        ),
-                    ],
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                    child: DiscoverSearchBar(
+                      controller: _searchController,
+                      filterActive: state.hasActiveFilters,
+                      onChanged: (String query) {
+                        context.read<DiscoverBloc>().add(
+                          DiscoverSearchQueryChanged(query),
+                        );
+                      },
+                      onFilterTap: () => _openFilters(state),
+                    ),
                   ),
-                ),
-              ],
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        SectionHeader(
+                          title: 'Popularne produkty',
+                          titleCount: state.isLoadingProducts
+                              ? null
+                              : visibleProducts.length,
+                        ),
+                        const SizedBox(height: 16),
+                        if (state.isLoadingProducts)
+                          const Center(child: CircularProgressIndicator())
+                        else if (state.productsError != null)
+                          Text(
+                            state.productsError!,
+                            style: AppTypography.normal,
+                          )
+                        else if (visibleProducts.isEmpty)
+                          Text(
+                            'Brak produktów do wyświetlenia.',
+                            style: AppTypography.normal,
+                          )
+                        else
+                          ProductCardGrid(
+                            itemCount: visibleProducts.length,
+                            itemBuilder: (BuildContext context, int index) {
+                              final ProductUiModel product =
+                                  visibleProducts[index];
+
+                              return ProductCard(
+                                image: Image.asset(
+                                  'assets/images/food_default.png',
+                                  fit: BoxFit.cover,
+                                  alignment: Alignment.center,
+                                  errorBuilder:
+                                      (
+                                        BuildContext context,
+                                        Object error,
+                                        StackTrace? stackTrace,
+                                      ) => ColoredBox(color: product.bgColor),
+                                ),
+                                name: product.name,
+                                size: product.sizeLabel,
+                                price: product.priceLabel,
+                                onTap: () =>
+                                    widget.onOpenProductDetails?.call(product),
+                                onAddToCart: () {
+                                  context.read<DiscoverBloc>().add(
+                                    DiscoverAddToCartRequested(product),
+                                  );
+                                },
+                              );
+                            },
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           );
         },
@@ -212,3 +260,4 @@ class _CategoriesSection extends StatelessWidget {
     );
   }
 }
+

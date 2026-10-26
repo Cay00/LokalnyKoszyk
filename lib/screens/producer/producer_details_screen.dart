@@ -1,12 +1,15 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:lokalny_koszyk/domain/models/payment_method.dart';
 import 'package:lokalny_koszyk/domain/models/producer_profile.dart';
 import 'package:lokalny_koszyk/domain/repositories/producer_details_repository.dart';
+import 'package:lokalny_koszyk/domain/repositories/watched_sellers_repository.dart';
 import 'package:lokalny_koszyk/presentation/models/product_ui_model.dart';
 import 'package:lokalny_koszyk/presentation/producer_details_bloc.dart';
 
 import '../../core/themes/app_theme.dart';
+import '../../widgets/common/app_notification.dart';
 import '../../widgets/common/default_screen.dart';
 import '../../widgets/common/screen_header.dart';
 import '../../widgets/common/segmented_toggle.dart';
@@ -28,6 +31,7 @@ class ProducerDetailsScreen extends StatelessWidget {
     return BlocProvider(
       create: (BuildContext context) => ProducerDetailsBloc(
         repository: context.read<ProducerDetailsRepository>(),
+        watchedSellersRepository: context.read<WatchedSellersRepository>(),
         sellerId: sellerId,
       )..add(const ProducerDetailsLoadRequested()),
       child: _ProducerDetailsBody(
@@ -56,7 +60,16 @@ class _ProducerDetailsBodyState extends State<_ProducerDetailsBody> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ProducerDetailsBloc, ProducerDetailsState>(
+    return BlocListener<ProducerDetailsBloc, ProducerDetailsState>(
+      listenWhen: (ProducerDetailsState previous, ProducerDetailsState current) =>
+          current.feedbackMessage != null &&
+          current.feedbackMessage != previous.feedbackMessage,
+      listener: (BuildContext context, ProducerDetailsState state) {
+        final message = state.feedbackMessage;
+        if (message == null) return;
+        showAppNotification(context, message);
+      },
+      child: BlocBuilder<ProducerDetailsBloc, ProducerDetailsState>(
       builder: (BuildContext context, ProducerDetailsState vmState) {
         final seller = vmState.seller;
         return DefaultScreen(
@@ -466,6 +479,7 @@ class _ProducerDetailsBodyState extends State<_ProducerDetailsBody> {
           onBack: widget.onBack,
         );
       },
+    ),
     );
   }
 
@@ -474,15 +488,11 @@ class _ProducerDetailsBodyState extends State<_ProducerDetailsBody> {
 enum _InfoSection {
   address(title: 'Adres'),
   contact(title: 'Kontakt'),
-  payments(
-    title: 'Metody płatności',
-    content: 'BLIK\nKarta płatnicza\nGotówka przy odbiorze',
-  );
+  payments(title: 'Metody płatności');
 
-  const _InfoSection({required this.title, this.content = ''});
+  const _InfoSection({required this.title});
 
   final String title;
-  final String content;
 
   String contentForSeller(ProducerProfile? seller) {
     switch (this) {
@@ -496,8 +506,6 @@ enum _InfoSection {
             '${seller.postalCode.trim()} ${seller.city.trim()}'.trim(),
           if (seller != null && seller.country.trim().isNotEmpty)
             seller.country.trim(),
-          // if (seller?.latitude != null && seller?.longitude != null)
-          //   'GPS: ${seller!.latitude!.toStringAsFixed(6)}, ${seller.longitude!.toStringAsFixed(6)}',
         ];
         if (chunks.isEmpty) {
           return 'Adres odbioru nie został jeszcze uzupełniony.';
@@ -513,7 +521,8 @@ enum _InfoSection {
         if (email.isEmpty) return 'tel. $phone';
         return 'tel. $phone\nemail: $email';
       case _InfoSection.payments:
-        return content;
+        final methods = seller?.acceptedPaymentMethods ?? AppPaymentMethod.all;
+        return methods.map((AppPaymentMethod m) => m.label).join('\n');
     }
   }
 }

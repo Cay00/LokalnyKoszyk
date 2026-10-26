@@ -1,3 +1,4 @@
+import 'package:lokalny_koszyk/domain/models/payment_method.dart';
 import 'package:lokalny_koszyk/domain/models/product.dart';
 
 class ProducerProfile {
@@ -15,6 +16,7 @@ class ProducerProfile {
     required this.country,
     required this.latitude,
     required this.longitude,
+    this.acceptedPaymentMethods = AppPaymentMethod.all,
   });
 
   final String id;
@@ -30,6 +32,7 @@ class ProducerProfile {
   final String country;
   final double? latitude;
   final double? longitude;
+  final List<AppPaymentMethod> acceptedPaymentMethods;
 }
 
 class ProducerProfileWithProducts {

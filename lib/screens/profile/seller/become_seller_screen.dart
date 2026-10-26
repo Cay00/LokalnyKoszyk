@@ -3,8 +3,12 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:lokalny_koszyk/core/supabase/supabase_client.dart';
 import 'package:lokalny_koszyk/core/themes/app_theme.dart';
+import 'package:lokalny_koszyk/domain/models/payment_method.dart';
 import 'package:lokalny_koszyk/widgets/common/app_notification.dart';
+import 'package:lokalny_koszyk/widgets/common/app_text_field.dart';
+import 'package:lokalny_koszyk/widgets/common/app_toggle_row.dart';
 import 'package:lokalny_koszyk/widgets/common/default_screen.dart';
+import 'package:lokalny_koszyk/widgets/common/primary_action_button.dart';
 
 class BecomeSellerScreen extends StatefulWidget {
   const BecomeSellerScreen({
@@ -39,6 +43,9 @@ class _BecomeSellerScreenState extends State<BecomeSellerScreen> {
 
   bool _pickup = false;
   bool _shipping = false;
+  final Set<AppPaymentMethod> _acceptedPayments = Set<AppPaymentMethod>.of(
+    AppPaymentMethod.all,
+  );
   bool _isSaving = false;
   bool _checkingProfile = true;
   String? _existingSellerId;
@@ -146,9 +153,17 @@ class _BecomeSellerScreenState extends State<BecomeSellerScreen> {
       }
     }
 
+    if (_acceptedPayments.isEmpty) {
+      showAppNotification(
+        context,
+        'Wybierz co najmniej jedną metodę płatności.',
+      );
+      return;
+    }
+
     setState(() => _isSaving = true);
     try {
-      final sellerRow = await supabase.from(_sellersTable).insert({
+      final basePayload = <String, dynamic>{
         'user_id': userId,
         'name': name,
         'description': _nullableTrim(_descriptionController.text),
@@ -159,9 +174,32 @@ class _BecomeSellerScreenState extends State<BecomeSellerScreen> {
         'quality_description': _nullableTrim(_qualityController.text),
         'logo_image': _nullableTrim(_logoController.text),
         'cover_image': _nullableTrim(_coverController.text),
-      }).select('id').single();
+      };
+      Map<String, dynamic> sellerRow;
+      try {
+        sellerRow = Map<String, dynamic>.from(
+          await supabase
+              .from(_sellersTable)
+              .insert({
+                ...basePayload,
+                'accepted_payment_methods': AppPaymentMethod.encodeList(
+                  _acceptedPayments,
+                ),
+              })
+              .select('id')
+              .single(),
+        );
+      } catch (_) {
+        sellerRow = Map<String, dynamic>.from(
+          await supabase
+              .from(_sellersTable)
+              .insert(basePayload)
+              .select('id')
+              .single(),
+        );
+      }
 
-      final sellerId = sellerRow['id'] as String;
+      final sellerId = sellerRow['id'].toString();
 
       await supabase.from(_locationsTable).insert({
         'seller_id': sellerId,
@@ -198,6 +236,34 @@ class _BecomeSellerScreenState extends State<BecomeSellerScreen> {
     return t.isEmpty ? null : t;
   }
 
+  Widget _infoState({
+    required IconData icon,
+    required String message,
+  }) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Icon(icon, size: 48, color: AppColors.accentAction),
+            const SizedBox(height: 16),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: AppTypography.normal.copyWith(height: 1.4),
+            ),
+            const SizedBox(height: 24),
+            PrimaryActionButton(
+              label: 'Wróć',
+              onPressed: widget.onBack,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_checkingProfile) {
@@ -212,27 +278,9 @@ class _BecomeSellerScreenState extends State<BecomeSellerScreen> {
       return DefaultScreen(
         title: 'Zostań sprzedawcą',
         onBack: widget.onBack,
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.storefront, size: 48, color: AppColors.accent),
-                const SizedBox(height: 16),
-                const Text(
-                  'Masz już konto sprzedawcy powiązane z tym kontem.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 16, height: 1.4),
-                ),
-                const SizedBox(height: 24),
-                FilledButton(
-                  onPressed: widget.onBack,
-                  child: const Text('Wróć'),
-                ),
-              ],
-            ),
-          ),
+        body: _infoState(
+          icon: Icons.storefront,
+          message: 'Masz już konto sprzedawcy powiązane z tym kontem.',
         ),
       );
     }
@@ -241,27 +289,9 @@ class _BecomeSellerScreenState extends State<BecomeSellerScreen> {
       return DefaultScreen(
         title: 'Zostań sprzedawcą',
         onBack: widget.onBack,
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.login, size: 48, color: AppColors.accent),
-                const SizedBox(height: 16),
-                const Text(
-                  'Zaloguj się, aby dodać dane sprzedawcy i lokalizacji.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 16, height: 1.4),
-                ),
-                const SizedBox(height: 24),
-                FilledButton(
-                  onPressed: widget.onBack,
-                  child: const Text('Wróć'),
-                ),
-              ],
-            ),
-          ),
+        body: _infoState(
+          icon: Icons.login,
+          message: 'Zaloguj się, aby dodać dane sprzedawcy i lokalizacji.',
         ),
       );
     }
@@ -269,149 +299,123 @@ class _BecomeSellerScreenState extends State<BecomeSellerScreen> {
     return DefaultScreen(
       title: 'Zostań sprzedawcą',
       onBack: widget.onBack,
-      body: SingleChildScrollView(
+      body: ListView(
         padding: DefaultScreen.bodyPadding(context),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Dane sprzedawcy',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: AppColors.textPrimary,
-              ),
+        children: <Widget>[
+          Text('Dane sprzedawcy', style: AppTypography.header),
+          const SizedBox(height: 12),
+          AppTextField(
+            controller: _nameController,
+            label: 'Nazwa / gospodarstwo *',
+            textCapitalization: TextCapitalization.words,
+          ),
+          AppTextField(
+            controller: _descriptionController,
+            label: 'Opis',
+            maxLines: 3,
+            textCapitalization: TextCapitalization.sentences,
+          ),
+          AppTextField(
+            controller: _emailController,
+            label: 'E-mail',
+            keyboardType: TextInputType.emailAddress,
+          ),
+          AppTextField(
+            controller: _phoneController,
+            label: 'Telefon',
+            keyboardType: TextInputType.phone,
+          ),
+          AppTextField(
+            controller: _qualityController,
+            label: 'Opis jakości / certyfikaty',
+            maxLines: 2,
+            textCapitalization: TextCapitalization.sentences,
+          ),
+          AppTextField(
+            controller: _logoController,
+            label: 'Logo (URL)',
+            hint: 'opcjonalnie',
+          ),
+          AppTextField(
+            controller: _coverController,
+            label: 'Okładka (URL)',
+            hint: 'opcjonalnie',
+          ),
+          AppToggleRow(
+            label: 'Odbiór osobisty',
+            value: _pickup,
+            onChanged: (bool v) => setState(() => _pickup = v),
+          ),
+          AppToggleRow(
+            label: 'Wysyłka',
+            value: _shipping,
+            onChanged: (bool v) => setState(() => _shipping = v),
+          ),
+          const SizedBox(height: 8),
+          Text('Akceptowane metody płatności', style: AppTypography.normalBold),
+          const SizedBox(height: 8),
+          ...AppPaymentMethod.values.map((AppPaymentMethod method) {
+            return AppCheckTile(
+              label: method.label,
+              checked: _acceptedPayments.contains(method),
+              onChanged: (bool checked) {
+                setState(() {
+                  if (checked) {
+                    _acceptedPayments.add(method);
+                  } else {
+                    _acceptedPayments.remove(method);
+                  }
+                });
+              },
+            );
+          }),
+          const SizedBox(height: 16),
+          Text('Lokalizacja', style: AppTypography.header),
+          const SizedBox(height: 12),
+          AppTextField(
+            controller: _addressController,
+            label: 'Adres *',
+            textCapitalization: TextCapitalization.sentences,
+          ),
+          AppTextField(
+            controller: _cityController,
+            label: 'Miasto *',
+            textCapitalization: TextCapitalization.words,
+          ),
+          AppTextField(
+            controller: _postalCodeController,
+            label: 'Kod pocztowy *',
+          ),
+          AppTextField(
+            controller: _countryController,
+            label: 'Kraj *',
+            textCapitalization: TextCapitalization.words,
+          ),
+          AppTextField(
+            controller: _latitudeController,
+            label: 'Szerokość geograficzna',
+            hint: 'opcjonalnie, np. 52.2297',
+            keyboardType: const TextInputType.numberWithOptions(
+              decimal: true,
+              signed: true,
             ),
-            const SizedBox(height: 8),
-            const Text(
-              'Powiązanie z kontem: user_id = zalogowany użytkownik (profiles).',
-              style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+          ),
+          AppTextField(
+            controller: _longitudeController,
+            label: 'Długość geograficzna',
+            hint: 'opcjonalnie, np. 21.0122',
+            keyboardType: const TextInputType.numberWithOptions(
+              decimal: true,
+              signed: true,
             ),
-            const SizedBox(height: 12),
-            _SellerFormField(controller: _nameController, label: 'Nazwa / gospodarstwo *'),
-            _SellerFormField(
-              controller: _descriptionController,
-              label: 'Opis',
-              maxLines: 3,
-            ),
-            _SellerFormField(
-              controller: _emailController,
-              label: 'E-mail',
-              keyboardType: TextInputType.emailAddress,
-            ),
-            _SellerFormField(
-              controller: _phoneController,
-              label: 'Telefon',
-              keyboardType: TextInputType.phone,
-            ),
-            _SellerFormField(
-              controller: _qualityController,
-              label: 'Opis jakości / certyfikaty',
-              maxLines: 2,
-            ),
-            _SellerFormField(
-              controller: _logoController,
-              label: 'logo_image (URL lub ścieżka)',
-              hint: 'opcjonalnie',
-            ),
-            _SellerFormField(
-              controller: _coverController,
-              label: 'cover_image (URL lub ścieżka)',
-              hint: 'opcjonalnie',
-            ),
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              title: const Text('Odbiór osobisty'),
-              value: _pickup,
-              onChanged: (v) => setState(() => _pickup = v),
-            ),
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              title: const Text('Wysyłka'),
-              value: _shipping,
-              onChanged: (v) => setState(() => _shipping = v),
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              'Lokalizacja',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: AppColors.textPrimary,
-              ),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Zapis do tabeli seller_locations z seller_id = nowy rekord sellers.',
-              style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
-            ),
-            const SizedBox(height: 12),
-            _SellerFormField(controller: _addressController, label: 'Adres *'),
-            _SellerFormField(controller: _cityController, label: 'Miasto *'),
-            _SellerFormField(controller: _postalCodeController, label: 'Kod pocztowy *'),
-            _SellerFormField(controller: _countryController, label: 'Kraj *'),
-            _SellerFormField(
-              controller: _latitudeController,
-              label: 'Szerokość (latitude)',
-              hint: 'opcjonalnie, np. 52.2297',
-              keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
-            ),
-            _SellerFormField(
-              controller: _longitudeController,
-              label: 'Długość (longitude)',
-              hint: 'opcjonalnie, np. 21.0122',
-              keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
-            ),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton(
-                onPressed: _isSaving ? null : _submit,
-                child: _isSaving
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Text('Zapisz sprzedawcę i lokalizację'),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _SellerFormField extends StatelessWidget {
-  const _SellerFormField({
-    required this.controller,
-    required this.label,
-    this.hint,
-    this.maxLines = 1,
-    this.keyboardType,
-  });
-
-  final TextEditingController controller;
-  final String label;
-  final String? hint;
-  final int maxLines;
-  final TextInputType? keyboardType;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: TextField(
-        controller: controller,
-        maxLines: maxLines,
-        keyboardType: keyboardType,
-        decoration: InputDecoration(
-          labelText: label,
-          hintText: hint,
-          border: const OutlineInputBorder(),
-          isDense: true,
-        ),
+          ),
+          const SizedBox(height: 8),
+          PrimaryActionButton(
+            label: _isSaving ? 'Zapisywanie…' : 'Zapisz sprzedawcę',
+            onPressed: _isSaving ? null : _submit,
+          ),
+          const SizedBox(height: 24),
+        ],
       ),
     );
   }

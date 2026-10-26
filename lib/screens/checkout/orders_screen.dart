@@ -143,14 +143,48 @@ class OrdersScreen extends StatelessWidget {
         final item = sellerItems[j];
         final product = _productFromCartItem(item);
         widgets.add(
-          ProductTile(
-            product: product,
-            onOpenDetails: () => _openProductDetails(context, product),
-            onAddToCart: () {
-              context.read<OrdersBloc>().add(
-                OrdersAddToCartRequested(item.productId),
+          Dismissible(
+            key: ValueKey<String>('cart-item-${item.id}'),
+            direction: DismissDirection.startToEnd,
+            background: Container(
+              alignment: Alignment.centerLeft,
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              decoration: BoxDecoration(
+                color: Colors.redAccent.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(AppRadius.normal),
+              ),
+              child: const Row(
+                children: <Widget>[
+                  Icon(Icons.delete_outline, color: Colors.redAccent),
+                  SizedBox(width: 8),
+                  Text(
+                    'Usuń',
+                    style: TextStyle(
+                      color: Colors.redAccent,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            confirmDismiss: (_) async {
+              if (state.isRemovingItem) return false;
+              final bloc = context.read<OrdersBloc>();
+              bloc.add(OrdersRemoveItemRequested(item));
+              final OrdersState next = await bloc.stream.firstWhere(
+                (OrdersState s) => !s.isRemovingItem,
               );
+              return !next.cartItems.any((CartItem x) => x.id == item.id);
             },
+            child: ProductTile(
+              product: product,
+              onOpenDetails: () => _openProductDetails(context, product),
+              onAddToCart: () {
+                context.read<OrdersBloc>().add(
+                  OrdersAddToCartRequested(item.productId),
+                );
+              },
+            ),
           ),
         );
       }
