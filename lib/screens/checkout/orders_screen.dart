@@ -142,6 +142,7 @@ class OrdersScreen extends StatelessWidget {
         if (j > 0) widgets.add(const SizedBox(height: 8));
         final item = sellerItems[j];
         final product = _productFromCartItem(item);
+        final qty = item.quantity.round().clamp(1, 99);
         widgets.add(
           Dismissible(
             key: ValueKey<String>('cart-item-${item.id}'),
@@ -168,7 +169,9 @@ class OrdersScreen extends StatelessWidget {
               ),
             ),
             confirmDismiss: (_) async {
-              if (state.isRemovingItem) return false;
+              if (state.isRemovingItem || state.isUpdatingQuantity) {
+                return false;
+              }
               final bloc = context.read<OrdersBloc>();
               bloc.add(OrdersRemoveItemRequested(item));
               final OrdersState next = await bloc.stream.firstWhere(
@@ -178,12 +181,38 @@ class OrdersScreen extends StatelessWidget {
             },
             child: ProductTile(
               product: product,
+              quantity: qty,
               onOpenDetails: () => _openProductDetails(context, product),
-              onAddToCart: () {
-                context.read<OrdersBloc>().add(
-                  OrdersAddToCartRequested(item.productId),
-                );
-              },
+              onAddToCart: state.isUpdatingQuantity
+                  ? () {}
+                  : () {
+                      context.read<OrdersBloc>().add(
+                        OrdersUpdateQuantityRequested(
+                          item: item,
+                          quantity: qty + 1,
+                        ),
+                      );
+                    },
+              onIncreaseQuantity: state.isUpdatingQuantity
+                  ? null
+                  : () {
+                      context.read<OrdersBloc>().add(
+                        OrdersUpdateQuantityRequested(
+                          item: item,
+                          quantity: qty + 1,
+                        ),
+                      );
+                    },
+              onDecreaseQuantity: state.isUpdatingQuantity
+                  ? null
+                  : () {
+                      context.read<OrdersBloc>().add(
+                        OrdersUpdateQuantityRequested(
+                          item: item,
+                          quantity: qty - 1,
+                        ),
+                      );
+                    },
             ),
           ),
         );

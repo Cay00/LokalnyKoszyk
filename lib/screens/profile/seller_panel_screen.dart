@@ -4,8 +4,11 @@ import 'package:lokalny_koszyk/core/supabase/supabase_client.dart';
 import 'package:lokalny_koszyk/core/themes/app_theme.dart';
 import 'package:lokalny_koszyk/domain/models/payment_method.dart';
 import 'package:lokalny_koszyk/screens/profile/seller/become_seller_screen.dart';
+import 'package:lokalny_koszyk/screens/profile/seller/seller_orders_screen.dart';
+import 'package:lokalny_koszyk/screens/profile/seller/seller_products_screen.dart';
 import 'package:lokalny_koszyk/widgets/common/app_notification.dart';
 import 'package:lokalny_koszyk/widgets/common/default_screen.dart';
+import 'package:lokalny_koszyk/widgets/common/menu_action_button.dart';
 
 class SellerPanelScreen extends StatefulWidget {
   const SellerPanelScreen({
@@ -396,7 +399,37 @@ class _SellerPanelScreenState extends State<SellerPanelScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (!_editing)
+              if (!_editing) ...[
+                MenuActionButton(
+                  iconAsset: 'assets/icons/package.svg',
+                  label: 'Moje ogłoszenia',
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => SellerProductsScreen(
+                          onBack: () => Navigator.of(context).pop(),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 8),
+                MenuActionButton(
+                  iconAsset: 'assets/icons/receipt.svg',
+                  label: 'Zamówienia',
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => SellerOrdersScreen(
+                          onBack: () => Navigator.of(context).pop(),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 16),
+                Text('Profil gospodarstwa', style: AppTypography.header),
+                const SizedBox(height: 8),
                 Align(
                   alignment: Alignment.centerRight,
                   child: FilledButton.tonalIcon(
@@ -404,8 +437,8 @@ class _SellerPanelScreenState extends State<SellerPanelScreen> {
                     icon: const Icon(Icons.edit_outlined, size: 20),
                     label: const Text('Edytuj'),
                   ),
-                )
-              else ...[
+                ),
+              ] else ...[
                 Row(
                   children: [
                     Expanded(

@@ -210,7 +210,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           const SizedBox(height: 8),
           MenuActionButton(
             iconAsset: 'assets/icons/barn.svg',
-            label: 'Zostań sprzedawcą',
+            label: 'Panel sprzedawcy',
             backgroundColor: AppColors.accent,
             onTap: () => _open(widget.onOpenBecomeSeller),
           ),

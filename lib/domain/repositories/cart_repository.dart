@@ -13,6 +13,12 @@ abstract class CartRepository {
     required String cartItemId,
   });
 
+  /// Ustawia absolutną ilość pozycji. Przy `quantity <= 0` usuwa pozycję.
+  Future<void> updateCartItemQuantity({
+    required String cartItemId,
+    required int quantity,
+  });
+
   Future<PlaceOrderResult> placeOrderFromCurrentCart({
     required String status,
   });

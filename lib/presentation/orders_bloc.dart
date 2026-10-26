@@ -29,6 +29,16 @@ final class OrdersAddToCartRequested extends OrdersEvent {
   final String productId;
 }
 
+final class OrdersUpdateQuantityRequested extends OrdersEvent {
+  const OrdersUpdateQuantityRequested({
+    required this.item,
+    required this.quantity,
+  });
+
+  final CartItem item;
+  final int quantity;
+}
+
 final class OrdersSellerSelectionToggled extends OrdersEvent {
   const OrdersSellerSelectionToggled(this.sellerKey);
 
@@ -39,6 +49,7 @@ class OrdersState {
   const OrdersState({
     required this.isLoadingCart,
     required this.isRemovingItem,
+    required this.isUpdatingQuantity,
     required this.cartItems,
     this.unselectedSellerKeys = const <String>{},
     this.feedbackMessage,
@@ -47,11 +58,13 @@ class OrdersState {
   factory OrdersState.initial() => const OrdersState(
     isLoadingCart: true,
     isRemovingItem: false,
+    isUpdatingQuantity: false,
     cartItems: <CartItem>[],
   );
 
   final bool isLoadingCart;
   final bool isRemovingItem;
+  final bool isUpdatingQuantity;
   final List<CartItem> cartItems;
   final Set<String> unselectedSellerKeys;
   final String? feedbackMessage;
@@ -71,6 +84,7 @@ class OrdersState {
   OrdersState copyWith({
     bool? isLoadingCart,
     bool? isRemovingItem,
+    bool? isUpdatingQuantity,
     List<CartItem>? cartItems,
     Set<String>? unselectedSellerKeys,
     Object? feedbackMessage = _unset,
@@ -78,6 +92,7 @@ class OrdersState {
     return OrdersState(
       isLoadingCart: isLoadingCart ?? this.isLoadingCart,
       isRemovingItem: isRemovingItem ?? this.isRemovingItem,
+      isUpdatingQuantity: isUpdatingQuantity ?? this.isUpdatingQuantity,
       cartItems: cartItems ?? this.cartItems,
       unselectedSellerKeys:
           unselectedSellerKeys ?? this.unselectedSellerKeys,
@@ -100,6 +115,7 @@ class OrdersBloc extends Bloc<OrdersEvent, OrdersState> {
     on<OrdersRefreshAllRequested>(_onRefreshAll);
     on<OrdersRemoveItemRequested>(_onRemoveItem);
     on<OrdersAddToCartRequested>(_onAddToCart);
+    on<OrdersUpdateQuantityRequested>(_onUpdateQuantity);
     on<OrdersSellerSelectionToggled>(_onSellerSelectionToggled);
   }
 
@@ -179,6 +195,49 @@ class OrdersBloc extends Bloc<OrdersEvent, OrdersState> {
     }
   }
 
+  Future<void> _onUpdateQuantity(
+    OrdersUpdateQuantityRequested event,
+    Emitter<OrdersState> emit,
+  ) async {
+    if (state.isUpdatingQuantity || state.isRemovingItem) return;
+    final nextQty = event.quantity;
+    emit(state.copyWith(isUpdatingQuantity: true, feedbackMessage: null));
+    try {
+      if (nextQty <= 0) {
+        await _cartRepository.removeCartItem(cartItemId: event.item.id);
+        emit(
+          state.copyWith(
+            cartItems: state.cartItems
+                .where((CartItem x) => x.id != event.item.id)
+                .toList(),
+            isUpdatingQuantity: false,
+            feedbackMessage: 'Usunięto z koszyka: ${event.item.name}',
+          ),
+        );
+        return;
+      }
+
+      await _cartRepository.updateCartItemQuantity(
+        cartItemId: event.item.id,
+        quantity: nextQty,
+      );
+      final items = await _cartRepository.getCartItemsForCurrentUser();
+      emit(
+        state.copyWith(
+          cartItems: items,
+          isUpdatingQuantity: false,
+        ),
+      );
+    } catch (e) {
+      emit(
+        state.copyWith(
+          isUpdatingQuantity: false,
+          feedbackMessage: 'Nie udało się zmienić ilości: $e',
+        ),
+      );
+    }
+  }
+
   void _onSellerSelectionToggled(
     OrdersSellerSelectionToggled event,
     Emitter<OrdersState> emit,
@@ -196,7 +255,9 @@ String orderStatusLabel(String rawStatus) {
     case 'placed':
       return 'Złożone';
     case 'in_progress':
-      return 'W realizacji';
+      return 'W przygotowaniu';
+    case 'ready_for_pickup':
+      return 'Gotowe do odbioru';
     case 'rejected':
       return 'Odrzucone';
     case 'sent':
@@ -210,12 +271,24 @@ String orderStatusLabel(String rawStatus) {
   }
 }
 
+/// Statusy, które sprzedawca może ustawić przy obsłudze zamówienia.
+const List<String> sellerManageableOrderStatuses = <String>[
+  'placed',
+  'in_progress',
+  'ready_for_pickup',
+  'sent',
+  'delivered',
+  'rejected',
+];
+
 Color orderStatusColor(String rawStatus) {
   switch (rawStatus) {
     case 'placed':
       return AppColors.accent;
     case 'in_progress':
       return AppColors.accent;
+    case 'ready_for_pickup':
+      return AppColors.accentAction;
     case 'rejected':
       return Colors.redAccent;
     case 'sent':
@@ -235,6 +308,8 @@ String orderStatusIcon(String rawStatus) {
       return 'assets/icons/receipt.svg';
     case 'in_progress':
       return 'assets/icons/clock-countdown.svg';
+    case 'ready_for_pickup':
+      return 'assets/icons/package.svg';
     case 'rejected':
       return 'assets/icons/question.svg';
     case 'sent':

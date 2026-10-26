@@ -122,6 +122,27 @@ class SupabaseCartRepository implements CartRepository {
   }
 
   @override
+  Future<void> updateCartItemQuantity({
+    required String cartItemId,
+    required int quantity,
+  }) async {
+    if (cartItemId.trim().isEmpty) {
+      throw ArgumentError.value(
+        cartItemId,
+        'cartItemId',
+        'Brak id pozycji koszyka.',
+      );
+    }
+    if (quantity <= 0) {
+      await removeCartItem(cartItemId: cartItemId);
+      return;
+    }
+    await _supabase.from(_cartItemsTable).update(<String, dynamic>{
+      'quantity': quantity,
+    }).eq('id', cartItemId);
+  }
+
+  @override
   Future<PlaceOrderResult> placeOrderFromCurrentCart({required String status}) async {
     final user = _supabase.auth.currentUser;
     if (user == null || user.id.isEmpty) {

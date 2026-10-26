@@ -41,6 +41,12 @@ class _FakeCartRepository implements CartRepository {
   Future<void> removeCartItem({required String cartItemId}) async {}
 
   @override
+  Future<void> updateCartItemQuantity({
+    required String cartItemId,
+    required int quantity,
+  }) async {}
+
+  @override
   Future<PlaceOrderResult> placeOrderFromCurrentCart({
     required String status,
   }) async {

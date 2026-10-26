@@ -12,3 +12,12 @@ double plnFromPennies(int grosze) => grosze / 100.0;
 String plnCommaStringFromPennies(int grosze) {
   return plnFromPennies(grosze).toStringAsFixed(2).replaceAll('.', ',');
 }
+
+/// Parsuje wpis użytkownika („12,99” / „12.99”) → grosze; `null` gdy niepoprawne.
+int? penniesFromPlnInput(String text) {
+  final normalized = text.trim().replaceAll(',', '.');
+  if (normalized.isEmpty) return null;
+  final value = double.tryParse(normalized);
+  if (value == null || value < 0) return null;
+  return (value * 100).round();
+}

@@ -10,17 +10,23 @@ class QuantitySelector extends StatelessWidget {
     this.onDecrease,
     this.minQuantity = 1,
     this.maxQuantity = 99,
+    this.buttonSize = defaultButtonSize,
+    this.iconSize = defaultIconSize,
+    this.quantityWidth = defaultQuantityWidth,
   });
 
-  static const double buttonSize = 50;
-  static const double iconSize = 22;
-  static const double quantityWidth = 40;
+  static const double defaultButtonSize = 50;
+  static const double defaultIconSize = 22;
+  static const double defaultQuantityWidth = 40;
 
   final int quantity;
   final VoidCallback? onIncrease;
   final VoidCallback? onDecrease;
   final int minQuantity;
   final int maxQuantity;
+  final double buttonSize;
+  final double iconSize;
+  final double quantityWidth;
 
   @override
   Widget build(BuildContext context) {
@@ -33,6 +39,8 @@ class QuantitySelector extends StatelessWidget {
         _QuantityCircleButton(
           icon: Icons.remove,
           filled: false,
+          size: buttonSize,
+          iconSize: iconSize,
           onPressed: canDecrease ? onDecrease : null,
         ),
         SizedBox(
@@ -40,12 +48,16 @@ class QuantitySelector extends StatelessWidget {
           child: Text(
             '$quantity',
             textAlign: TextAlign.center,
-            style: AppTypography.header,
+            style: AppTypography.header.copyWith(
+              fontSize: buttonSize <= 40 ? 16 : null,
+            ),
           ),
         ),
         _QuantityCircleButton(
           icon: Icons.add,
           filled: true,
+          size: buttonSize,
+          iconSize: iconSize,
           onPressed: canIncrease ? onIncrease : null,
         ),
       ],
@@ -57,18 +69,22 @@ class _QuantityCircleButton extends StatelessWidget {
   const _QuantityCircleButton({
     required this.icon,
     required this.filled,
+    required this.size,
+    required this.iconSize,
     required this.onPressed,
   });
 
   final IconData icon;
   final bool filled;
+  final double size;
+  final double iconSize;
   final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: QuantitySelector.buttonSize,
-      height: QuantitySelector.buttonSize,
+      width: size,
+      height: size,
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
@@ -117,7 +133,7 @@ class _QuantityCircleButton extends StatelessWidget {
         ),
         child: Icon(
           icon,
-          size: QuantitySelector.iconSize,
+          size: iconSize,
           color: onPressed != null
               ? AppColors.textPrimary
               : filled

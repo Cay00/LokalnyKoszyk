@@ -1,6 +1,7 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:lokalny_koszyk/presentation/models/product_ui_model.dart';
 import 'package:lokalny_koszyk/widgets/common/add_to_cart_icon_button.dart';
+import 'package:lokalny_koszyk/widgets/common/quantity_selector.dart';
 
 import '../../core/themes/app_theme.dart';
 
@@ -12,16 +13,35 @@ class ProductTile extends StatelessWidget {
     required this.product,
     required this.onOpenDetails,
     required this.onAddToCart,
+    this.quantity,
+    this.onIncreaseQuantity,
+    this.onDecreaseQuantity,
   });
 
   final ProductData product;
   final VoidCallback onOpenDetails;
   final VoidCallback onAddToCart;
+  final int? quantity;
+  final VoidCallback? onIncreaseQuantity;
+  final VoidCallback? onDecreaseQuantity;
 
   static const double _height = 120;
   static const double _edgePad = 8;
   static const double _lineGap = 8;
   static const double _producerToSizeGap = _lineGap * 2;
+  static const double _actionsGap = 6;
+  static const double _quantityNumberWidth = 28;
+
+  bool get _hasQuantityControls => quantity != null;
+
+  double get _trailingActionsWidth {
+    if (!_hasQuantityControls) return AddToCartIconButton.size;
+    // [-] + number + [+] + gap + cart
+    return AddToCartIconButton.size * 2 +
+        _quantityNumberWidth +
+        _actionsGap +
+        AddToCartIconButton.size;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -64,10 +84,10 @@ class ProductTile extends StatelessWidget {
                 ),
                 Expanded(
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(
+                    padding: EdgeInsets.fromLTRB(
                       16,
                       16,
-                      _edgePad + AddToCartIconButton.size,
+                      _edgePad + _trailingActionsWidth,
                       16,
                     ),
                     child: Column(
@@ -132,7 +152,28 @@ class ProductTile extends StatelessWidget {
             Positioned(
               right: _edgePad,
               bottom: _edgePad,
-              child: AddToCartIconButton(onPressed: onAddToCart),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  if (_hasQuantityControls) ...<Widget>[
+                    GestureDetector(
+                      onTap: () {},
+                      child: QuantitySelector(
+                        quantity: quantity!,
+                        minQuantity: 1,
+                        maxQuantity: 99,
+                        buttonSize: AddToCartIconButton.size,
+                        iconSize: 18,
+                        quantityWidth: _quantityNumberWidth,
+                        onIncrease: onIncreaseQuantity,
+                        onDecrease: onDecreaseQuantity,
+                      ),
+                    ),
+                    const SizedBox(width: _actionsGap),
+                  ],
+                  AddToCartIconButton(onPressed: onAddToCart),
+                ],
+              ),
             ),
           ],
         ),
