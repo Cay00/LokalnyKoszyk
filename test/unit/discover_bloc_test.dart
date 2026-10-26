@@ -52,6 +52,7 @@ Product _product({
   required String id,
   String categoryId = 'cat-a',
   String name = 'Produkt',
+  double? distanceMeters,
 }) {
   return Product(
     id: id,
@@ -63,6 +64,7 @@ Product _product({
     rating: '5.0',
     reviews: '1',
     categoryId: categoryId,
+    distanceMeters: distanceMeters,
   );
 }
 
@@ -153,6 +155,41 @@ void main() {
           (DiscoverState s) =>
               s.activeCategoryId == null && s.visibleProducts.length == 2,
         ),
+      ),
+    );
+    await bloc.close();
+  });
+
+  test('filters products by distance', () async {
+    final products = <Product>[
+      _product(id: 'near', distanceMeters: 5 * 1000),
+      _product(id: 'far', distanceMeters: 80 * 1000),
+      _product(id: 'unknown'),
+    ];
+    final bloc = DiscoverBloc(
+      discoverRepository: _FakeDiscoverRepository(products),
+      cartRepository: cart,
+    );
+
+    bloc.add(const DiscoverLoadProductsRequested());
+    await bloc.stream.firstWhere((DiscoverState s) => !s.isLoadingProducts);
+
+    bloc.add(
+      const DiscoverFiltersApplied(
+        priceFilter: DiscoverPriceFilter.all,
+        distanceFilter: DiscoverDistanceFilter.upTo25,
+        sortOption: DiscoverSortOption.recommended,
+      ),
+    );
+    await expectLater(
+      bloc.stream,
+      emits(
+        predicate<DiscoverState>((DiscoverState s) {
+          final ids = s.visibleProducts.map((p) => p.id).toList();
+          return s.distanceFilter == DiscoverDistanceFilter.upTo25 &&
+              ids.length == 1 &&
+              ids.single == 'near';
+        }),
       ),
     );
     await bloc.close();

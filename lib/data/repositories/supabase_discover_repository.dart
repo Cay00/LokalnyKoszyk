@@ -1,4 +1,7 @@
+import 'package:geolocator/geolocator.dart';
+import 'package:lokalny_koszyk/core/formatting/distance_label.dart';
 import 'package:lokalny_koszyk/core/formatting/entity_keys.dart';
+import 'package:lokalny_koszyk/core/location/user_position.dart';
 import 'package:lokalny_koszyk/core/supabase/seller_public_lookup.dart';
 import 'package:lokalny_koszyk/data/product_from_row.dart';
 import 'package:lokalny_koszyk/domain/models/product.dart';
@@ -32,17 +35,67 @@ class SupabaseDiscoverRepository implements DiscoverRepository {
       if (raw.isNotEmpty) sellerRawIds.add(raw);
     }
     final sellerByNorm = await fetchSellerPublicByIds(sellerRawIds);
+    final locationsByNorm = await _fetchSellerLocations(sellerRawIds);
+    final userPosition = await tryGetUserPosition();
 
     return rows
         .map<Product>((Map<String, dynamic> map) {
           final sellerIdRaw = (map['seller_id'] ?? '').toString().trim();
-          final pick = sellerByNorm[normalizeUuidKey(sellerIdRaw)];
+          final sellerKey = normalizeUuidKey(sellerIdRaw);
+          final pick = sellerByNorm[sellerKey];
           final sellerName = (pick?.name.trim().isNotEmpty ?? false)
               ? pick!.name
               : 'Sprzedawca';
-          return productFromSupabaseRow(map, producer: sellerName);
+
+          double? distanceMeters;
+          var distanceLabel = '';
+          final loc = locationsByNorm[sellerKey];
+          if (userPosition != null && loc != null) {
+            distanceMeters = Geolocator.distanceBetween(
+              userPosition.latitude,
+              userPosition.longitude,
+              loc.$1,
+              loc.$2,
+            );
+            distanceLabel = formatDistanceLabelFromMeters(distanceMeters);
+          }
+
+          return productFromSupabaseRow(
+            map,
+            producer: sellerName,
+            distance: distanceLabel,
+            distanceMeters: distanceMeters,
+          );
         })
         .where((Product p) => p.id.isNotEmpty)
         .toList();
+  }
+
+  Future<Map<String, (double, double)>> _fetchSellerLocations(
+    Set<String> rawSellerIds,
+  ) async {
+    final trimmed = rawSellerIds
+        .map((String s) => s.trim())
+        .where((String s) => s.isNotEmpty)
+        .toSet();
+    if (trimmed.isEmpty) return <String, (double, double)>{};
+
+    final byNorm = <String, (double, double)>{};
+    try {
+      final rows = await _supabase
+          .from('seller_locations')
+          .select('seller_id, latitude, longitude')
+          .inFilter('seller_id', trimmed.toList());
+      if (rows is! List<dynamic>) return byNorm;
+      for (final dynamic row in rows) {
+        final map = Map<String, dynamic>.from(row as Map);
+        final key = normalizeUuidKey((map['seller_id'] ?? '').toString());
+        final lat = (map['latitude'] as num?)?.toDouble();
+        final lon = (map['longitude'] as num?)?.toDouble();
+        if (key.isEmpty || lat == null || lon == null) continue;
+        byNorm[key] = (lat, lon);
+      }
+    } catch (_) {}
+    return byNorm;
   }
 }

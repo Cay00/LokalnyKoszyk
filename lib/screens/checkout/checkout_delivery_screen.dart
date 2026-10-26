@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lokalny_koszyk/core/supabase/profile_write.dart';
 import 'package:lokalny_koszyk/core/supabase/supabase_client.dart';
 import 'package:lokalny_koszyk/core/themes/app_theme.dart';
 import 'package:lokalny_koszyk/presentation/checkout_bloc.dart';
@@ -83,12 +84,9 @@ class _CheckoutDeliveryScreenState extends State<CheckoutDeliveryScreen> {
           meta['default_address'] = address;
           await supabase.auth.updateUser(UserAttributes(data: meta));
           try {
-            await supabase.from('profiles').upsert(
-              <String, dynamic>{
-                'id': user.id,
-                'default_address': address,
-              },
-              onConflict: 'id',
+            await syncOwnProfileRow(
+              userId: user.id,
+              fields: <String, dynamic>{'default_address': address},
             );
           } catch (_) {}
         } catch (_) {}

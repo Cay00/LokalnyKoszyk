@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'package:lokalny_koszyk/core/supabase/profile_write.dart';
 import 'package:lokalny_koszyk/core/supabase/supabase_client.dart';
 import 'package:lokalny_koszyk/core/themes/app_theme.dart';
 import 'package:lokalny_koszyk/widgets/common/app_notification.dart';
+import 'package:lokalny_koszyk/widgets/common/app_text_field.dart';
 import 'package:lokalny_koszyk/widgets/common/default_screen.dart';
+import 'package:lokalny_koszyk/widgets/common/primary_action_button.dart';
 
 class AddressesScreen extends StatefulWidget {
   const AddressesScreen({
@@ -79,21 +82,22 @@ class _AddressesScreenState extends State<AddressesScreen> {
       await supabase.auth.updateUser(UserAttributes(data: existingMeta));
 
       try {
-        await supabase.from('profiles').upsert(
-          <String, dynamic>{
-            'id': user.id,
+        await syncOwnProfileRow(
+          userId: user.id,
+          fields: <String, dynamic>{
             'default_address': address.isEmpty ? null : address,
           },
-          onConflict: 'id',
         );
       } catch (_) {
-        // Kolumna może nie istnieć przed migracją sql/supabase_extensions.sql
+        // Kolumna / RLS — sql/supabase_extensions.sql
       }
 
       if (!mounted) return;
       showAppNotification(
         context,
-        address.isEmpty ? 'Usunięto adres domyślny.' : 'Zapisano adres domyślny.',
+        address.isEmpty
+            ? 'Usunięto adres domyślny.'
+            : 'Zapisano adres domyślny.',
       );
     } catch (e) {
       if (!mounted) return;
@@ -109,50 +113,33 @@ class _AddressesScreenState extends State<AddressesScreen> {
       title: 'Adresy dostawy',
       onBack: widget.onBack,
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(
+              child: CircularProgressIndicator(color: AppColors.accentAction),
+            )
           : ListView(
               padding: DefaultScreen.bodyPadding(context),
               children: <Widget>[
-                const Text(
-                  'Adres domyślny',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
+                Text('Adres domyślny', style: AppTypography.header),
                 const SizedBox(height: 8),
-                const Text(
+                Text(
                   'Używany przy składaniu zamówień z dostawą.',
-                  style: TextStyle(
-                    fontSize: 13,
+                  style: AppTypography.normal.copyWith(
                     color: AppColors.textSecondary,
+                    height: 1.35,
                   ),
                 ),
-                const SizedBox(height: 12),
-                TextField(
+                const SizedBox(height: 16),
+                AppTextField(
                   controller: _addressController,
+                  label: 'Adres',
+                  hint: 'ulica, numer, kod, miasto',
                   maxLines: 4,
                   textCapitalization: TextCapitalization.sentences,
-                  decoration: const InputDecoration(
-                    labelText: 'Ulica, numer, kod, miasto',
-                    border: OutlineInputBorder(),
-                    alignLabelWithHint: true,
-                  ),
                 ),
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton(
-                    onPressed: _saving ? null : _save,
-                    child: _saving
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Text('Zapisz adres'),
-                  ),
+                const SizedBox(height: 8),
+                PrimaryActionButton(
+                  label: _saving ? 'Zapisywanie…' : 'Zapisz adres',
+                  onPressed: _saving ? null : _save,
                 ),
               ],
             ),

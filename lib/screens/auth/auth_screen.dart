@@ -7,6 +7,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:lokalny_koszyk/core/supabase/auth_error_message.dart';
 import 'package:lokalny_koszyk/core/supabase/profile_bootstrap.dart';
 import 'package:lokalny_koszyk/core/supabase/supabase_client.dart';
+import 'package:lokalny_koszyk/core/supabase/supabase_config.dart';
 import 'package:lokalny_koszyk/core/themes/app_theme.dart';
 import 'package:lokalny_koszyk/widgets/common/app_notification.dart';
 
@@ -200,7 +201,10 @@ class _AuthScreenState extends State<AuthScreen> {
 
     setState(() => _loading = true);
     try {
-      await supabase.auth.resetPasswordForEmail(email);
+      await supabase.auth.resetPasswordForEmail(
+        email,
+        redirectTo: kIsWeb ? null : SupabaseConfig.passwordResetRedirectTo,
+      );
       if (!mounted) return;
       _showSnack('Jeśli konto istnieje, wyślemy link do resetu hasła.');
     } on AuthException catch (e) {

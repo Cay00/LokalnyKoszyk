@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'profile_write.dart';
 import 'supabase_client.dart';
 
 /// Dopina brakujący wiersz w `public.profiles` dla użytkownika z Auth.
@@ -15,30 +16,29 @@ class ProfileBootstrap {
     final userId = user.id;
     if (userId.isEmpty) return;
 
-    final existing = await supabase
-        .from(_table)
-        .select('id')
-        .eq('id', userId)
-        .maybeSingle();
-    if (existing != null) return;
+    try {
+      final existing = await supabase
+          .from(_table)
+          .select('id')
+          .eq('id', userId)
+          .maybeSingle();
+      if (existing != null) return;
+    } catch (_) {
+      // Brak SELECT policy — spróbuj dopisać wiersz poniżej.
+    }
 
     final metaName = user.userMetadata?['name'];
     final displayName = metaName is String && metaName.trim().isNotEmpty
         ? metaName.trim()
-        : _fallbackName(user.email);
+        : 'Użytkownik';
 
-    await supabase.from(_table).upsert(
-      <String, dynamic>{
-        'id': userId,
-        'full_name': displayName,
-      },
-      onConflict: 'id',
-    );
-  }
-
-  static String _fallbackName(String? email) {
-    if (email == null || email.trim().isEmpty) return 'Użytkownik';
-    final local = email.split('@').first.trim();
-    return local.isEmpty ? 'Użytkownik' : local;
+    try {
+      await syncOwnProfileRow(
+        userId: userId,
+        fields: <String, dynamic>{'full_name': displayName},
+      );
+    } catch (_) {
+      // RLS / trigger — koszyk może wymagać ręcznego dopięcia profilu w SQL.
+    }
   }
 }

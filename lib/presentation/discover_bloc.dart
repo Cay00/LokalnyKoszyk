@@ -29,8 +29,43 @@ enum DiscoverPriceFilter {
   }
 }
 
+enum DiscoverDistanceFilter {
+  all('Dowolna'),
+  upTo10('do 10 km'),
+  upTo25('do 25 km'),
+  upTo50('do 50 km'),
+  upTo100('do 100 km');
+
+  const DiscoverDistanceFilter(this.label);
+  final String label;
+
+  /// Maksymalny dystans w metrach; `null` = bez limitu.
+  double? get maxMeters {
+    switch (this) {
+      case DiscoverDistanceFilter.all:
+        return null;
+      case DiscoverDistanceFilter.upTo10:
+        return 10 * 1000;
+      case DiscoverDistanceFilter.upTo25:
+        return 25 * 1000;
+      case DiscoverDistanceFilter.upTo50:
+        return 50 * 1000;
+      case DiscoverDistanceFilter.upTo100:
+        return 100 * 1000;
+    }
+  }
+
+  bool matches(double? distanceMeters) {
+    final max = maxMeters;
+    if (max == null) return true;
+    if (distanceMeters == null) return false;
+    return distanceMeters <= max;
+  }
+}
+
 enum DiscoverSortOption {
   recommended('Polecane'),
+  distanceAsc('Odległość: rosnąco'),
   priceAsc('Cena: rosnąco'),
   priceDesc('Cena: malejąco'),
   nameAsc('Nazwa: A–Z');
@@ -80,10 +115,12 @@ final class DiscoverSortOptionChanged extends DiscoverEvent {
 final class DiscoverFiltersApplied extends DiscoverEvent {
   const DiscoverFiltersApplied({
     required this.priceFilter,
+    required this.distanceFilter,
     required this.sortOption,
   });
 
   final DiscoverPriceFilter priceFilter;
+  final DiscoverDistanceFilter distanceFilter;
   final DiscoverSortOption sortOption;
 }
 
@@ -93,6 +130,7 @@ class DiscoverState {
   const DiscoverState({
     required this.activeCategoryId,
     required this.priceFilter,
+    required this.distanceFilter,
     required this.sortOption,
     required this.searchQuery,
     required this.isAddingToCart,
@@ -105,6 +143,7 @@ class DiscoverState {
   factory DiscoverState.initial() => const DiscoverState(
     activeCategoryId: null,
     priceFilter: DiscoverPriceFilter.all,
+    distanceFilter: DiscoverDistanceFilter.all,
     sortOption: DiscoverSortOption.recommended,
     searchQuery: '',
     isAddingToCart: false,
@@ -115,6 +154,7 @@ class DiscoverState {
 
   final String? activeCategoryId;
   final DiscoverPriceFilter priceFilter;
+  final DiscoverDistanceFilter distanceFilter;
   final DiscoverSortOption sortOption;
   final String searchQuery;
   final bool isAddingToCart;
@@ -125,6 +165,7 @@ class DiscoverState {
 
   bool get hasActiveFilters =>
       priceFilter != DiscoverPriceFilter.all ||
+      distanceFilter != DiscoverDistanceFilter.all ||
       sortOption != DiscoverSortOption.recommended;
 
   List<ProductUiModel> get visibleProducts {
@@ -134,6 +175,7 @@ class DiscoverState {
         return false;
       }
       if (!priceFilter.matches(parsePriceLabel(p.price))) return false;
+      if (!distanceFilter.matches(p.distanceMeters)) return false;
       if (query.isEmpty) return true;
       return p.name.toLowerCase().contains(query) ||
           p.producer.toLowerCase().contains(query);
@@ -141,6 +183,16 @@ class DiscoverState {
 
     switch (sortOption) {
       case DiscoverSortOption.recommended:
+        return filtered;
+      case DiscoverSortOption.distanceAsc:
+        filtered.sort((ProductUiModel a, ProductUiModel b) {
+          final da = a.distanceMeters;
+          final db = b.distanceMeters;
+          if (da == null && db == null) return 0;
+          if (da == null) return 1;
+          if (db == null) return -1;
+          return da.compareTo(db);
+        });
         return filtered;
       case DiscoverSortOption.priceAsc:
         filtered.sort(
@@ -180,6 +232,7 @@ class DiscoverState {
   DiscoverState copyWith({
     Object? activeCategoryId = _unset,
     DiscoverPriceFilter? priceFilter,
+    DiscoverDistanceFilter? distanceFilter,
     DiscoverSortOption? sortOption,
     String? searchQuery,
     bool? isAddingToCart,
@@ -193,6 +246,7 @@ class DiscoverState {
           ? this.activeCategoryId
           : activeCategoryId as String?,
       priceFilter: priceFilter ?? this.priceFilter,
+      distanceFilter: distanceFilter ?? this.distanceFilter,
       sortOption: sortOption ?? this.sortOption,
       searchQuery: searchQuery ?? this.searchQuery,
       isAddingToCart: isAddingToCart ?? this.isAddingToCart,
@@ -421,10 +475,22 @@ class DiscoverBloc extends Bloc<DiscoverEvent, DiscoverState> {
     DiscoverFiltersApplied event,
     Emitter<DiscoverState> emit,
   ) {
+    String? feedback;
+    if (event.distanceFilter != DiscoverDistanceFilter.all) {
+      final hasAnyDistance = state.products.any(
+        (ProductUiModel p) => p.distanceMeters != null,
+      );
+      if (!hasAnyDistance) {
+        feedback =
+            'Brak danych o odległości. Włącz lokalizację i odśwież listę.';
+      }
+    }
     emit(
       state.copyWith(
         priceFilter: event.priceFilter,
+        distanceFilter: event.distanceFilter,
         sortOption: event.sortOption,
+        feedbackMessage: feedback,
       ),
     );
   }

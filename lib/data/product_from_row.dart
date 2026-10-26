@@ -5,6 +5,8 @@ Product productFromSupabaseRow(
   Map<String, dynamic> map, {
   required String producer,
   String? sellerId,
+  String distance = '',
+  double? distanceMeters,
 }) {
   final sellerIdRaw = (sellerId ?? map['seller_id'] ?? '').toString().trim();
   final rawCategoryId = map['category_id']?.toString().trim();
@@ -19,7 +21,8 @@ Product productFromSupabaseRow(
     producer: producer,
     price: plnCommaStringFromPennies(parsePennies(map['price_gross_amount'])),
     unit: '/ ${rawUnit.replaceAll('_', ' ')}',
-    distance: '',
+    distance: distance,
+    distanceMeters: distanceMeters,
     rating: ratingNum.toStringAsFixed(1),
     reviews: reviewsCount.toString(),
     sellerId: sellerIdRaw.isEmpty ? null : sellerIdRaw,

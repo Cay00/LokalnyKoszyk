@@ -19,6 +19,7 @@ class ProductUiModel {
     this.unitKey,
     this.packageQuantity,
     this.categoryId,
+    this.distanceMeters,
   });
 
   factory ProductUiModel.fromDomain(Product product) {
@@ -29,6 +30,7 @@ class ProductUiModel {
       price: product.price,
       unit: product.unit,
       distance: product.distance,
+      distanceMeters: product.distanceMeters,
       rating: product.rating,
       reviews: product.reviews,
       bgColor: AppColors.background,
@@ -53,6 +55,7 @@ class ProductUiModel {
   final String? unitKey;
   final double? packageQuantity;
   final String? categoryId;
+  final double? distanceMeters;
 
   ProductUnit? get productUnit {
     final key = unitKey;

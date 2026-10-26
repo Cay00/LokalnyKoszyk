@@ -6,14 +6,25 @@ import 'package:lokalny_koszyk/widgets/app_bottom_navigation_bar.dart';
 import 'package:lokalny_koszyk/widgets/common/app_toggle_row.dart';
 import 'package:lokalny_koszyk/widgets/common/primary_action_button.dart';
 
-Future<({DiscoverPriceFilter price, DiscoverSortOption sort})?>
+Future<
+  ({
+    DiscoverPriceFilter price,
+    DiscoverDistanceFilter distance,
+    DiscoverSortOption sort,
+  })?
+>
 showDiscoverFilterSheet({
   required BuildContext context,
   required DiscoverPriceFilter priceFilter,
+  required DiscoverDistanceFilter distanceFilter,
   required DiscoverSortOption sortOption,
 }) {
   return showModalBottomSheet<
-    ({DiscoverPriceFilter price, DiscoverSortOption sort})
+    ({
+      DiscoverPriceFilter price,
+      DiscoverDistanceFilter distance,
+      DiscoverSortOption sort,
+    })
   >(
     context: context,
     isScrollControlled: true,
@@ -25,6 +36,7 @@ showDiscoverFilterSheet({
     builder: (BuildContext context) {
       return _DiscoverFilterSheetBody(
         initialPrice: priceFilter,
+        initialDistance: distanceFilter,
         initialSort: sortOption,
       );
     },
@@ -34,10 +46,12 @@ showDiscoverFilterSheet({
 class _DiscoverFilterSheetBody extends StatefulWidget {
   const _DiscoverFilterSheetBody({
     required this.initialPrice,
+    required this.initialDistance,
     required this.initialSort,
   });
 
   final DiscoverPriceFilter initialPrice;
+  final DiscoverDistanceFilter initialDistance;
   final DiscoverSortOption initialSort;
 
   @override
@@ -47,6 +61,7 @@ class _DiscoverFilterSheetBody extends StatefulWidget {
 
 class _DiscoverFilterSheetBodyState extends State<_DiscoverFilterSheetBody> {
   late DiscoverPriceFilter _price = widget.initialPrice;
+  late DiscoverDistanceFilter _distance = widget.initialDistance;
   late DiscoverSortOption _sort = widget.initialSort;
 
   @override
@@ -94,6 +109,21 @@ class _DiscoverFilterSheetBodyState extends State<_DiscoverFilterSheetBody> {
                     );
                   }),
                   const SizedBox(height: 8),
+                  Text('Odległość', style: AppTypography.normalBold),
+                  const SizedBox(height: 8),
+                  ...DiscoverDistanceFilter.values.map((
+                    DiscoverDistanceFilter filter,
+                  ) {
+                    return AppSelectTile<DiscoverDistanceFilter>(
+                      value: filter,
+                      groupValue: _distance,
+                      label: filter.label,
+                      onChanged: (DiscoverDistanceFilter v) {
+                        setState(() => _distance = v);
+                      },
+                    );
+                  }),
+                  const SizedBox(height: 8),
                   Text('Sortowanie', style: AppTypography.normalBold),
                   const SizedBox(height: 8),
                   ...DiscoverSortOption.values.map((
@@ -115,7 +145,11 @@ class _DiscoverFilterSheetBodyState extends State<_DiscoverFilterSheetBody> {
             PrimaryActionButton(
               label: 'Zastosuj',
               onPressed: () {
-                Navigator.of(context).pop((price: _price, sort: _sort));
+                Navigator.of(context).pop((
+                  price: _price,
+                  distance: _distance,
+                  sort: _sort,
+                ));
               },
             ),
           ],

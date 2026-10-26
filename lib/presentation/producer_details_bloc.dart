@@ -125,8 +125,14 @@ class ProducerDetailsBloc
           errorText: null,
         ),
       );
-      final distanceLabel = await _repository.buildDistanceLabel(data.profile);
-      emit(state.copyWith(distanceLabel: distanceLabel));
+      try {
+        final distanceLabel = await _repository.buildDistanceLabel(
+          data.profile,
+        );
+        emit(state.copyWith(distanceLabel: distanceLabel));
+      } catch (_) {
+        emit(state.copyWith(distanceLabel: 'brak danych'));
+      }
     } catch (e) {
       emit(
         state.copyWith(

@@ -7,11 +7,12 @@ import 'package:lokalny_koszyk/widgets/common/screen_header.dart';
 class DiscoverHeader extends StatefulWidget {
   const DiscoverHeader({
     super.key,
-    this.locationName = 'Green Valley Point',
+    this.locationName = '',
     this.onNotificationsTap,
     this.onSearchChanged,
   });
 
+  /// Nazwa / adres miejsca dostawy (ucinany do max. ½ szerokości ekranu).
   final String locationName;
   final VoidCallback? onNotificationsTap;
   final ValueChanged<String>? onSearchChanged;
@@ -89,68 +90,80 @@ class _DiscoverHeaderState extends State<DiscoverHeader>
                     opacity: (1 - t).clamp(0.0, 1.0),
                     child: IgnorePointer(
                       ignoring: t > 0.05,
-                      child: Row(
-                        children: <Widget>[
-                          ScreenHeaderButton(
-                            child: SvgPicture.asset(
-                              'assets/icons/map-pin-area.svg',
-                              width: 24,
-                              height: 24,
-                              colorFilter: const ColorFilter.mode(
-                                AppColors.textPrimary,
-                                BlendMode.srcIn,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: <Widget>[
-                                Text(
-                                  'Delivery location',
-                                  style: AppTypography.caption,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
+                      child: Builder(
+                        builder: (BuildContext context) {
+                          final double halfScreen =
+                              MediaQuery.sizeOf(context).width / 2;
+                          final String place = widget.locationName.trim();
+                          return Row(
+                            children: <Widget>[
+                              ScreenHeaderButton(
+                                child: SvgPicture.asset(
+                                  'assets/icons/map-pin-area.svg',
+                                  width: 24,
+                                  height: 24,
+                                  colorFilter: const ColorFilter.mode(
+                                    AppColors.textPrimary,
+                                    BlendMode.srcIn,
+                                  ),
                                 ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  widget.locationName,
-                                  style: AppTypography.normalBold,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(width: 8),
+                              ConstrainedBox(
+                                constraints: BoxConstraints(
+                                  maxWidth: halfScreen,
                                 ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          ScreenHeaderButton(
-                            onPressed: _openSearch,
-                            child: SvgPicture.asset(
-                              'assets/icons/magnifying-glass.svg',
-                              width: 24,
-                              height: 24,
-                              colorFilter: const ColorFilter.mode(
-                                AppColors.textPrimary,
-                                BlendMode.srcIn,
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: <Widget>[
+                                    Text(
+                                      'Miejsce dostawy',
+                                      style: AppTypography.caption,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      place.isEmpty ? 'Brak adresu' : place,
+                                      style: AppTypography.normalBold,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      softWrap: false,
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          ScreenHeaderButton(
-                            onPressed: widget.onNotificationsTap,
-                            child: SvgPicture.asset(
-                              'assets/icons/bell.svg',
-                              width: 24,
-                              height: 24,
-                              colorFilter: const ColorFilter.mode(
-                                AppColors.textPrimary,
-                                BlendMode.srcIn,
+                              const Spacer(),
+                              const SizedBox(width: 8),
+                              ScreenHeaderButton(
+                                onPressed: _openSearch,
+                                child: SvgPicture.asset(
+                                  'assets/icons/magnifying-glass.svg',
+                                  width: 24,
+                                  height: 24,
+                                  colorFilter: const ColorFilter.mode(
+                                    AppColors.textPrimary,
+                                    BlendMode.srcIn,
+                                  ),
+                                ),
                               ),
-                            ),
-                          ),
-                        ],
+                              const SizedBox(width: 8),
+                              ScreenHeaderButton(
+                                onPressed: widget.onNotificationsTap,
+                                child: SvgPicture.asset(
+                                  'assets/icons/bell.svg',
+                                  width: 24,
+                                  height: 24,
+                                  colorFilter: const ColorFilter.mode(
+                                    AppColors.textPrimary,
+                                    BlendMode.srcIn,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          );
+                        },
                       ),
                     ),
                   ),

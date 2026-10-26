@@ -6,6 +6,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:lokalny_koszyk/core/supabase/profile_bootstrap.dart';
 import 'package:lokalny_koszyk/core/supabase/supabase_client.dart';
 import 'package:lokalny_koszyk/screens/auth/auth_screen.dart';
+import 'package:lokalny_koszyk/screens/auth/reset_password_screen.dart';
 
 class AuthGate extends StatefulWidget {
   const AuthGate({
@@ -21,6 +22,7 @@ class AuthGate extends StatefulWidget {
 
 class _AuthGateState extends State<AuthGate> {
   User? _user;
+  bool _passwordRecovery = false;
   late final StreamSubscription<AuthState> _sub;
 
   @override
@@ -31,6 +33,14 @@ class _AuthGateState extends State<AuthGate> {
     _sub = supabase.auth.onAuthStateChange.listen((data) {
       final event = data.event;
       final session = data.session;
+
+      if (event == AuthChangeEvent.passwordRecovery) {
+        setState(() {
+          _user = session?.user;
+          _passwordRecovery = true;
+        });
+        return;
+      }
 
       if (event == AuthChangeEvent.signedIn ||
           event == AuthChangeEvent.tokenRefreshed ||
@@ -43,7 +53,10 @@ class _AuthGateState extends State<AuthGate> {
       }
 
       if (event == AuthChangeEvent.signedOut) {
-        setState(() => _user = null);
+        setState(() {
+          _user = null;
+          _passwordRecovery = false;
+        });
       }
     });
   }
@@ -51,6 +64,10 @@ class _AuthGateState extends State<AuthGate> {
   void _scheduleProfileBootstrap(User? user) {
     if (user == null) return;
     unawaited(ProfileBootstrap.ensureRowForAuthUser(user));
+  }
+
+  void _onPasswordResetCompleted() {
+    setState(() => _passwordRecovery = false);
   }
 
   @override
@@ -61,9 +78,11 @@ class _AuthGateState extends State<AuthGate> {
 
   @override
   Widget build(BuildContext context) {
+    if (_passwordRecovery && _user != null) {
+      return ResetPasswordScreen(onCompleted: _onPasswordResetCompleted);
+    }
     final user = _user;
     if (user == null) return const AuthScreen();
     return widget.signedInChild;
   }
 }
-

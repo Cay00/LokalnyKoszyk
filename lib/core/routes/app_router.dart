@@ -477,7 +477,7 @@ class _ProfileNavigator extends StatelessWidget {
   Widget build(BuildContext context) {
     return ProfileScreen(
       onOpenOrders: () {
-        Navigator.push(
+        return Navigator.push<void>(
           context,
           _NoAnimationPageRoute<void>(
             builder: (_) => BlocProvider(
@@ -509,7 +509,7 @@ class _ProfileNavigator extends StatelessWidget {
         );
       },
       onOpenAddresses: () {
-        Navigator.push(
+        return Navigator.push<void>(
           context,
           _NoAnimationPageRoute<void>(
             builder: (_) => AddressesScreen(
@@ -519,7 +519,7 @@ class _ProfileNavigator extends StatelessWidget {
         );
       },
       onOpenReviews: () {
-        Navigator.push(
+        return Navigator.push<void>(
           context,
           _NoAnimationPageRoute<void>(
             builder: (_) => MyReviewsScreen(
@@ -529,7 +529,7 @@ class _ProfileNavigator extends StatelessWidget {
         );
       },
       onOpenSettings: () {
-        Navigator.push(
+        return Navigator.push<void>(
           context,
           _NoAnimationPageRoute<void>(
             builder: (_) => PreferencesScreen(
@@ -539,7 +539,7 @@ class _ProfileNavigator extends StatelessWidget {
         );
       },
       onOpenHelp: () {
-        Navigator.push(
+        return Navigator.push<void>(
           context,
           _NoAnimationPageRoute<void>(
             builder: (_) => HelpScreen(
@@ -549,7 +549,7 @@ class _ProfileNavigator extends StatelessWidget {
         );
       },
       onOpenBecomeSeller: () {
-        Navigator.push(
+        return Navigator.push<void>(
           context,
           _NoAnimationPageRoute<void>(
             builder: (_) => BecomeSellerScreen(
@@ -559,7 +559,7 @@ class _ProfileNavigator extends StatelessWidget {
         );
       },
       onOpenDeveloper: () {
-        Navigator.push(
+        return Navigator.push<void>(
           context,
           _NoAnimationPageRoute<void>(
             builder: (_) => DeveloperScreen(

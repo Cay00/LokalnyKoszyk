@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lokalny_koszyk/core/supabase/supabase_client.dart';
 import 'package:lokalny_koszyk/presentation/discover_bloc.dart';
 import 'package:lokalny_koszyk/presentation/models/product_ui_model.dart';
 import 'package:lokalny_koszyk/widgets/discover/category_tile.dart';
@@ -26,6 +27,13 @@ class DiscoverScreen extends StatefulWidget {
 class _DiscoverScreenState extends State<DiscoverScreen> {
   DiscoverFulfillmentMode _fulfillmentMode = DiscoverFulfillmentMode.delivery;
   final TextEditingController _searchController = TextEditingController();
+  String _deliveryLocationName = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDeliveryLocation();
+  }
 
   @override
   void dispose() {
@@ -33,16 +41,40 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
     super.dispose();
   }
 
+  Future<void> _loadDeliveryLocation() async {
+    final user = supabase.auth.currentUser;
+    if (user == null) return;
+
+    String address = '';
+    final meta = user.userMetadata?['default_address'];
+    if (meta is String) address = meta.trim();
+
+    try {
+      final row = await supabase
+          .from('profiles')
+          .select('default_address')
+          .eq('id', user.id)
+          .maybeSingle();
+      final fromRow = (row?['default_address'] ?? '').toString().trim();
+      if (fromRow.isNotEmpty) address = fromRow;
+    } catch (_) {}
+
+    if (!mounted) return;
+    setState(() => _deliveryLocationName = address);
+  }
+
   Future<void> _openFilters(DiscoverState state) async {
     final result = await showDiscoverFilterSheet(
       context: context,
       priceFilter: state.priceFilter,
+      distanceFilter: state.distanceFilter,
       sortOption: state.sortOption,
     );
     if (!mounted || result == null) return;
     context.read<DiscoverBloc>().add(
       DiscoverFiltersApplied(
         priceFilter: result.price,
+        distanceFilter: result.distance,
         sortOption: result.sort,
       ),
     );
@@ -69,7 +101,9 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
         builder: (BuildContext context, DiscoverState state) {
           final visibleProducts = state.visibleProducts;
           return DefaultScreen(
-            header: const DiscoverHeader(),
+            header: DiscoverHeader(
+              locationName: _deliveryLocationName,
+            ),
             body: RefreshIndicator(
               onRefresh: () {
                 final bloc = context.read<DiscoverBloc>();

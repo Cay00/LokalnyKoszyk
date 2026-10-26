@@ -12,6 +12,7 @@ class Product {
     this.unitKey,
     this.packageQuantity,
     this.categoryId,
+    this.distanceMeters,
   });
 
   final String id;
@@ -26,4 +27,7 @@ class Product {
   final String? unitKey;
   final double? packageQuantity;
   final String? categoryId;
+
+  /// Surowy dystans do sprzedawcy w metrach (do filtrowania); `null` = brak danych.
+  final double? distanceMeters;
 }

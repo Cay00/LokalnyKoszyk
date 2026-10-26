@@ -1,6 +1,7 @@
 import 'package:geolocator/geolocator.dart';
 import 'package:lokalny_koszyk/core/formatting/distance_label.dart';
 import 'package:lokalny_koszyk/core/formatting/entity_keys.dart';
+import 'package:lokalny_koszyk/core/location/user_position.dart';
 import 'package:lokalny_koszyk/core/supabase/nested_row.dart';
 import 'package:lokalny_koszyk/core/supabase/seller_public_lookup.dart';
 import 'package:lokalny_koszyk/data/product_from_row.dart';
@@ -160,24 +161,9 @@ class SupabaseProducerDetailsRepository implements ProducerDetailsRepository {
     final sellerLon = seller.longitude;
     if (sellerLat == null || sellerLon == null) return 'brak danych';
 
-    final serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) return 'brak danych';
+    final userPosition = await tryGetUserPosition();
+    if (userPosition == null) return 'brak danych';
 
-    var permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-    }
-    if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
-      return 'brak danych';
-    }
-
-    Position? userPosition = await Geolocator.getLastKnownPosition();
-    userPosition ??= await Geolocator.getCurrentPosition(
-      locationSettings: const LocationSettings(accuracy: LocationAccuracy.low),
-    ).timeout(
-      const Duration(seconds: 4),
-      onTimeout: () => throw Exception('Timeout lokalizacji'),
-    );
     final distanceMeters = Geolocator.distanceBetween(
       userPosition.latitude,
       userPosition.longitude,
