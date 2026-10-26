@@ -1,30 +1,20 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:lokalny_koszyk/presentation/discover_bloc.dart';
 
-import 'package:lokalny_koszyk/main.dart';
-
+/// Smoke test pakietu — katalog kategorii jest niepusty i spójny.
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  test('category catalog has unique ids and names', () {
+    final catalog = DiscoverBloc.categoryCatalog;
+    expect(catalog, isNotEmpty);
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    final ids = catalog.map((e) => e.id).toSet();
+    final names = catalog.map((e) => e.name).toSet();
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    expect(ids.length, catalog.length);
+    expect(names.length, catalog.length);
+    for (final entry in catalog) {
+      expect(entry.iconAsset, startsWith('assets/categories/'));
+      expect(entry.iconAsset, endsWith('.svg'));
+    }
   });
 }

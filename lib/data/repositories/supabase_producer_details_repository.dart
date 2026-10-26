@@ -1,4 +1,5 @@
 import 'package:geolocator/geolocator.dart';
+import 'package:lokalny_koszyk/core/formatting/distance_label.dart';
 import 'package:lokalny_koszyk/core/formatting/entity_keys.dart';
 import 'package:lokalny_koszyk/core/supabase/nested_row.dart';
 import 'package:lokalny_koszyk/core/supabase/seller_public_lookup.dart';
@@ -164,8 +165,6 @@ class SupabaseProducerDetailsRepository implements ProducerDetailsRepository {
       sellerLat,
       sellerLon,
     );
-    final distanceKm = distanceMeters / 1000.0;
-    final roundedToFiveKm = (distanceKm / 5).round() * 5;
-    return '$roundedToFiveKm km';
+    return formatDistanceLabelFromMeters(distanceMeters);
   }
 }
