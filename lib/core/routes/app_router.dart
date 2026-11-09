@@ -29,6 +29,7 @@ import 'package:lokalny_koszyk/screens/profile/favorites_screen.dart';
 import 'package:lokalny_koszyk/screens/profile/developer_screen.dart';
 import 'package:lokalny_koszyk/screens/profile/help_screen.dart';
 import 'package:lokalny_koszyk/screens/profile/my_reviews_screen.dart';
+import 'package:lokalny_koszyk/screens/profile/notifications_screen.dart';
 import 'package:lokalny_koszyk/screens/profile/preferences_screen.dart';
 import 'package:lokalny_koszyk/screens/profile/profile_screen.dart';
 
@@ -278,6 +279,16 @@ class _DiscoverNavigator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DiscoverScreen(
+      onOpenNotifications: () {
+        Navigator.push(
+          context,
+          _NoAnimationPageRoute<void>(
+            builder: (_) => NotificationsScreen(
+              onBack: () => Navigator.pop(context),
+            ),
+          ),
+        );
+      },
       onOpenProductDetails: (product) {
         Navigator.push(
           context,

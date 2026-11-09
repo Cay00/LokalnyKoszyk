@@ -16,9 +16,14 @@ import '../../core/themes/app_theme.dart';
 import '../../widgets/common/app_notification.dart';
 
 class DiscoverScreen extends StatefulWidget {
-  const DiscoverScreen({super.key, this.onOpenProductDetails});
+  const DiscoverScreen({
+    super.key,
+    this.onOpenProductDetails,
+    this.onOpenNotifications,
+  });
 
   final ValueChanged<ProductUiModel>? onOpenProductDetails;
+  final VoidCallback? onOpenNotifications;
 
   @override
   State<DiscoverScreen> createState() => _DiscoverScreenState();
@@ -103,6 +108,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
           return DefaultScreen(
             header: DiscoverHeader(
               locationName: _deliveryLocationName,
+              onNotificationsTap: widget.onOpenNotifications,
             ),
             body: RefreshIndicator(
               onRefresh: () {

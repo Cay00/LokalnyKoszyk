@@ -36,6 +36,7 @@ class SupabaseOrdersRepository implements OrdersRepository {
 
   @override
   Future<OrderDetails> getOrderDetails(String orderId) async {
+    final userId = _supabase.auth.currentUser?.id;
     final orderRow = await _supabase
         .from('orders')
         .select('id, order_number, status, total_amount, currency')
@@ -48,8 +49,35 @@ class SupabaseOrdersRepository implements OrdersRepository {
 
     final itemRows = await _supabase
         .from('order_items')
-        .select('quantity, price, products(name, unit)')
+        .select('product_id, quantity, price, products(name, unit)')
         .eq('order_id', orderId);
+
+    final productIds = <String>[];
+    for (final dynamic row in itemRows as List<dynamic>) {
+      final map = Map<String, dynamic>.from(row as Map);
+      final pid = (map['product_id'] ?? '').toString().trim();
+      if (pid.isNotEmpty) productIds.add(pid);
+    }
+
+    final ratingsByProduct = <String, ({int rating, String? comment})>{};
+    if (userId != null && userId.isNotEmpty && productIds.isNotEmpty) {
+      final reviewRows = await _supabase
+          .from('reviews')
+          .select('product_id, rating, comment')
+          .eq('user_id', userId)
+          .inFilter('product_id', productIds);
+      for (final dynamic row in reviewRows as List<dynamic>) {
+        final map = Map<String, dynamic>.from(row as Map);
+        final pid = (map['product_id'] ?? '').toString();
+        final rating = (map['rating'] as num?)?.toInt();
+        if (pid.isEmpty || rating == null) continue;
+        ratingsByProduct[pid] = (
+          rating: rating,
+          comment: map['comment']?.toString(),
+        );
+      }
+    }
+
     final items = (itemRows as List<dynamic>).map<OrderDetailsItem>((
       dynamic row,
     ) {
@@ -59,15 +87,21 @@ class SupabaseOrdersRepository implements OrdersRepository {
           : Map<String, dynamic>.from(map['products'] as Map);
       final qty = (map['quantity'] as num?)?.toDouble() ?? 0;
       final unitPrice = plnFromPennies(parsePennies(map['price']));
+      final productId = (map['product_id'] ?? '').toString();
+      final existing = ratingsByProduct[productId];
       return OrderDetailsItem(
+        productId: productId,
         name: (productMap['name'] ?? 'Produkt').toString(),
         quantity: qty,
         unit: (productMap['unit'] ?? '').toString(),
         lineTotal: unitPrice * qty,
+        myRating: existing?.rating,
+        myComment: existing?.comment,
       );
     }).toList();
 
     return OrderDetails(
+      id: (orderMap['id'] ?? orderId).toString(),
       orderNumber: (orderMap['order_number'] ?? orderId).toString(),
       rawStatus: (orderMap['status'] ?? '').toString(),
       totalAmount: plnFromPennies(parsePennies(orderMap['total_amount'])),
